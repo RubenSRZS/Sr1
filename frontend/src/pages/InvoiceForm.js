@@ -65,29 +65,22 @@ const InvoiceForm = () => {
     }
   };
 
-  const fetchQuote = async () => {
+  const fetchInvoice = async () => {
     try {
-      const res = await axios.get(`${API}/quotes/${id}`);
-      const q = res.data;
-      setQuote(q);
+      const res = await axios.get(`${API}/invoices/${id}`);
+      const inv = res.data;
+      setInvoice(inv);
       setFormData({
-        client_id: q.client_id,
-        work_location: q.work_location,
-        work_surface: q.work_surface,
-        diagnostic: q.diagnostic || {
-          mousses: false,
-          lichens: false,
-          tuiles_cassees: false,
-          faitage: false,
-          gouttieres: false,
-          facade: false,
-        },
-        services: q.services,
-        remise: q.remise,
-        notes: q.notes || '',
+        client_id: inv.client_id,
+        work_location: inv.work_location,
+        work_surface: inv.work_surface,
+        services: inv.services,
+        remise: inv.remise,
+        acompte_paid: inv.acompte_paid,
+        notes: inv.notes || '',
       });
     } catch (error) {
-      toast.error('Erreur lors du chargement du devis');
+      toast.error('Erreur lors du chargement de la facture');
     }
   };
 
