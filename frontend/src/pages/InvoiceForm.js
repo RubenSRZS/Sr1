@@ -166,8 +166,8 @@ const InvoiceForm = () => {
   const calculateTotals = () => {
     const total_brut = formData.services.reduce((sum, s) => sum + (s.total || 0), 0);
     const total_net = total_brut - (formData.remise || 0);
-    const acompte_30 = total_net * 0.3;
-    return { total_brut, total_net, acompte_30 };
+    const reste_a_payer = total_net - (formData.acompte_paid || 0);
+    return { total_brut, total_net, reste_a_payer };
   };
 
   const handleSubmit = async (e) => {
@@ -185,13 +185,12 @@ const InvoiceForm = () => {
     setLoading(true);
     try {
       if (id) {
-        await axios.put(`${API}/quotes/${id}`, formData);
-        toast.success('Devis modifié avec succès');
+        toast.error('Modification de facture non disponible');
       } else {
-        await axios.post(`${API}/quotes`, formData);
-        toast.success('Devis créé avec succès');
+        await axios.post(`${API}/invoices`, formData);
+        toast.success('Facture créée avec succès');
       }
-      navigate('/quotes');
+      navigate('/invoices');
     } catch (error) {
       toast.error('Erreur lors de la sauvegarde');
     } finally {
@@ -200,17 +199,17 @@ const InvoiceForm = () => {
   };
 
   const handleSendEmail = async () => {
-    if (!quote) {
-      toast.error('Veuillez d\'abord enregistrer le devis');
+    if (!invoice) {
+      toast.error('Veuillez d\'abord enregistrer la facture');
       return;
     }
     
     try {
       await axios.post(`${API}/send-email`, {
-        recipient_email: quote.client_email,
-        subject: emailSubject || `Devis ${quote.quote_number}`,
-        document_id: quote.id,
-        document_type: 'quote',
+        recipient_email: invoice.client_email,
+        subject: emailSubject || `Facture ${invoice.invoice_number}`,
+        document_id: invoice.id,
+        document_type: 'invoice',
       });
       toast.success('Email envoyé avec succès');
       setShowEmailDialog(false);
@@ -220,7 +219,7 @@ const InvoiceForm = () => {
     }
   };
 
-  const { total_brut, total_net, acompte_30 } = calculateTotals();
+  const { total_brut, total_net, reste_a_payer } = calculateTotals();
 
   return (
     <div className="min-h-screen bg-slate-50">
