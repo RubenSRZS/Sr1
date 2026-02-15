@@ -15,7 +15,7 @@ import SignaturePad from '@/components/SignaturePad';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-const QuoteForm = () => {
+const InvoiceForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -30,21 +30,14 @@ const QuoteForm = () => {
     client_id: '',
     work_location: '',
     work_surface: '',
-    diagnostic: {
-      mousses: false,
-      lichens: false,
-      tuiles_cassees: false,
-      faitage: false,
-      gouttieres: false,
-      facade: false,
-    },
     services: [],
     remise: 0,
+    acompte_paid: 0,
     notes: '',
   });
 
   const [aiPrompt, setAiPrompt] = useState('');
-  const [quote, setQuote] = useState(null);
+  const [invoice, setInvoice] = useState(null);
 
   useEffect(() => {
     fetchClients();
