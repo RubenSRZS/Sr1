@@ -474,8 +474,12 @@ const InvoiceForm = () => {
                     <span className="font-bold text-2xl text-slate-900">{total_net.toFixed(2)} €</span>
                   </div>
                   <div className="flex justify-between py-2 bg-orange-50 rounded-lg px-3">
-                    <span className="text-slate-700">Acompte 30%</span>
-                    <span className="font-semibold text-orange-600">{acompte_30.toFixed(2)} €</span>
+                    <span className="text-slate-700">Acompte versé</span>
+                    <span className="font-semibold text-green-600">{formData.acompte_paid.toFixed(2)} €</span>
+                  </div>
+                  <div className="flex justify-between py-2 bg-red-50 rounded-lg px-3">
+                    <span className="font-bold text-slate-900">Reste à payer</span>
+                    <span className="font-bold text-xl text-red-600">{reste_a_payer.toFixed(2)} €</span>
                   </div>
                 </div>
 
