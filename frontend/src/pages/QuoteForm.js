@@ -627,6 +627,15 @@ const QuoteForm = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* PDF Preview */}
+      {showPDFPreview && quote && (
+        <PDFPreview
+          document={quote}
+          type="quote"
+          onClose={() => setShowPDFPreview(false)}
+        />
+      )}
     </div>
   );
 };
