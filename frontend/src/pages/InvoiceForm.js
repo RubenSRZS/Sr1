@@ -553,12 +553,12 @@ const InvoiceForm = () => {
       <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Envoyer le devis par email</DialogTitle>
+            <DialogTitle>Envoyer la facture par email</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
               <Label>Destinataire</Label>
-              <Input value={quote?.client_email || ''} readOnly className="bg-slate-100" />
+              <Input value={invoice?.client_email || ''} readOnly className="bg-slate-100" />
             </div>
             <div>
               <Label htmlFor="email-subject">Objet de l'email</Label>
@@ -566,7 +566,7 @@ const InvoiceForm = () => {
                 id="email-subject"
                 value={emailSubject}
                 onChange={(e) => setEmailSubject(e.target.value)}
-                placeholder={`Devis ${quote?.quote_number || ''}`}
+                placeholder={`Facture ${invoice?.invoice_number || ''}`}
                 data-testid="email-subject-input"
               />
             </div>
