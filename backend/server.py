@@ -521,37 +521,42 @@ async def generate_document_with_ai(input: AIGenerateRequest):
         catalog_items = await db.catalog.find({}, {"_id": 0}).to_list(1000)
         catalog_text = "\n".join([f"- {item['category']}: {item['service_name']} - {item['description']}" for item in catalog_items])
         
-        prompt = f"""Tu es un assistant spécialisé dans la génération de {input.document_type}s professionnels pour Sr-Renovation, une entreprise de rénovation.
+        prompt = f"""Tu es un assistant spécialisé dans la génération de {input.document_type}s professionnels pour Sr-Renovation, une entreprise de rénovation de toiture.
 
-Informations client :
-- Nom: {input.client_name}
-- Adresse: {input.client_address}
-- Téléphone: {input.client_phone}
-- Email: {input.client_email}
-
-Lieu des travaux: {input.work_location}
-
-Description des travaux demandés:
+TEXTE BRUT FOURNI PAR L'ARTISAN (peut contenir infos client + travaux + prix):
 {input.work_description}
 
-Catalogue de services disponibles:
+INSTRUCTIONS IMPORTANTES:
+1. EXTRAIS d'abord les informations client si présentes dans le texte (nom, adresse, email, surface)
+2. EXTRAIS les services/travaux mentionnés avec leurs prix au m² ou totaux
+3. APPLIQUE les remises mentionnées (ex: -30%)
+4. GÉNÈRE les services professionnels détaillés
+5. Si le texte contient déjà les calculs faits par l'artisan, RESPECTE-LES
+
+Catalogue de services Sr-Renovation disponibles:
 {catalog_text}
 
-Génère une liste de services détaillés et professionnels pour ce {'devis' if input.document_type == 'quote' else 'facture'}.
-Pour chaque service, fournis:
-1. Une description professionnelle et détaillée (sans fautes)
-2. Une quantité estimée
-3. Un prix unitaire réaliste
-4. Le total
+EXEMPLE de texte brut que tu peux recevoir:
+"Mr Clere Nicolas, 2 Rue des Maisonnettes, 25480 Ecole-Valentin
+140 M2 sans panneau solaire
+Demoussage + Traitement action rapide 10€ m2
+Promotion -30% = 7€ m2
+Total: 7 x 140 = 980€"
 
 Réponds UNIQUEMENT avec un JSON valide au format suivant:
 {{
+  "client_info_extracted": {{
+    "name": "Nom extrait ou null",
+    "address": "Adresse extraite ou null",
+    "email": "Email extrait ou null",
+    "surface": "Surface extraite ou null"
+  }},
   "services": [
     {{
-      "description": "Description détaillée du service",
-      "quantity": 1.0,
-      "unit_price": 500.0,
-      "total": 500.0
+      "description": "Description professionnelle complète et détaillée du service (repris du texte ou généré)",
+      "quantity": 140.0,
+      "unit_price": 7.0,
+      "total": 980.0
     }}
   ],
   "diagnostic": {{
@@ -562,9 +567,16 @@ Réponds UNIQUEMENT avec un JSON valide au format suivant:
     "gouttieres": false,
     "facade": false
   }},
-  "work_surface": "120m²",
-  "notes": "Notes professionnelles supplémentaires"
-}}"""
+  "work_surface": "140m²",
+  "remise_appliquee": 0,
+  "notes": "Notes professionnelles (promotions appliquées, etc.)"
+}}
+
+RÈGLES IMPORTANTES:
+- Si des prix sont donnés dans le texte, UTILISE-LES
+- Si une remise est mentionnée, NOTE-LA dans les notes
+- Les descriptions doivent être professionnelles style "Sr-Renovation"
+- Respecte les calculs de l'artisan s'ils sont présents"""
         
         chat = LlmChat(
             api_key=emergent_key,
