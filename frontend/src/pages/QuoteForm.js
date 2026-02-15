@@ -25,6 +25,7 @@ const QuoteForm = () => {
   const [catalog, setCatalog] = useState([]);
   const [showCatalog, setShowCatalog] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [showPDFPreview, setShowPDFPreview] = useState(false);
   const [emailSubject, setEmailSubject] = useState('');
   
   const [formData, setFormData] = useState({
