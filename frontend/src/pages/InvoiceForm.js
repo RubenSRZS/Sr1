@@ -228,7 +228,7 @@ const InvoiceForm = () => {
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
-              onClick={() => navigate('/quotes')}
+              onClick={() => navigate('/invoices')}
               className="text-white hover:bg-white/10"
               data-testid="back-button"
             >
@@ -236,7 +236,7 @@ const InvoiceForm = () => {
             </Button>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                {id ? 'Modifier le devis' : 'Nouveau devis'}
+                {id ? 'Modifier la facture' : 'Nouvelle facture'}
               </h1>
             </div>
           </div>
