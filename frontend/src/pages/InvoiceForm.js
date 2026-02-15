@@ -586,4 +586,4 @@ const InvoiceForm = () => {
   );
 };
 
-export default QuoteForm;
+export default InvoiceForm;
