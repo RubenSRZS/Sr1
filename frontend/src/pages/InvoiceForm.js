@@ -417,7 +417,7 @@ const InvoiceForm = () => {
                 </div>
               </Card>
 
-              {/* Notes & Remise */}
+              {/* Notes & Acompte */}
               <Card className="p-6">
                 <div className="space-y-4">
                   <div>
@@ -439,6 +439,17 @@ const InvoiceForm = () => {
                       value={formData.remise}
                       onChange={(e) => setFormData({ ...formData, remise: parseFloat(e.target.value) || 0 })}
                       data-testid="remise-input"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="acompte_paid">Acompte déjà versé (€)</Label>
+                    <Input
+                      id="acompte_paid"
+                      type="number"
+                      step="0.01"
+                      value={formData.acompte_paid}
+                      onChange={(e) => setFormData({ ...formData, acompte_paid: parseFloat(e.target.value) || 0 })}
+                      data-testid="acompte-paid-input"
                     />
                   </div>
                 </div>
