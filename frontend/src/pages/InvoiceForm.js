@@ -497,16 +497,28 @@ const InvoiceForm = () => {
                   </Button>
                   
                   {invoice && (
-                    <Button
-                      type="button"
-                      onClick={() => setShowEmailDialog(true)}
-                      variant="outline"
-                      className="w-full"
-                      data-testid="send-email-btn"
-                    >
-                      <Mail className="mr-2 h-5 w-5" />
-                      Envoyer par email
-                    </Button>
+                    <>
+                      <Button
+                        type="button"
+                        onClick={() => setShowPDFPreview(true)}
+                        variant="outline"
+                        className="w-full"
+                        data-testid="preview-pdf-btn"
+                      >
+                        <Eye className="mr-2 h-5 w-5" />
+                        Prévisualiser
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => setShowEmailDialog(true)}
+                        variant="outline"
+                        className="w-full"
+                        data-testid="send-email-btn"
+                      >
+                        <Mail className="mr-2 h-5 w-5" />
+                        Envoyer par email
+                      </Button>
+                    </>
                   )}
                 </div>
               </Card>
