@@ -43,7 +43,7 @@ const InvoiceForm = () => {
     fetchClients();
     fetchCatalog();
     if (id) {
-      fetchQuote();
+      fetchInvoice();
     }
   }, [id]);
 
