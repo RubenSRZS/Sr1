@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, Sparkles, Save, Send, Plus, Trash2, Mail } from 'lucide-react';
+import { ArrowLeft, Sparkles, Save, Send, Plus, Trash2, Mail, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import SignaturePad from '@/components/SignaturePad';
+import PDFPreview from '@/components/PDFPreview';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
