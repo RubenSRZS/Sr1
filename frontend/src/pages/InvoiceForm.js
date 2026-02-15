@@ -104,14 +104,13 @@ const InvoiceForm = () => {
         client_email: client.email,
         work_location: formData.work_location || client.address,
         work_description: aiPrompt,
-        document_type: 'quote',
+        document_type: 'invoice',
       });
 
       setFormData({
         ...formData,
         services: res.data.services || [],
         work_surface: res.data.work_surface || formData.work_surface,
-        diagnostic: res.data.diagnostic || formData.diagnostic,
         notes: res.data.notes || formData.notes,
       });
       toast.success('Services générés par l\'IA !');
