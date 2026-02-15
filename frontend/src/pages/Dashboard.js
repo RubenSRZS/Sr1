@@ -5,6 +5,7 @@ import { Plus, TrendingUp, FileText, Receipt, Users, Sparkles } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { initializeDefaultCatalog } from '@/utils/defaultCatalog';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -16,7 +17,15 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchData();
+    initializeCatalog();
   }, []);
+
+  const initializeCatalog = async () => {
+    const initialized = await initializeDefaultCatalog();
+    if (initialized) {
+      console.log('Catalogue initialisé avec les services par défaut');
+    }
+  };
 
   const fetchData = async () => {
     try {
