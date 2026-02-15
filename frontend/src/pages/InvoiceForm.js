@@ -596,6 +596,15 @@ const InvoiceForm = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* PDF Preview */}
+      {showPDFPreview && invoice && (
+        <PDFPreview
+          document={invoice}
+          type="invoice"
+          onClose={() => setShowPDFPreview(false)}
+        />
+      )}
     </div>
   );
 };
