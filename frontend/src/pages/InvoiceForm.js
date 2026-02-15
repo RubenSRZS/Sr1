@@ -491,10 +491,10 @@ const InvoiceForm = () => {
                     data-testid="save-quote-btn"
                   >
                     <Save className="mr-2 h-5 w-5" />
-                    {loading ? 'Enregistrement...' : 'Enregistrer le devis'}
+                    {loading ? 'Enregistrement...' : 'Enregistrer la facture'}
                   </Button>
                   
-                  {quote && (
+                  {invoice && (
                     <Button
                       type="button"
                       onClick={() => setShowEmailDialog(true)}
