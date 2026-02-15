@@ -1,0 +1,176 @@
+{
+  "design_system": {
+    "identity": {
+      "name": "Sr-Renovation App",
+      "archetype": "The Performance Pro",
+      "vibe": "Professional, Trustworthy, Efficient, Modern Artisan",
+      "principles": [
+        "Clarity First: Information must be legible in bright sunlight (on-site usage).",
+        "Speed: One-tap actions for common tasks.",
+        "Trust: Visuals should feel established and secure (like a bank app for construction).",
+        "AI-Assisted: AI is a silent partner, not a gimmick."
+      ]
+    },
+    "typography": {
+      "font_family": {
+        "headings": "Manrope, sans-serif",
+        "body": "Inter, sans-serif",
+        "mono": "JetBrains Mono, monospace"
+      },
+      "scale": {
+        "h1": "text-4xl md:text-5xl font-bold tracking-tight",
+        "h2": "text-3xl md:text-4xl font-semibold tracking-tight",
+        "h3": "text-2xl font-semibold",
+        "body_lg": "text-lg leading-relaxed",
+        "body_base": "text-base leading-relaxed",
+        "caption": "text-sm text-muted-foreground"
+      }
+    },
+    "colors": {
+      "palette": {
+        "primary": {
+          "DEFAULT": "#0F172A",
+          "foreground": "#F8FAFC",
+          "description": "Deep Navy - Used for primary actions, headers, and text."
+        },
+        "secondary": {
+          "DEFAULT": "#F97316",
+          "foreground": "#FFFFFF",
+          "description": "Safety Orange - Used for CTAs, highlights, and urgent notifications."
+        },
+        "accent": {
+          "DEFAULT": "#38BDF8",
+          "foreground": "#0F172A",
+          "description": "Sky Blue - Used for subtle backgrounds, active states, and illustrations."
+        },
+        "background": {
+          "DEFAULT": "#F8FAFC",
+          "paper": "#FFFFFF",
+          "subtle": "#F1F5F9"
+        },
+        "status": {
+          "success": "#22C55E",
+          "warning": "#F59E0B",
+          "error": "#EF4444",
+          "info": "#3B82F6"
+        }
+      },
+      "gradients": {
+        "primary": "bg-gradient-to-br from-slate-900 to-slate-800",
+        "accent": "bg-gradient-to-r from-orange-500 to-orange-600"
+      }
+    },
+    "spacing": {
+      "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+      "section": "py-12 md:py-16",
+      "card_padding": "p-6 md:p-8"
+    },
+    "shadows": {
+      "card": "shadow-sm hover:shadow-md transition-shadow duration-200",
+      "floating": "shadow-lg shadow-slate-900/10",
+      "inner": "shadow-inner"
+    },
+    "border_radius": {
+      "card": "rounded-xl",
+      "button": "rounded-lg",
+      "input": "rounded-md"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8 rounded-lg font-medium transition-all active:scale-95",
+      "secondary": "bg-secondary text-secondary-foreground hover:bg-secondary/90 h-11 px-8 rounded-lg font-medium transition-all active:scale-95",
+      "outline": "border-2 border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 px-8 rounded-lg font-medium transition-all",
+      "ghost": "hover:bg-accent hover:text-accent-foreground h-11 px-4 rounded-lg font-medium transition-all"
+    },
+    "cards": {
+      "base": "bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden",
+      "interactive": "bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group"
+    },
+    "inputs": {
+      "base": "flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+      "ai_enhanced": "border-orange-200 focus-visible:ring-orange-500 bg-orange-50/30"
+    },
+    "badges": {
+      "base": "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+      "success": "border-transparent bg-green-100 text-green-800 hover:bg-green-200",
+      "warning": "border-transparent bg-yellow-100 text-yellow-800 hover:bg-yellow-200",
+      "destructive": "border-transparent bg-red-100 text-red-800 hover:bg-red-200",
+      "outline": "text-foreground"
+    }
+  },
+  "layout_strategies": {
+    "dashboard": {
+      "type": "bento_grid",
+      "columns": "grid-cols-1 md:grid-cols-3 lg:grid-cols-4",
+      "gap": "gap-6",
+      "areas": [
+        "stats_overview (col-span-full)",
+        "recent_quotes (col-span-2 row-span-2)",
+        "quick_actions (col-span-1)",
+        "revenue_chart (col-span-1)"
+      ]
+    },
+    "quote_builder": {
+      "type": "split_screen",
+      "left_panel": "w-full lg:w-1/2 p-6 overflow-y-auto",
+      "right_panel": "hidden lg:block w-1/2 bg-slate-50 p-8 border-l border-slate-200 sticky top-0 h-screen"
+    },
+    "mobile_nav": {
+      "type": "bottom_bar",
+      "style": "fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 h-16 flex items-center justify-around z-50 lg:hidden"
+    }
+  },
+  "assets": {
+    "images": [
+      {
+        "category": "hero_background",
+        "url": "https://images.unsplash.com/photo-1757264141891-132e7a714ab4?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTJ8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBob3VzZSUyMGV4dGVyaW9yJTIwc3VubnklMjBhcmNoaXRlY3R1cmV8ZW58MHx8fHwxNzcxMTczMTUwfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Modern white building exterior against blue sky - Use for login/landing background or empty states."
+      },
+      {
+        "category": "tools_flatlay",
+        "url": "https://images.unsplash.com/photo-1628002580365-f3c0a322d577?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHwzfHxjb25zdHJ1Y3Rpb24lMjB0b29scyUyMGZsYXRsYXklMjBjbGVhbnxlbnwwfHx8fDE3NzExNzMxNTV8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Carpentry tools laid out - Use for 'Services' or 'Catalog' section headers."
+      },
+      {
+        "category": "completed_project",
+        "url": "https://images.unsplash.com/photo-1760067537640-6ffab10b27d2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTJ8MHwxfHNlYXJjaHwzfHxtb2Rlcm4lMjBob3VzZSUyMGV4dGVyaW9yJTIwc3VubnklMjBhcmNoaXRlY3R1cmV8ZW58MHx8fHwxNzcxMTczMTUwfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Modern villa with pool - Use for 'Portfolio' or 'Success' screens."
+      },
+      {
+        "category": "roof_detail",
+        "url": "https://images.unsplash.com/photo-1609588959666-3cb46cabe3f7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MDV8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBob3VzZSUyMHJlbm92YXRpb24lMjByb29mJTIwZmFjYWRlfGVufDB8fHx8MTc3MTE3MzEyN3ww&ixlib=rb-4.1.0&q=85",
+        "description": "Brown brick roof detail - Use specifically for 'Roofing' category in catalog."
+      }
+    ],
+    "icons": {
+      "library": "lucide-react",
+      "preferred_set": ["Hammer", "FileText", "Users", "Settings", "Sparkles", "CheckCircle2", "AlertCircle", "Menu", "X", "ChevronRight", "PenTool"]
+    }
+  },
+  "accessibility": {
+    "contrast": "Ensure all text meets WCAG AA standards. Use Slate-900 for text on white, and White text on Slate-900/Orange-500 backgrounds.",
+    "touch_targets": "All interactive elements must be at least 44x44px for easy tapping on mobile.",
+    "focus_states": "Visible focus rings (ring-2 ring-offset-2 ring-primary) are mandatory for keyboard navigation.",
+    "labels": "All inputs must have visible labels or aria-labels. Icons must have aria-hidden='true' if decorative."
+  },
+  "motion": {
+    "reduced_motion": "Respect prefers-reduced-motion media query.",
+    "transitions": "Use 'transition-all duration-200 ease-in-out' for hover states.",
+    "animations": {
+      "fade_in": "animate-in fade-in duration-500",
+      "slide_up": "animate-in slide-in-from-bottom-4 duration-500",
+      "scale_in": "animate-in zoom-in-95 duration-200"
+    }
+  },
+  "universal_guidelines": [
+    "Do not use generic 'Lorem Ipsum'. Use realistic renovation data (e.g., 'Réfection toiture 120m²', 'Nettoyage haute pression').",
+    "Mobile-First: Always design for the phone screen first, then expand to desktop.",
+    "Data-TestID: All interactive elements MUST have a 'data-testid' attribute (e.g., 'submit-quote-btn').",
+    "No Gradients on Text: Keep text solid for maximum readability.",
+    "Use 'Sonner' for toast notifications.",
+    "Use 'Lucide-React' for icons."
+  ],
+  "instructions_to_main_agent": "You are building a professional tool for an artisan. It needs to be robust, fast, and clear. The 'Orange' accent is your key to highlighting important actions (Sign, Pay, Urgent). The 'Blue' is your foundation of trust. Use the provided images to add visual context to the dashboard and catalog, but keep the actual quote/invoice forms clean and distraction-free. Implement the 'Signature Canvas' with high priority as it is a key feature for the client interaction."
+}
