@@ -325,37 +325,7 @@ const InvoiceForm = () => {
                 </Button>
               </Card>
 
-              {/* Diagnostic */}
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold text-slate-900 mb-4">Diagnostic</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {[
-                    { key: 'mousses', label: 'Mousses' },
-                    { key: 'lichens', label: 'Lichens' },
-                    { key: 'tuiles_cassees', label: 'Tuiles cassées' },
-                    { key: 'faitage', label: 'Faîtage' },
-                    { key: 'gouttieres', label: 'Gouttières' },
-                    { key: 'facade', label: 'Façade encrassée' },
-                  ].map((item) => (
-                    <div key={item.key} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={item.key}
-                        checked={formData.diagnostic[item.key]}
-                        onCheckedChange={(checked) =>
-                          setFormData({
-                            ...formData,
-                            diagnostic: { ...formData.diagnostic, [item.key]: checked },
-                          })
-                        }
-                        data-testid={`diagnostic-${item.key}`}
-                      />
-                      <label htmlFor={item.key} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        {item.label}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </Card>
+              {/* Diagnostic - REMOVED FOR INVOICE */}
 
               {/* Services */}
               <Card className="p-6">
