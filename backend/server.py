@@ -100,6 +100,7 @@ class InvoiceCreate(BaseModel):
     work_surface: Optional[str] = ""
     services: List[Service]
     remise_percent: float = 0.0
+    remise_montant: float = 0.0
     acompte_paid: float = 0.0
     notes: Optional[str] = ""
 
@@ -119,6 +120,7 @@ class Invoice(BaseModel):
     services: List[Service]
     total_brut: float
     remise_percent: float = 0.0
+    remise_montant: float = 0.0
     remise: float = 0.0
     total_net: float
     acompte_paid: float = 0.0
