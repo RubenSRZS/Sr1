@@ -258,16 +258,35 @@ const QuoteForm = () => {
 
             {/* Notes & Remise */}
             <Card className="p-4 bg-white border-0 shadow-sm" data-testid="notes-section">
-              <div className="grid grid-cols-2 gap-3 mb-3">
-                <div>
-                  <Label className="text-xs text-gray-500">Remise (%)</Label>
-                  <Input type="number" min="0" max="100" step="1" value={formData.remise_percent}
-                    onChange={e => updateField('remise_percent', parseFloat(e.target.value) || 0)}
-                    placeholder="Ex: 30" className="h-9 text-sm" data-testid="remise-percent-input" />
+              <div className="mb-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Label className="text-xs text-gray-500">Remise</Label>
+                  <div className="flex bg-gray-100 rounded-md p-0.5">
+                    <button type="button" onClick={() => { updateField('remise_type', 'percent'); updateField('remise_montant', 0); }}
+                      className={`px-2.5 py-0.5 rounded text-xs font-medium transition-colors ${formData.remise_type === 'percent' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}
+                      data-testid="remise-type-percent">%</button>
+                    <button type="button" onClick={() => { updateField('remise_type', 'amount'); updateField('remise_percent', 0); }}
+                      className={`px-2.5 py-0.5 rounded text-xs font-medium transition-colors ${formData.remise_type === 'amount' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}
+                      data-testid="remise-type-amount">Montant €</button>
+                  </div>
                 </div>
-                <div>
-                  <Label className="text-xs text-gray-500">Montant remise</Label>
-                  <Input value={`${totals.remise.toFixed(2)} €`} readOnly className="h-9 text-sm bg-gray-50" />
+                <div className="grid grid-cols-2 gap-3">
+                  {formData.remise_type === 'percent' ? (
+                    <div>
+                      <Input type="number" min="0" max="100" step="1" value={formData.remise_percent}
+                        onChange={e => updateField('remise_percent', parseFloat(e.target.value) || 0)}
+                        placeholder="Ex: 30%" className="h-9 text-sm" data-testid="remise-percent-input" />
+                    </div>
+                  ) : (
+                    <div>
+                      <Input type="number" min="0" step="0.01" value={formData.remise_montant}
+                        onChange={e => updateField('remise_montant', parseFloat(e.target.value) || 0)}
+                        placeholder="Ex: 500€" className="h-9 text-sm" data-testid="remise-montant-input" />
+                    </div>
+                  )}
+                  <div>
+                    <Input value={`-${totals.remise.toFixed(2)} €`} readOnly className="h-9 text-sm bg-gray-50" />
+                  </div>
                 </div>
               </div>
               <div>
