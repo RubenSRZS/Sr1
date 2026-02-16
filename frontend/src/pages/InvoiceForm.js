@@ -145,8 +145,28 @@ const InvoiceForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.client_id) {
-      toast.error('Veuillez sélectionner un client');
+    let clientId = formData.client_id;
+    
+    // Si nouveau client, le créer d'abord
+    if (showNewClientForm) {
+      if (!newClientData.name || !newClientData.email || !newClientData.phone || !newClientData.address) {
+        toast.error('Veuillez remplir tous les champs client obligatoires');
+        return;
+      }
+      
+      try {
+        const clientRes = await axios.post(`${API}/clients`, newClientData);
+        clientId = clientRes.data.id;
+        toast.success('Client créé !');
+        await fetchClients();
+      } catch (error) {
+        toast.error('Erreur lors de la création du client');
+        return;
+      }
+    }
+    
+    if (!clientId) {
+      toast.error('Veuillez sélectionner ou créer un client');
       return;
     }
     if (formData.services.length === 0) {
@@ -156,10 +176,11 @@ const InvoiceForm = () => {
 
     setLoading(true);
     try {
+      const submitData = { ...formData, client_id: clientId };
       if (id) {
         toast.error('Modification de facture non disponible');
       } else {
-        await axios.post(`${API}/invoices`, formData);
+        await axios.post(`${API}/invoices`, submitData);
         toast.success('Facture créée avec succès');
       }
       navigate('/invoices');
