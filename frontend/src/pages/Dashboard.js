@@ -53,19 +53,10 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="dashboard-page">
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #0c1829 0%, #1a2d4a 100%)' }} className="text-white">
+      <div style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #f59e0b 100%)' }} className="text-white">
         <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
-          <div className="flex items-center gap-3 mb-1">
-            <img
-              src="https://customer-assets.emergentagent.com/job_538ea579-31dc-4f0d-9c02-673e8a0738ca/artifacts/srxb4k7u_Nouveau%20Logo%203.png"
-              alt="SR Renovation"
-              className="h-10 sm:h-12"
-            />
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">SR RÉNOVATION</h1>
-              <p className="text-xs sm:text-sm text-white/60">Gestion devis & factures</p>
-            </div>
-          </div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Tableau de bord</h1>
+          <p className="text-xs sm:text-sm text-white/60">Gestion devis & factures</p>
         </div>
       </div>
 
