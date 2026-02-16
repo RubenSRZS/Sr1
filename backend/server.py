@@ -354,7 +354,8 @@ async def create_invoice(input: InvoiceCreate):
     client_id = client_data["id"]
 
     total_brut = sum(s.total for s in input.services)
-    remise = round(total_brut * input.remise_percent / 100, 2)
+    remise_from_pct = round(total_brut * input.remise_percent / 100, 2) if input.remise_percent > 0 else 0
+    remise = remise_from_pct if input.remise_percent > 0 else round(input.remise_montant, 2)
     total_net = round(total_brut - remise, 2)
     reste_a_payer = round(total_net - input.acompte_paid, 2)
     invoice_number = await get_next_invoice_number(client_id)
@@ -373,6 +374,7 @@ async def create_invoice(input: InvoiceCreate):
         services=input.services,
         total_brut=total_brut,
         remise_percent=input.remise_percent,
+        remise_montant=input.remise_montant,
         remise=remise,
         total_net=total_net,
         acompte_paid=input.acompte_paid,
