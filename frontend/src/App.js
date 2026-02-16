@@ -13,9 +13,9 @@ import BottomNav from '@/components/BottomNav';
 
 function App() {
   return (
-    <div className="App min-h-screen bg-slate-50">
+    <div className="App min-h-screen bg-[var(--sr-cream)]">
       <BrowserRouter>
-        <div className="pb-20 lg:pb-0">
+        <div className="pb-16 lg:pb-0">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/quotes" element={<QuotesList />} />
@@ -29,7 +29,7 @@ function App() {
           </Routes>
         </div>
         <BottomNav />
-        <Toaster />
+        <Toaster position="top-center" />
       </BrowserRouter>
     </div>
   );
