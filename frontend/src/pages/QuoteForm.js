@@ -330,16 +330,6 @@ const QuoteForm = () => {
                       data-testid="work-location-input"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="work_surface">Surface</Label>
-                    <Input
-                      id="work_surface"
-                      value={formData.work_surface}
-                      onChange={(e) => setFormData({ ...formData, work_surface: e.target.value })}
-                      placeholder="Ex: 120m²"
-                      data-testid="work-surface-input"
-                    />
-                  </div>
                 </div>
               </Card>
 
