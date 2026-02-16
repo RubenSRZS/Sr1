@@ -163,8 +163,8 @@ const QuoteForm = () => {
     
     // Si nouveau client, le créer d'abord
     if (showNewClientForm) {
-      if (!newClientData.name || !newClientData.email || !newClientData.phone || !newClientData.address) {
-        toast.error('Veuillez remplir tous les champs client obligatoires');
+      if (!newClientData.name || !newClientData.phone || !newClientData.address) {
+        toast.error('Veuillez remplir nom, téléphone et adresse');
         return;
       }
       
