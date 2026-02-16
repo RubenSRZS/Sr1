@@ -247,7 +247,8 @@ async def create_quote(input: QuoteCreate):
     client_id = client_data["id"]
 
     total_brut = sum(s.total for s in input.services)
-    remise = round(total_brut * input.remise_percent / 100, 2)
+    remise_from_pct = round(total_brut * input.remise_percent / 100, 2) if input.remise_percent > 0 else 0
+    remise = remise_from_pct if input.remise_percent > 0 else round(input.remise_montant, 2)
     total_net = round(total_brut - remise, 2)
     acompte_30 = round(total_net * 0.30, 2)
     quote_number = await get_next_quote_number(client_id)
@@ -266,6 +267,7 @@ async def create_quote(input: QuoteCreate):
         services=input.services,
         total_brut=total_brut,
         remise_percent=input.remise_percent,
+        remise_montant=input.remise_montant,
         remise=remise,
         total_net=total_net,
         acompte_30=acompte_30,
