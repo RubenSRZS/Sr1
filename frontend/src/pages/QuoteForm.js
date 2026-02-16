@@ -316,24 +316,24 @@ const QuoteForm = () => {
 
           {/* RIGHT - Live Preview (desktop) */}
           <div className="hidden lg:block w-[420px] shrink-0">
-            <div className="sticky top-4 space-y-3">
+            <div className="sticky top-20 space-y-3">
               <Card className="p-4 bg-white border-0 shadow-sm">
                 <div className="space-y-1.5 mb-3">
                   <div className="flex justify-between text-sm"><span className="text-gray-500">Total brut</span><span className="font-medium">{totals.total_brut.toFixed(2)} €</span></div>
-                  {totals.remise > 0 && <div className="flex justify-between text-sm" style={{ color: '#e8712a' }}><span>Remise ({formData.remise_percent}%)</span><span>-{totals.remise.toFixed(2)} €</span></div>}
+                  {totals.remise > 0 && <div className="flex justify-between text-sm" style={{ color: '#f59e0b' }}><span>Remise{formData.remise_type === 'percent' ? ` (${formData.remise_percent}%)` : ''}</span><span>-{totals.remise.toFixed(2)} €</span></div>}
                   <div className="flex justify-between font-bold text-lg pt-1 border-t"><span>Total net</span><span>{totals.total_net.toFixed(2)} €</span></div>
-                  <div className="flex justify-between text-sm font-medium" style={{ color: '#e8712a' }}><span>Acompte 30%</span><span>{totals.acompte_30.toFixed(2)} €</span></div>
+                  <div className="flex justify-between text-sm font-medium" style={{ color: '#f59e0b' }}><span>Acompte 30%</span><span>{totals.acompte_30.toFixed(2)} €</span></div>
                 </div>
-                <Button type="submit" disabled={loading} className="w-full h-10 text-white" style={{ background: '#0c1829' }} data-testid="save-quote-btn-desktop">
+                <Button type="submit" disabled={loading} className="w-full h-10 text-white" style={{ background: '#3b82f6' }} data-testid="save-quote-btn-desktop">
                   <Save className="h-4 w-4 mr-1.5" /> {loading ? 'Sauvegarde...' : 'Enregistrer le devis'}
                 </Button>
               </Card>
 
               <Card className="bg-white border-0 shadow-sm overflow-hidden">
-                <div className="px-3 py-2 border-b border-gray-100 flex items-center justify-between">
+                <div className="px-3 py-2 border-b border-gray-100">
                   <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Aperçu en direct</span>
                 </div>
-                <div className="p-2 bg-gray-100 max-h-[65vh] overflow-y-auto" data-testid="live-preview-desktop">
+                <div className="p-2 bg-gray-100 max-h-[55vh] overflow-y-auto" data-testid="live-preview-desktop">
                   <div className="transform scale-[0.48] origin-top-left" style={{ width: '210mm' }}>
                     <PDFDocument document={previewDoc} type="quote" compact={false} />
                   </div>
