@@ -64,10 +64,10 @@ const Dashboard = () => {
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" data-testid="stats-grid">
           {[
-            { label: 'Clients', value: stats?.total_clients || 0, icon: Users, color: '#3b82f6' },
+            { label: 'Clients', value: stats?.total_clients || 0, icon: Users, color: '#f59e0b' },
             { label: 'Devis', value: stats?.total_quotes || 0, icon: FileText, color: '#3b82f6' },
             { label: 'Factures', value: stats?.total_invoices || 0, icon: Receipt, color: '#10b981' },
-            { label: "Chiffre d'affaires", value: `${(stats?.revenue?.total || 0).toFixed(0)}€`, icon: null, color: '#0c1829' },
+            { label: "Chiffre d'affaires", value: `${(stats?.revenue?.total || 0).toFixed(0)}€`, icon: null, color: '#3b82f6' },
           ].map((s, i) => (
             <Card key={i} className="p-4 bg-white border-0 shadow-sm">
               <div className="text-xs text-gray-500 mb-1">{s.label}</div>
