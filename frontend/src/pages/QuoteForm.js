@@ -194,15 +194,9 @@ const QuoteForm = () => {
                   <Input placeholder="Email (optionnel)" value={newClient.email} onChange={e => setNewClient({ ...newClient, email: e.target.value })} className="h-9 text-sm" data-testid="new-client-email" />
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-2 mt-3">
-                <div>
-                  <Label className="text-xs text-gray-500">Lieu des travaux *</Label>
-                  <Input value={formData.work_location} onChange={e => updateField('work_location', e.target.value)} placeholder="Adresse du chantier" className="h-9 text-sm" required data-testid="work-location-input" />
-                </div>
-                <div>
-                  <Label className="text-xs text-gray-500">Surface</Label>
-                  <Input value={formData.work_surface} onChange={e => updateField('work_surface', e.target.value)} placeholder="Ex: 120m²" className="h-9 text-sm" data-testid="work-surface-input" />
-                </div>
+              <div className="mt-3">
+                <Label className="text-xs text-gray-500">Lieu des travaux *</Label>
+                <Input value={formData.work_location} onChange={e => updateField('work_location', e.target.value)} placeholder="Adresse du chantier" className="h-9 text-sm" required data-testid="work-location-input" />
               </div>
             </Card>
 
