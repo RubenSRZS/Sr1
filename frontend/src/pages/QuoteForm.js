@@ -459,25 +459,55 @@ const QuoteForm = () => {
               <Card className="p-6">
                 <div className="space-y-4">
                   <div>
+                    <Label htmlFor="work_surface">Surface totale</Label>
+                    <Input
+                      id="work_surface"
+                      value={formData.work_surface}
+                      onChange={(e) => setFormData({ ...formData, work_surface: e.target.value })}
+                      placeholder="Ex: 120m²"
+                      data-testid="work-surface-input"
+                    />
+                  </div>
+                  <div>
                     <Label htmlFor="notes">Notes</Label>
                     <Textarea
                       id="notes"
                       value={formData.notes}
                       onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                       rows={3}
+                      placeholder="Ex: Promotion -30% appliquée"
                       data-testid="notes-input"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="remise">Remise (€)</Label>
-                    <Input
-                      id="remise"
-                      type="number"
-                      step="0.01"
-                      value={formData.remise}
-                      onChange={(e) => setFormData({ ...formData, remise: parseFloat(e.target.value) || 0 })}
-                      data-testid="remise-input"
-                    />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="remise_percent">Remise (%)</Label>
+                      <Input
+                        id="remise_percent"
+                        type="number"
+                        step="1"
+                        min="0"
+                        max="100"
+                        placeholder="Ex: 30"
+                        onChange={(e) => {
+                          const percent = parseFloat(e.target.value) || 0;
+                          const totalBrut = formData.services.reduce((sum, s) => sum + (s.total || 0), 0);
+                          setFormData({ ...formData, remise: (totalBrut * percent) / 100 });
+                        }}
+                        data-testid="remise-percent-input"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="remise">Remise (€)</Label>
+                      <Input
+                        id="remise"
+                        type="number"
+                        step="0.01"
+                        value={formData.remise}
+                        onChange={(e) => setFormData({ ...formData, remise: parseFloat(e.target.value) || 0 })}
+                        data-testid="remise-input"
+                      />
+                    </div>
                   </div>
                 </div>
               </Card>
