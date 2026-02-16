@@ -299,15 +299,15 @@ const QuoteForm = () => {
             <Card className="p-4 bg-white border-0 shadow-sm lg:hidden" data-testid="mobile-summary">
               <div className="space-y-1.5 mb-3">
                 <div className="flex justify-between text-sm"><span className="text-gray-500">Total brut</span><span className="font-medium">{totals.total_brut.toFixed(2)} €</span></div>
-                {totals.remise > 0 && <div className="flex justify-between text-sm" style={{ color: '#e8712a' }}><span>Remise ({formData.remise_percent}%)</span><span>-{totals.remise.toFixed(2)} €</span></div>}
+                {totals.remise > 0 && <div className="flex justify-between text-sm" style={{ color: '#f59e0b' }}><span>Remise{formData.remise_type === 'percent' ? ` (${formData.remise_percent}%)` : ''}</span><span>-{totals.remise.toFixed(2)} €</span></div>}
                 <div className="flex justify-between font-bold text-lg pt-1 border-t"><span>Total net</span><span>{totals.total_net.toFixed(2)} €</span></div>
-                <div className="flex justify-between text-sm font-medium" style={{ color: '#e8712a' }}><span>Acompte 30%</span><span>{totals.acompte_30.toFixed(2)} €</span></div>
+                <div className="flex justify-between text-sm font-medium" style={{ color: '#f59e0b' }}><span>Acompte 30%</span><span>{totals.acompte_30.toFixed(2)} €</span></div>
               </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" className="flex-1 h-10" onClick={() => setShowPreviewMobile(true)} data-testid="preview-btn-mobile">
                   <Eye className="h-4 w-4 mr-1.5" /> Aperçu
                 </Button>
-                <Button type="submit" disabled={loading} className="flex-1 h-10 text-white" style={{ background: '#0c1829' }} data-testid="save-quote-btn">
+                <Button type="submit" disabled={loading} className="flex-1 h-10 text-white" style={{ background: '#3b82f6' }} data-testid="save-quote-btn">
                   <Save className="h-4 w-4 mr-1.5" /> {loading ? 'Sauvegarde...' : 'Enregistrer'}
                 </Button>
               </div>
