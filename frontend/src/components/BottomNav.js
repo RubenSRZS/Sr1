@@ -4,8 +4,7 @@ import { Home, FileText, Receipt, Users, Layers } from 'lucide-react';
 
 const BottomNav = () => {
   const location = useLocation();
-
-  const navItems = [
+  const items = [
     { path: '/', icon: Home, label: 'Accueil' },
     { path: '/quotes', icon: FileText, label: 'Devis' },
     { path: '/invoices', icon: Receipt, label: 'Factures' },
@@ -14,21 +13,15 @@ const BottomNav = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 h-16 flex items-center justify-around z-50 lg:hidden">
-      {navItems.map((item) => {
-        const Icon = item.icon;
-        const isActive = location.pathname === item.path;
+    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 h-14 flex items-center justify-around z-50 lg:hidden" data-testid="bottom-nav">
+      {items.map(({ path, icon: Icon, label }) => {
+        const active = location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
         return (
-          <Link
-            key={item.path}
-            to={item.path}
-            data-testid={`nav-${item.label.toLowerCase()}`}
-            className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
-              isActive ? 'text-orange-500' : 'text-slate-600'
-            }`}
+          <Link key={path} to={path} data-testid={`nav-${label.toLowerCase()}`}
+            className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${active ? 'text-[#e8712a]' : 'text-gray-400'}`}
           >
-            <Icon size={24} />
-            <span className="text-xs mt-1">{item.label}</span>
+            <Icon size={20} strokeWidth={active ? 2.5 : 1.5} />
+            <span className="text-[10px] mt-0.5 font-medium">{label}</span>
           </Link>
         );
       })}
