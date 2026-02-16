@@ -83,6 +83,7 @@ class Quote(BaseModel):
     services: List[Service]
     total_brut: float
     remise_percent: float = 0.0
+    remise_montant: float = 0.0
     remise: float = 0.0
     total_net: float
     acompte_30: float
