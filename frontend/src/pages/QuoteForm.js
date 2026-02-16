@@ -538,6 +538,43 @@ const QuoteForm = () => {
 
                 <div className="mt-6 space-y-3">
                   <Button
+                    type="button"
+                    onClick={() => {
+                      // Créer un objet temporaire pour la prévisualisation
+                      const client = clients.find((c) => c.id === formData.client_id) || 
+                                    (showNewClientForm ? { name: newClientData.name, address: newClientData.address, phone: newClientData.phone, email: newClientData.email || '' } : null);
+                      if (!client) {
+                        toast.error('Sélectionnez ou créez un client d\'abord');
+                        return;
+                      }
+                      const tempQuote = {
+                        quote_number: 'APERÇU',
+                        client_name: client.name,
+                        client_address: client.address,
+                        client_phone: client.phone,
+                        client_email: client.email,
+                        date: new Date().toLocaleDateString('fr-FR'),
+                        work_location: formData.work_location,
+                        work_surface: formData.work_surface,
+                        services: formData.services,
+                        total_brut: total_brut,
+                        remise: formData.remise,
+                        total_net: total_net,
+                        acompte_30: acompte_30,
+                        notes: formData.notes,
+                      };
+                      setQuote(tempQuote);
+                      setShowPDFPreview(true);
+                    }}
+                    variant="outline"
+                    className="w-full border-2 border-orange-500 text-orange-600 hover:bg-orange-50"
+                    data-testid="preview-pdf-btn-temp"
+                  >
+                    <Eye className="mr-2 h-5 w-5" />
+                    Prévisualiser (aperçu)
+                  </Button>
+                  
+                  <Button
                     type="submit"
                     disabled={loading}
                     className="w-full bg-slate-900 hover:bg-slate-800 text-white"
