@@ -10,11 +10,13 @@ import InvoiceForm from '@/pages/InvoiceForm';
 import ClientsManager from '@/pages/ClientsManager';
 import CatalogManager from '@/pages/CatalogManager';
 import BottomNav from '@/components/BottomNav';
+import DesktopNav from '@/components/DesktopNav';
 
 function App() {
   return (
     <div className="App min-h-screen bg-[var(--sr-cream)]">
       <BrowserRouter>
+        <DesktopNav />
         <div className="pb-16 lg:pb-0">
           <Routes>
             <Route path="/" element={<Dashboard />} />
