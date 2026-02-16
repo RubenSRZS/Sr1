@@ -156,8 +156,8 @@ const QuoteForm = () => {
 
   return (
     <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="quote-form-page">
-      {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)' }} className="text-white">
+      {/* Header (mobile only - desktop uses DesktopNav) */}
+      <div style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)' }} className="text-white lg:hidden">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate('/quotes')} className="text-white hover:bg-white/10 h-8 w-8 p-0" data-testid="back-button">
             <ArrowLeft className="h-5 w-5" />
@@ -167,6 +167,9 @@ const QuoteForm = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="hidden lg:block mb-4">
+          <h1 className="text-xl font-bold text-gray-900">{id ? 'Modifier le devis' : 'Nouveau devis'}</h1>
+        </div>
         <form onSubmit={handleSubmit} className="flex gap-5">
           {/* LEFT - Form */}
           <div className="flex-1 min-w-0 space-y-4">
