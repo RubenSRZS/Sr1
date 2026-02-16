@@ -64,6 +64,7 @@ class QuoteCreate(BaseModel):
     diagnostic: Optional[Diagnostic] = None
     services: List[Service]
     remise_percent: float = 0.0
+    remise_montant: float = 0.0
     notes: Optional[str] = ""
 
 class Quote(BaseModel):
