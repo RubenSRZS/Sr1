@@ -125,10 +125,11 @@ const QuoteForm = () => {
         client_id: hasNewClient ? null : clientId,
         new_client: hasNewClient ? newClient : null,
         work_location: formData.work_location,
-        work_surface: formData.work_surface,
+        work_surface: '',
         diagnostic: formData.diagnostic,
         services: formData.services,
-        remise_percent: formData.remise_percent,
+        remise_percent: formData.remise_type === 'percent' ? formData.remise_percent : 0,
+        remise_montant: formData.remise_type === 'amount' ? formData.remise_montant : 0,
         notes: formData.notes,
       };
       if (id) {
