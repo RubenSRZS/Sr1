@@ -150,7 +150,7 @@ const QuoteForm = () => {
   return (
     <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="quote-form-page">
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #0c1829 0%, #1a2d4a 100%)' }} className="text-white">
+      <div style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)' }} className="text-white">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate('/quotes')} className="text-white hover:bg-white/10 h-8 w-8 p-0" data-testid="back-button">
             <ArrowLeft className="h-5 w-5" />

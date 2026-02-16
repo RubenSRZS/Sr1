@@ -53,7 +53,7 @@ const CatalogManager = () => {
 
   return (
     <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="catalog-page">
-      <div style={{ background: 'linear-gradient(135deg, #0c1829 0%, #1a2d4a 100%)' }} className="text-white">
+      <div style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)' }} className="text-white">
         <div className="max-w-6xl mx-auto px-4 py-5 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold">Catalogue</h1>
