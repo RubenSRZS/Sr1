@@ -159,8 +159,29 @@ const QuoteForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.client_id) {
-      toast.error('Veuillez sélectionner un client');
+    let clientId = formData.client_id;
+    
+    // Si nouveau client, le créer d'abord
+    if (showNewClientForm) {
+      if (!newClientData.name || !newClientData.email || !newClientData.phone || !newClientData.address) {
+        toast.error('Veuillez remplir tous les champs client obligatoires');
+        return;
+      }
+      
+      try {
+        const clientRes = await axios.post(`${API}/clients`, newClientData);
+        clientId = clientRes.data.id;
+        toast.success('Client créé !');
+        // Rafraîchir la liste des clients
+        await fetchClients();
+      } catch (error) {
+        toast.error('Erreur lors de la création du client');
+        return;
+      }
+    }
+    
+    if (!clientId) {
+      toast.error('Veuillez sélectionner ou créer un client');
       return;
     }
     if (formData.services.length === 0) {
@@ -170,11 +191,12 @@ const QuoteForm = () => {
 
     setLoading(true);
     try {
+      const submitData = { ...formData, client_id: clientId };
       if (id) {
-        await axios.put(`${API}/quotes/${id}`, formData);
+        await axios.put(`${API}/quotes/${id}`, submitData);
         toast.success('Devis modifié avec succès');
       } else {
-        await axios.post(`${API}/quotes`, formData);
+        await axios.post(`${API}/quotes`, submitData);
         toast.success('Devis créé avec succès');
       }
       navigate('/quotes');
