@@ -20,12 +20,12 @@ const InvoiceForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
   const [clients, setClients] = useState([]);
   const [catalog, setCatalog] = useState([]);
   const [showCatalog, setShowCatalog] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [showPDFPreview, setShowPDFPreview] = useState(false);
+  const [showNewClientForm, setShowNewClientForm] = useState(false);
   const [emailSubject, setEmailSubject] = useState('');
   
   const [formData, setFormData] = useState({
@@ -38,7 +38,14 @@ const InvoiceForm = () => {
     notes: '',
   });
 
-  const [aiPrompt, setAiPrompt] = useState('');
+  const [newClientData, setNewClientData] = useState({
+    name: '',
+    address: '',
+    phone: '',
+    email: '',
+    notes: '',
+  });
+
   const [invoice, setInvoice] = useState(null);
 
   useEffect(() => {
