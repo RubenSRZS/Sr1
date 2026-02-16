@@ -99,10 +99,12 @@ const QuoteForm = () => {
       quote_number: id ? undefined : 'XX',
       client_name: cName, client_address: cAddr, client_phone: cPhone, client_email: cEmail,
       date: new Date().toLocaleDateString('fr-FR'),
-      work_location: formData.work_location, work_surface: formData.work_surface,
+      work_location: formData.work_location,
+      diagnostic: formData.diagnostic,
       services: formData.services,
       ...totals,
-      remise_percent: formData.remise_percent,
+      remise_percent: formData.remise_type === 'percent' ? formData.remise_percent : 0,
+      remise_montant: formData.remise_type === 'amount' ? formData.remise_montant : 0,
       notes: formData.notes,
     };
   }, [formData, newClient, showNewClient, clients, id, totals]);
