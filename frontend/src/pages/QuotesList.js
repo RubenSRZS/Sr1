@@ -34,7 +34,7 @@ const QuotesList = () => {
     ? quotes.filter(q => q.client_name.toLowerCase().includes(search.toLowerCase()) || q.quote_number.toLowerCase().includes(search.toLowerCase()))
     : quotes;
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 border-3 border-[#e8712a] border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 border-3 border-[#3b82f6] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="quotes-list-page">
@@ -45,7 +45,7 @@ const QuotesList = () => {
             <p className="text-xs text-white/50">{quotes.length} devis au total</p>
           </div>
           <Link to="/quotes/new">
-            <Button size="sm" className="text-white h-9" style={{ background: '#e8712a' }} data-testid="create-quote-btn">
+            <Button size="sm" className="text-white h-9" style={{ background: '#3b82f6' }} data-testid="create-quote-btn">
               <Plus className="h-4 w-4 mr-1" /> Nouveau
             </Button>
           </Link>
@@ -62,7 +62,7 @@ const QuotesList = () => {
           <Card key={q.id} className="bg-white border-0 shadow-sm p-4 hover:shadow-md transition-shadow" data-testid={`quote-card-${q.id}`}>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-[#e8712a]" />
+                <FileText className="h-4 w-4 text-[#3b82f6]" />
                 <span className="font-semibold text-sm">{q.quote_number}</span>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor(q.status)}`}>{statusLabel(q.status)}</span>
               </div>
@@ -86,7 +86,7 @@ const QuotesList = () => {
           <Card className="bg-white border-0 shadow-sm p-10 text-center">
             <FileText className="h-12 w-12 mx-auto mb-3 text-gray-300" />
             <p className="text-sm text-gray-500 mb-3">Aucun devis</p>
-            <Link to="/quotes/new"><Button size="sm" style={{ background: '#e8712a' }} className="text-white"><Plus className="h-4 w-4 mr-1" /> Créer un devis</Button></Link>
+            <Link to="/quotes/new"><Button size="sm" style={{ background: '#3b82f6' }} className="text-white"><Plus className="h-4 w-4 mr-1" /> Créer un devis</Button></Link>
           </Card>
         )}
       </div>

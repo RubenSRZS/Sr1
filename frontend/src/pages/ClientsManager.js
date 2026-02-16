@@ -53,7 +53,7 @@ const ClientsManager = () => {
     ? clients.filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search) || (c.email || '').toLowerCase().includes(search.toLowerCase()))
     : clients;
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 border-3 border-[#e8712a] border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 border-3 border-[#3b82f6] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="clients-page">
@@ -63,7 +63,7 @@ const ClientsManager = () => {
             <h1 className="text-xl font-bold">Mes Clients</h1>
             <p className="text-xs text-white/50">{clients.length} clients</p>
           </div>
-          <Button size="sm" onClick={() => openDialog()} className="text-white h-9" style={{ background: '#e8712a' }} data-testid="create-client-btn">
+          <Button size="sm" onClick={() => openDialog()} className="text-white h-9" style={{ background: '#3b82f6' }} data-testid="create-client-btn">
             <Plus className="h-4 w-4 mr-1" /> Nouveau
           </Button>
         </div>
@@ -80,7 +80,7 @@ const ClientsManager = () => {
             <Card key={c.id} className="bg-white border-0 shadow-sm p-4" data-testid={`client-card-${c.id}`}>
               <div className="flex items-start gap-3 mb-3">
                 <div className="h-9 w-9 rounded-full flex items-center justify-center shrink-0" style={{ background: '#fff3e6' }}>
-                  <User className="h-4 w-4" style={{ color: '#e8712a' }} />
+                  <User className="h-4 w-4" style={{ color: '#3b82f6' }} />
                 </div>
                 <div className="min-w-0">
                   <div className="font-semibold text-sm truncate">{c.name}</div>
@@ -104,7 +104,7 @@ const ClientsManager = () => {
           <Card className="bg-white border-0 shadow-sm p-10 text-center">
             <User className="h-12 w-12 mx-auto mb-3 text-gray-300" />
             <p className="text-sm text-gray-500 mb-3">Aucun client</p>
-            <Button size="sm" onClick={() => openDialog()} style={{ background: '#e8712a' }} className="text-white"><Plus className="h-4 w-4 mr-1" /> Ajouter</Button>
+            <Button size="sm" onClick={() => openDialog()} style={{ background: '#3b82f6' }} className="text-white"><Plus className="h-4 w-4 mr-1" /> Ajouter</Button>
           </Card>
         )}
       </div>
@@ -122,7 +122,7 @@ const ClientsManager = () => {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setShowDialog(false)} size="sm" data-testid="cancel-client-btn">Annuler</Button>
-              <Button type="submit" size="sm" style={{ background: '#e8712a' }} className="text-white" data-testid="save-client-btn">{editing ? 'Modifier' : 'Créer'}</Button>
+              <Button type="submit" size="sm" style={{ background: '#3b82f6' }} className="text-white" data-testid="save-client-btn">{editing ? 'Modifier' : 'Créer'}</Button>
             </DialogFooter>
           </form>
         </DialogContent>

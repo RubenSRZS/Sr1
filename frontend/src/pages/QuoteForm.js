@@ -178,7 +178,7 @@ const QuoteForm = () => {
               <div className="flex items-center justify-between mb-3">
                 <span className="font-semibold text-sm text-gray-800">Client</span>
                 <button type="button" onClick={() => setShowNewClient(!showNewClient)}
-                  className="text-xs font-medium hover:underline" style={{ color: '#e8712a' }} data-testid="toggle-new-client">
+                  className="text-xs font-medium hover:underline" style={{ color: '#3b82f6' }} data-testid="toggle-new-client">
                   {showNewClient ? 'Client existant' : '+ Nouveau client'}
                 </button>
               </div>
@@ -190,7 +190,7 @@ const QuoteForm = () => {
                   </SelectContent>
                 </Select>
               ) : (
-                <div className="space-y-2 bg-orange-50/50 p-3 rounded-lg border border-orange-200/50">
+                <div className="space-y-2 bg-blue-50/50 p-3 rounded-lg border border-blue-200/50">
                   <Input placeholder="Nom complet *" value={newClient.name} onChange={e => setNewClient({ ...newClient, name: e.target.value })} className="h-9 text-sm" data-testid="new-client-name" />
                   <Input placeholder="Téléphone *" value={newClient.phone} onChange={e => setNewClient({ ...newClient, phone: e.target.value })} className="h-9 text-sm" data-testid="new-client-phone" />
                   <Input placeholder="Adresse *" value={newClient.address} onChange={e => setNewClient({ ...newClient, address: e.target.value })} className="h-9 text-sm" data-testid="new-client-address" />
@@ -224,7 +224,7 @@ const QuoteForm = () => {
                   <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => setShowCatalog(true)} data-testid="catalog-btn">
                     <BookOpen className="h-3.5 w-3.5 mr-1" /> Catalogue
                   </Button>
-                  <Button type="button" size="sm" className="h-7 text-xs text-white" style={{ background: '#e8712a' }} onClick={addService} data-testid="add-service-btn">
+                  <Button type="button" size="sm" className="h-7 text-xs text-white" style={{ background: '#3b82f6' }} onClick={addService} data-testid="add-service-btn">
                     <Plus className="h-3.5 w-3.5 mr-1" /> Ajouter
                   </Button>
                 </div>
@@ -369,15 +369,15 @@ const QuoteForm = () => {
           <div className="overflow-y-auto space-y-2 max-h-[60vh]">
             {catalog.map(item => (
               <div key={item.id} onClick={() => addFromCatalog(item)}
-                className="p-3 rounded-lg border border-gray-100 hover:border-orange-200 hover:bg-orange-50/30 cursor-pointer transition-colors"
+                className="p-3 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 cursor-pointer transition-colors"
                 data-testid={`catalog-item-${item.id}`}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-medium px-1.5 py-0.5 rounded" style={{ background: '#fff3e6', color: '#e8712a' }}>{item.category}</span>
+                  <span className="text-xs font-medium px-1.5 py-0.5 rounded" style={{ background: '#eff6ff', color: '#3b82f6' }}>{item.category}</span>
                   <span className="font-medium text-sm">{item.service_name}</span>
                 </div>
                 <p className="text-xs text-gray-500">{item.description}</p>
-                {item.default_price && <p className="text-xs font-medium mt-1" style={{ color: '#e8712a' }}>{item.default_price.toFixed(2)} €</p>}
+                {item.default_price && <p className="text-xs font-medium mt-1" style={{ color: '#3b82f6' }}>{item.default_price.toFixed(2)} €</p>}
               </div>
             ))}
           </div>

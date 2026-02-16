@@ -18,7 +18,7 @@ const BottomNav = () => {
         const active = location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
         return (
           <Link key={path} to={path} data-testid={`nav-${label.toLowerCase()}`}
-            className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${active ? 'text-[#e8712a]' : 'text-gray-400'}`}
+            className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${active ? 'text-[#3b82f6]' : 'text-gray-400'}`}
           >
             <Icon size={20} strokeWidth={active ? 2.5 : 1.5} />
             <span className="text-[10px] mt-0.5 font-medium">{label}</span>

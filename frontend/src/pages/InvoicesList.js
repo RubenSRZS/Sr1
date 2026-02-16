@@ -34,7 +34,7 @@ const InvoicesList = () => {
     ? invoices.filter(inv => inv.client_name.toLowerCase().includes(search.toLowerCase()) || inv.invoice_number.toLowerCase().includes(search.toLowerCase()))
     : invoices;
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 border-3 border-[#e8712a] border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 border-3 border-[#3b82f6] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="invoices-list-page">
@@ -45,7 +45,7 @@ const InvoicesList = () => {
             <p className="text-xs text-white/50">{invoices.length} factures au total</p>
           </div>
           <Link to="/invoices/new">
-            <Button size="sm" className="text-white h-9" style={{ background: '#e8712a' }} data-testid="create-invoice-btn">
+            <Button size="sm" className="text-white h-9" style={{ background: '#3b82f6' }} data-testid="create-invoice-btn">
               <Plus className="h-4 w-4 mr-1" /> Nouvelle
             </Button>
           </Link>
@@ -90,7 +90,7 @@ const InvoicesList = () => {
           <Card className="bg-white border-0 shadow-sm p-10 text-center">
             <Receipt className="h-12 w-12 mx-auto mb-3 text-gray-300" />
             <p className="text-sm text-gray-500 mb-3">Aucune facture</p>
-            <Link to="/invoices/new"><Button size="sm" style={{ background: '#e8712a' }} className="text-white"><Plus className="h-4 w-4 mr-1" /> Créer une facture</Button></Link>
+            <Link to="/invoices/new"><Button size="sm" style={{ background: '#3b82f6' }} className="text-white"><Plus className="h-4 w-4 mr-1" /> Créer une facture</Button></Link>
           </Card>
         )}
       </div>

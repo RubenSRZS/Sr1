@@ -64,7 +64,7 @@ const Dashboard = () => {
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" data-testid="stats-grid">
           {[
-            { label: 'Clients', value: stats?.total_clients || 0, icon: Users, color: '#e8712a' },
+            { label: 'Clients', value: stats?.total_clients || 0, icon: Users, color: '#3b82f6' },
             { label: 'Devis', value: stats?.total_quotes || 0, icon: FileText, color: '#3b82f6' },
             { label: 'Factures', value: stats?.total_invoices || 0, icon: Receipt, color: '#10b981' },
             { label: "Chiffre d'affaires", value: `${(stats?.revenue?.total || 0).toFixed(0)}€`, icon: null, color: '#0c1829' },
@@ -80,7 +80,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Link to="/quotes/new" data-testid="quick-new-quote">
             <div className="rounded-xl p-5 text-white flex items-center justify-between group transition-transform hover:scale-[1.01]"
-              style={{ background: 'linear-gradient(135deg, #e8712a 0%, #f59e4e 100%)' }}
+              style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)' }}
             >
               <div className="flex items-center gap-3">
                 <div className="h-11 w-11 bg-white/20 rounded-lg flex items-center justify-center">

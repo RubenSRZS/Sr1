@@ -49,7 +49,7 @@ const CatalogManager = () => {
   if (catFilter !== 'all') filtered = filtered.filter(i => i.category === catFilter);
   if (search) filtered = filtered.filter(i => i.service_name.toLowerCase().includes(search.toLowerCase()) || i.description.toLowerCase().includes(search.toLowerCase()));
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 border-3 border-[#e8712a] border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 border-3 border-[#3b82f6] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="catalog-page">
@@ -59,7 +59,7 @@ const CatalogManager = () => {
             <h1 className="text-xl font-bold">Catalogue</h1>
             <p className="text-xs text-white/50">Phrases professionnelles pré-remplies</p>
           </div>
-          <Button size="sm" onClick={() => setShowDialog(true)} className="text-white h-9" style={{ background: '#e8712a' }} data-testid="create-catalog-item-btn">
+          <Button size="sm" onClick={() => setShowDialog(true)} className="text-white h-9" style={{ background: '#3b82f6' }} data-testid="create-catalog-item-btn">
             <Plus className="h-4 w-4 mr-1" /> Ajouter
           </Button>
         </div>
@@ -86,7 +86,7 @@ const CatalogManager = () => {
           return (
             <div key={cat}>
               <div className="flex items-center gap-2 mb-2">
-                <Layers className="h-4 w-4" style={{ color: '#e8712a' }} />
+                <Layers className="h-4 w-4" style={{ color: '#3b82f6' }} />
                 <span className="font-semibold text-sm">{cat}</span>
                 <span className="text-xs text-gray-400">({catItems.length})</span>
               </div>
@@ -96,7 +96,7 @@ const CatalogManager = () => {
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm">{item.service_name}</div>
                       <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{item.description}</p>
-                      {item.default_price && <span className="text-xs font-medium mt-1 inline-block" style={{ color: '#e8712a' }}>{item.default_price.toFixed(2)} €</span>}
+                      {item.default_price && <span className="text-xs font-medium mt-1 inline-block" style={{ color: '#3b82f6' }}>{item.default_price.toFixed(2)} €</span>}
                     </div>
                     <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)} className="h-7 text-red-500 hover:bg-red-50 shrink-0 ml-2" data-testid={`delete-catalog-${item.id}`}>
                       <Trash2 className="h-3.5 w-3.5" />
@@ -133,7 +133,7 @@ const CatalogManager = () => {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setShowDialog(false)} size="sm">Annuler</Button>
-              <Button type="submit" size="sm" style={{ background: '#e8712a' }} className="text-white" data-testid="save-catalog-btn">Ajouter</Button>
+              <Button type="submit" size="sm" style={{ background: '#3b82f6' }} className="text-white" data-testid="save-catalog-btn">Ajouter</Button>
             </DialogFooter>
           </form>
         </DialogContent>
