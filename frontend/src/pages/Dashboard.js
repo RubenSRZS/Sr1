@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, TrendingUp, FileText, Receipt, Users, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Plus, FileText, Receipt, Users, ArrowRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { initializeDefaultCatalog } from '@/utils/defaultCatalog';
 
@@ -17,15 +17,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchData();
-    initializeCatalog();
+    initializeDefaultCatalog();
   }, []);
-
-  const initializeCatalog = async () => {
-    const initialized = await initializeDefaultCatalog();
-    if (initialized) {
-      console.log('Catalogue initialisé avec les services par défaut');
-    }
-  };
 
   const fetchData = async () => {
     try {
@@ -34,12 +27,11 @@ const Dashboard = () => {
         axios.get(`${API}/quotes`),
         axios.get(`${API}/invoices`),
       ]);
-
       setStats(statsRes.data);
-      setRecentQuotes(quotesRes.data.slice(0, 5));
-      setRecentInvoices(invoicesRes.data.slice(0, 5));
+      setRecentQuotes(quotesRes.data.slice(-5).reverse());
+      setRecentInvoices(invoicesRes.data.slice(-5).reverse());
     } catch (error) {
-      toast.error('Erreur lors du chargement des données');
+      toast.error('Erreur de chargement');
     } finally {
       setLoading(false);
     }
@@ -47,239 +39,138 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
-          <p className="mt-4 text-slate-600">Chargement...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-[var(--sr-cream)]">
+        <div className="h-10 w-10 border-3 border-[var(--sr-orange)] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
+  const statusLabel = (s) => ({ draft: 'Brouillon', sent: 'Envoyé', accepted: 'Accepté' }[s] || s);
+  const statusColor = (s) => ({ draft: 'bg-amber-100 text-amber-700', sent: 'bg-sky-100 text-sky-700', accepted: 'bg-emerald-100 text-emerald-700' }[s] || 'bg-gray-100 text-gray-600');
+  const payLabel = (s) => ({ pending: 'En attente', partial: 'Partiel', paid: 'Payée' }[s] || s);
+  const payColor = (s) => ({ pending: 'bg-red-100 text-red-700', partial: 'bg-amber-100 text-amber-700', paid: 'bg-emerald-100 text-emerald-700' }[s] || 'bg-gray-100 text-gray-600');
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="dashboard-page">
       {/* Header */}
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center gap-3 mb-2">
+      <div style={{ background: 'linear-gradient(135deg, #0c1829 0%, #1a2d4a 100%)' }} className="text-white">
+        <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+          <div className="flex items-center gap-3 mb-1">
             <img
               src="https://customer-assets.emergentagent.com/job_538ea579-31dc-4f0d-9c02-673e8a0738ca/artifacts/srxb4k7u_Nouveau%20Logo%203.png"
-              alt="SR Renovation Logo"
-              className="h-12 w-auto"
+              alt="SR Renovation"
+              className="h-10 sm:h-12"
             />
-            <h1 className="text-3xl md:text-4xl font-bold" style={{ fontFamily: 'Manrope, sans-serif' }}>
-              SR RÉNOVATION
-            </h1>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">SR RÉNOVATION</h1>
+              <p className="text-xs sm:text-sm text-white/60">Gestion devis & factures</p>
+            </div>
           </div>
-          <p className="text-slate-300 text-lg">Gestion de devis et factures</p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600">Total Clients</p>
-                <p className="text-3xl font-bold text-slate-900 mt-1">{stats?.total_clients || 0}</p>
-              </div>
-              <Users className="h-12 w-12 text-orange-500" />
-            </div>
-          </Card>
-
-          <Card className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600">Devis</p>
-                <p className="text-3xl font-bold text-slate-900 mt-1">{stats?.total_quotes || 0}</p>
-              </div>
-              <FileText className="h-12 w-12 text-blue-500" />
-            </div>
-          </Card>
-
-          <Card className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600">Factures</p>
-                <p className="text-3xl font-bold text-slate-900 mt-1">{stats?.total_invoices || 0}</p>
-              </div>
-              <Receipt className="h-12 w-12 text-green-500" />
-            </div>
-          </Card>
-
-          <Card className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600">Chiffre d'affaires</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">
-                  {stats?.revenue?.total?.toFixed(2) || 0} €
-                </p>
-              </div>
-              <TrendingUp className="h-12 w-12 text-orange-500" />
-            </div>
-          </Card>
+      <div className="max-w-6xl mx-auto px-4 py-5 space-y-5">
+        {/* Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" data-testid="stats-grid">
+          {[
+            { label: 'Clients', value: stats?.total_clients || 0, icon: Users, color: '#e8712a' },
+            { label: 'Devis', value: stats?.total_quotes || 0, icon: FileText, color: '#3b82f6' },
+            { label: 'Factures', value: stats?.total_invoices || 0, icon: Receipt, color: '#10b981' },
+            { label: "Chiffre d'affaires", value: `${(stats?.revenue?.total || 0).toFixed(0)}€`, icon: null, color: '#0c1829' },
+          ].map((s, i) => (
+            <Card key={i} className="p-4 bg-white border-0 shadow-sm">
+              <div className="text-xs text-gray-500 mb-1">{s.label}</div>
+              <div className="text-2xl font-bold" style={{ color: s.color }}>{s.value}</div>
+            </Card>
+          ))}
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Link to="/quotes/new" data-testid="quick-action-new-quote">
-            <Card className="p-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg transition-all cursor-pointer group">
-              <div className="flex items-center gap-4">
-                <div className="h-14 w-14 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Plus className="h-8 w-8" />
+        {/* Quick actions */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Link to="/quotes/new" data-testid="quick-new-quote">
+            <div className="rounded-xl p-5 text-white flex items-center justify-between group transition-transform hover:scale-[1.01]"
+              style={{ background: 'linear-gradient(135deg, #e8712a 0%, #f59e4e 100%)' }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 bg-white/20 rounded-lg flex items-center justify-center">
+                  <Plus className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-lg font-semibold">Nouveau Devis</p>
-                  <p className="text-sm text-white/80">Créer avec l'IA</p>
+                  <div className="font-semibold text-base">Nouveau Devis</div>
+                  <div className="text-xs text-white/70">Créer un devis professionnel</div>
                 </div>
               </div>
-            </Card>
+              <ArrowRight className="h-5 w-5 opacity-60 group-hover:translate-x-1 transition-transform" />
+            </div>
           </Link>
-
-          <Link to="/invoices/new" data-testid="quick-action-new-invoice">
-            <Card className="p-6 bg-gradient-to-r from-slate-700 to-slate-800 text-white hover:shadow-lg transition-all cursor-pointer group">
-              <div className="flex items-center gap-4">
-                <div className="h-14 w-14 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Plus className="h-8 w-8" />
+          <Link to="/invoices/new" data-testid="quick-new-invoice">
+            <div className="rounded-xl p-5 text-white flex items-center justify-between group transition-transform hover:scale-[1.01]"
+              style={{ background: 'linear-gradient(135deg, #0c1829 0%, #1a2d4a 100%)' }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 bg-white/20 rounded-lg flex items-center justify-center">
+                  <Plus className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-lg font-semibold">Nouvelle Facture</p>
-                  <p className="text-sm text-white/80">Générer rapidement</p>
+                  <div className="font-semibold text-base">Nouvelle Facture</div>
+                  <div className="text-xs text-white/70">Créer une facture client</div>
                 </div>
               </div>
-            </Card>
-          </Link>
-
-          <Link to="/clients" data-testid="quick-action-manage-clients">
-            <Card className="p-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:shadow-lg transition-all cursor-pointer group">
-              <div className="flex items-center gap-4">
-                <div className="h-14 w-14 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Users className="h-8 w-8" />
-                </div>
-                <div>
-                  <p className="text-lg font-semibold">Gérer Clients</p>
-                  <p className="text-sm text-white/80">Voir tous les clients</p>
-                </div>
-              </div>
-            </Card>
+              <ArrowRight className="h-5 w-5 opacity-60 group-hover:translate-x-1 transition-transform" />
+            </div>
           </Link>
         </div>
 
-        {/* Recent Documents */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent docs */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Recent Quotes */}
-          <Card className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-200 bg-slate-50">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-slate-900" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                  Devis récents
-                </h2>
-                <Link to="/quotes">
-                  <Button variant="ghost" size="sm" data-testid="view-all-quotes">
-                    Voir tout
-                  </Button>
-                </Link>
-              </div>
+          <Card className="bg-white border-0 shadow-sm overflow-hidden" data-testid="recent-quotes">
+            <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+              <span className="font-semibold text-sm text-gray-800">Devis récents</span>
+              <Link to="/quotes">
+                <Button variant="ghost" size="sm" className="text-xs h-7" data-testid="view-all-quotes">Voir tout</Button>
+              </Link>
             </div>
-            <div className="divide-y divide-slate-200">
-              {recentQuotes.length > 0 ? (
-                recentQuotes.map((quote) => (
-                  <Link
-                    key={quote.id}
-                    to={`/quotes/edit/${quote.id}`}
-                    className="block p-4 hover:bg-slate-50 transition-colors"
-                    data-testid={`quote-item-${quote.id}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-slate-900">{quote.quote_number}</p>
-                        <p className="text-sm text-slate-600">{quote.client_name}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-slate-900">{quote.total_net.toFixed(2)} €</p>
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                            quote.status === 'accepted'
-                              ? 'bg-green-100 text-green-800'
-                              : quote.status === 'sent'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}
-                        >
-                          {quote.status === 'draft'
-                            ? 'Brouillon'
-                            : quote.status === 'sent'
-                            ? 'Envoyé'
-                            : 'Accepté'}
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                ))
-              ) : (
-                <div className="p-8 text-center text-slate-500">
-                  <FileText className="h-12 w-12 mx-auto mb-2 text-slate-300" />
-                  <p>Aucun devis pour le moment</p>
-                </div>
+            <div className="divide-y divide-gray-50">
+              {recentQuotes.length > 0 ? recentQuotes.map((q) => (
+                <Link key={q.id} to={`/quotes/edit/${q.id}`} className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors" data-testid={`quote-item-${q.id}`}>
+                  <div>
+                    <span className="font-medium text-sm text-gray-900">{q.quote_number}</span>
+                    <span className="text-xs text-gray-500 ml-2">{q.client_name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor(q.status)}`}>{statusLabel(q.status)}</span>
+                    <span className="font-semibold text-sm">{q.total_net.toFixed(0)}€</span>
+                  </div>
+                </Link>
+              )) : (
+                <div className="py-8 text-center text-sm text-gray-400">Aucun devis</div>
               )}
             </div>
           </Card>
 
           {/* Recent Invoices */}
-          <Card className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-200 bg-slate-50">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-slate-900" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                  Factures récentes
-                </h2>
-                <Link to="/invoices">
-                  <Button variant="ghost" size="sm" data-testid="view-all-invoices">
-                    Voir tout
-                  </Button>
-                </Link>
-              </div>
+          <Card className="bg-white border-0 shadow-sm overflow-hidden" data-testid="recent-invoices">
+            <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+              <span className="font-semibold text-sm text-gray-800">Factures récentes</span>
+              <Link to="/invoices">
+                <Button variant="ghost" size="sm" className="text-xs h-7" data-testid="view-all-invoices">Voir tout</Button>
+              </Link>
             </div>
-            <div className="divide-y divide-slate-200">
-              {recentInvoices.length > 0 ? (
-                recentInvoices.map((invoice) => (
-                  <Link
-                    key={invoice.id}
-                    to={`/invoices/edit/${invoice.id}`}
-                    className="block p-4 hover:bg-slate-50 transition-colors"
-                    data-testid={`invoice-item-${invoice.id}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-slate-900">{invoice.invoice_number}</p>
-                        <p className="text-sm text-slate-600">{invoice.client_name}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-slate-900">{invoice.total_net.toFixed(2)} €</p>
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                            invoice.payment_status === 'paid'
-                              ? 'bg-green-100 text-green-800'
-                              : invoice.payment_status === 'partial'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
-                        >
-                          {invoice.payment_status === 'paid'
-                            ? 'Payée'
-                            : invoice.payment_status === 'partial'
-                            ? 'Partiel'
-                            : 'En attente'}
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                ))
-              ) : (
-                <div className="p-8 text-center text-slate-500">
-                  <Receipt className="h-12 w-12 mx-auto mb-2 text-slate-300" />
-                  <p>Aucune facture pour le moment</p>
-                </div>
+            <div className="divide-y divide-gray-50">
+              {recentInvoices.length > 0 ? recentInvoices.map((inv) => (
+                <Link key={inv.id} to={`/invoices/edit/${inv.id}`} className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors" data-testid={`invoice-item-${inv.id}`}>
+                  <div>
+                    <span className="font-medium text-sm text-gray-900">{inv.invoice_number}</span>
+                    <span className="text-xs text-gray-500 ml-2">{inv.client_name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${payColor(inv.payment_status)}`}>{payLabel(inv.payment_status)}</span>
+                    <span className="font-semibold text-sm">{inv.total_net.toFixed(0)}€</span>
+                  </div>
+                </Link>
+              )) : (
+                <div className="py-8 text-center text-sm text-gray-400">Aucune facture</div>
               )}
             </div>
           </Card>
