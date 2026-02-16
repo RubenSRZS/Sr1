@@ -240,19 +240,62 @@ const QuoteForm = () => {
                 <h2 className="text-xl font-semibold text-slate-900 mb-4">Informations client</h2>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="client">Client *</Label>
-                    <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
-                      <SelectTrigger data-testid="client-select">
-                        <SelectValue placeholder="Sélectionner un client" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clients.map((client) => (
-                          <SelectItem key={client.id} value={client.id}>
-                            {client.name} - {client.email}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label htmlFor="client">Client *</Label>
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        onClick={() => setShowNewClientForm(!showNewClientForm)}
+                        className="text-orange-600"
+                      >
+                        {showNewClientForm ? 'Choisir un client existant' : '+ Nouveau client'}
+                      </Button>
+                    </div>
+                    
+                    {!showNewClientForm ? (
+                      <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
+                        <SelectTrigger data-testid="client-select">
+                          <SelectValue placeholder="Sélectionner un client" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {clients.map((client) => (
+                            <SelectItem key={client.id} value={client.id}>
+                              {client.name} - {client.email}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="space-y-3 bg-orange-50 p-4 rounded-lg border-2 border-orange-200">
+                        <Input
+                          placeholder="Nom complet *"
+                          value={newClientData.name}
+                          onChange={(e) => setNewClientData({ ...newClientData, name: e.target.value })}
+                          data-testid="new-client-name"
+                        />
+                        <Input
+                          placeholder="Email *"
+                          type="email"
+                          value={newClientData.email}
+                          onChange={(e) => setNewClientData({ ...newClientData, email: e.target.value })}
+                          data-testid="new-client-email"
+                        />
+                        <Input
+                          placeholder="Téléphone *"
+                          value={newClientData.phone}
+                          onChange={(e) => setNewClientData({ ...newClientData, phone: e.target.value })}
+                          data-testid="new-client-phone"
+                        />
+                        <Textarea
+                          placeholder="Adresse complète *"
+                          value={newClientData.address}
+                          onChange={(e) => setNewClientData({ ...newClientData, address: e.target.value })}
+                          rows={2}
+                          data-testid="new-client-address"
+                        />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="work_location">Lieu des travaux *</Label>
@@ -260,12 +303,13 @@ const QuoteForm = () => {
                       id="work_location"
                       value={formData.work_location}
                       onChange={(e) => setFormData({ ...formData, work_location: e.target.value })}
+                      placeholder="Même adresse que le client ou autre"
                       required
                       data-testid="work-location-input"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="work_surface">Surface (optionnel)</Label>
+                    <Label htmlFor="work_surface">Surface</Label>
                     <Input
                       id="work_surface"
                       value={formData.work_surface}
@@ -275,41 +319,6 @@ const QuoteForm = () => {
                     />
                   </div>
                 </div>
-              </Card>
-
-              {/* AI Generation */}
-              <Card className="p-6 border-2 border-orange-200 bg-orange-50/30">
-                <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="h-6 w-6 text-orange-500" />
-                  <h2 className="text-xl font-semibold text-slate-900">Génération automatique IA</h2>
-                </div>
-                <Textarea
-                  value={aiPrompt}
-                  onChange={(e) => setAiPrompt(e.target.value)}
-                  placeholder="Décrivez les travaux à réaliser (ex: Nettoyage toiture 120m², traitement anti-mousse, réparation gouttières...)"
-                  rows={4}
-                  className="mb-4"
-                  data-testid="ai-prompt-input"
-                />
-                <Button
-                  type="button"
-                  onClick={handleAIGenerate}
-                  disabled={aiLoading || !formData.client_id}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-                  data-testid="ai-generate-btn"
-                >
-                  {aiLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Génération en cours...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-5 w-5" />
-                      Générer avec l'IA
-                    </>
-                  )}
-                </Button>
               </Card>
 
               {/* Diagnostic */}
