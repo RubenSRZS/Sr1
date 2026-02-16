@@ -28,10 +28,11 @@ const QuoteForm = () => {
   const [formData, setFormData] = useState({
     client_id: '',
     work_location: '',
-    work_surface: '',
     diagnostic: { mousses: false, lichens: false, tuiles_cassees: false, faitage: false, gouttieres: false, facade: false },
     services: [],
+    remise_type: 'percent',
     remise_percent: 0,
+    remise_montant: 0,
     notes: '',
   });
 
