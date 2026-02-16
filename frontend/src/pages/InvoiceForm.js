@@ -93,43 +93,6 @@ const InvoiceForm = () => {
     }
   };
 
-  const handleAIGenerate = async () => {
-    if (!formData.client_id) {
-      toast.error('Veuillez sélectionner un client');
-      return;
-    }
-    if (!aiPrompt.trim()) {
-      toast.error('Veuillez décrire les travaux');
-      return;
-    }
-
-    setAiLoading(true);
-    try {
-      const client = clients.find((c) => c.id === formData.client_id);
-      const res = await axios.post(`${API}/ai/generate`, {
-        client_name: client.name,
-        client_address: client.address,
-        client_phone: client.phone,
-        client_email: client.email,
-        work_location: formData.work_location || client.address,
-        work_description: aiPrompt,
-        document_type: 'invoice',
-      });
-
-      setFormData({
-        ...formData,
-        services: res.data.services || [],
-        work_surface: res.data.work_surface || formData.work_surface,
-        notes: res.data.notes || formData.notes,
-      });
-      toast.success('Services générés par l\'IA !');
-    } catch (error) {
-      toast.error('Erreur lors de la génération IA');
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
   const addService = () => {
     setFormData({
       ...formData,
