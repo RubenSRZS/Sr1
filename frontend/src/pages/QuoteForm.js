@@ -81,10 +81,12 @@ const QuoteForm = () => {
 
   const totals = useMemo(() => {
     const brut = formData.services.reduce((sum, s) => sum + (s.total || 0), 0);
-    const remise = Math.round(brut * (formData.remise_percent || 0) / 100 * 100) / 100;
+    const remise = formData.remise_type === 'percent'
+      ? Math.round(brut * (formData.remise_percent || 0) / 100 * 100) / 100
+      : Math.round((formData.remise_montant || 0) * 100) / 100;
     const net = Math.round((brut - remise) * 100) / 100;
-    return { total_brut: brut, remise, total_net: net, acompte_30: Math.round(net * 0.3 * 100) / 100 };
-  }, [formData.services, formData.remise_percent]);
+    return { total_brut: brut, remise, total_net: Math.max(net, 0), acompte_30: Math.round(Math.max(net, 0) * 0.3 * 100) / 100 };
+  }, [formData.services, formData.remise_type, formData.remise_percent, formData.remise_montant]);
 
   // Live preview document
   const previewDoc = useMemo(() => {
