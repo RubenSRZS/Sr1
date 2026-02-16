@@ -297,7 +297,7 @@ const QuoteForm = () => {
                           data-testid="new-client-name"
                         />
                         <Input
-                          placeholder="Email *"
+                          placeholder="Email (optionnel)"
                           type="email"
                           value={newClientData.email}
                           onChange={(e) => setNewClientData({ ...newClientData, email: e.target.value })}
