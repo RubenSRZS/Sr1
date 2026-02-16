@@ -93,16 +93,15 @@ const PDFDocument = ({ document, type, compact = false }) => {
             </tr>
           </thead>
           <tbody>
-            {(document.services || []).map((service, i) => (
+            {document.services && document.services.length > 0 ? document.services.map((service, i) => (
               <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                 <td className="px-3 py-2 text-gray-800">{service.description}</td>
                 <td className="px-2 py-2 text-center text-gray-600">{service.quantity}</td>
                 <td className="px-2 py-2 text-right text-gray-600">{Number(service.unit_price).toFixed(2)} €</td>
                 <td className="px-3 py-2 text-right font-semibold">{Number(service.total).toFixed(2)} €</td>
               </tr>
-            ))}
-            {(!document.services || document.services.length === 0) && (
-              <tr><td colSpan="4" className="text-center py-4 text-gray-400 italic">Aucun service ajouté</td></tr>
+            )) : (
+              <tr><td colSpan={4} className="text-center py-4 text-gray-400 italic">Aucun service ajouté</td></tr>
             )}
           </tbody>
         </table>
