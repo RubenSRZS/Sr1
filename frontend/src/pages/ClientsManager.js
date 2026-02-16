@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Search, User, Trash2, Edit, Mail, Phone } from 'lucide-react';
+import { Plus, Search, User, Trash2, Edit, Phone, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -13,313 +13,116 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const ClientsManager = () => {
   const [clients, setClients] = useState([]);
-  const [filteredClients, setFilteredClients] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
-  const [editingClient, setEditingClient] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    address: '',
-    phone: '',
-    email: '',
-    notes: '',
-  });
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({ name: '', address: '', phone: '', email: '', notes: '' });
 
-  useEffect(() => {
-    fetchClients();
-  }, []);
-
-  useEffect(() => {
-    if (searchTerm) {
-      const filtered = clients.filter(
-        (c) =>
-          c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          c.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          c.phone.includes(searchTerm)
-      );
-      setFilteredClients(filtered);
-    } else {
-      setFilteredClients(clients);
-    }
-  }, [searchTerm, clients]);
-
+  useEffect(() => { fetchClients(); }, []);
   const fetchClients = async () => {
-    try {
-      const res = await axios.get(`${API}/clients`);
-      setClients(res.data);
-      setFilteredClients(res.data);
-    } catch (error) {
-      toast.error('Erreur lors du chargement des clients');
-    } finally {
-      setLoading(false);
-    }
+    try { const r = await axios.get(`${API}/clients`); setClients(r.data); }
+    catch { toast.error('Erreur chargement'); }
+    finally { setLoading(false); }
   };
 
-  const handleOpenDialog = (client = null) => {
-    if (client) {
-      setEditingClient(client);
-      setFormData({
-        name: client.name,
-        address: client.address,
-        phone: client.phone,
-        email: client.email,
-        notes: client.notes || '',
-      });
-    } else {
-      setEditingClient(null);
-      setFormData({
-        name: '',
-        address: '',
-        phone: '',
-        email: '',
-        notes: '',
-      });
-    }
+  const openDialog = (client = null) => {
+    setEditing(client);
+    setForm(client ? { name: client.name, address: client.address, phone: client.phone, email: client.email || '', notes: client.notes || '' }
+      : { name: '', address: '', phone: '', email: '', notes: '' });
     setShowDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setShowDialog(false);
-    setEditingClient(null);
-    setFormData({
-      name: '',
-      address: '',
-      phone: '',
-      email: '',
-      notes: '',
-    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (editingClient) {
-        await axios.put(`${API}/clients/${editingClient.id}`, formData);
-        toast.success('Client modifié avec succès');
-      } else {
-        await axios.post(`${API}/clients`, formData);
-        toast.success('Client créé avec succès');
-      }
-      handleCloseDialog();
+      if (editing) { await axios.put(`${API}/clients/${editing.id}`, form); toast.success('Client modifié'); }
+      else { await axios.post(`${API}/clients`, form); toast.success('Client créé'); }
+      setShowDialog(false);
       fetchClients();
-    } catch (error) {
-      toast.error('Erreur lors de la sauvegarde');
-    }
+    } catch { toast.error('Erreur sauvegarde'); }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
-      try {
-        await axios.delete(`${API}/clients/${id}`);
-        toast.success('Client supprimé');
-        fetchClients();
-      } catch (error) {
-        toast.error('Erreur lors de la suppression');
-      }
-    }
+    if (!window.confirm('Supprimer ce client ?')) return;
+    try { await axios.delete(`${API}/clients/${id}`); toast.success('Supprimé'); fetchClients(); }
+    catch { toast.error('Erreur suppression'); }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
-          <p className="mt-4 text-slate-600">Chargement...</p>
-        </div>
-      </div>
-    );
-  }
+  const filtered = search
+    ? clients.filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search) || (c.email || '').toLowerCase().includes(search.toLowerCase()))
+    : clients;
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 border-3 border-[#e8712a] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                Mes Clients
-              </h1>
-              <p className="text-slate-300">Gérez votre base de clients</p>
-            </div>
-            <Button
-              onClick={() => handleOpenDialog()}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-              data-testid="create-client-btn"
-            >
-              <Plus className="mr-2 h-5 w-5" />
-              Nouveau Client
-            </Button>
+    <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="clients-page">
+      <div style={{ background: 'linear-gradient(135deg, #0c1829 0%, #1a2d4a 100%)' }} className="text-white">
+        <div className="max-w-6xl mx-auto px-4 py-5 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold">Mes Clients</h1>
+            <p className="text-xs text-white/50">{clients.length} clients</p>
           </div>
+          <Button size="sm" onClick={() => openDialog()} className="text-white h-9" style={{ background: '#e8712a' }} data-testid="create-client-btn">
+            <Plus className="h-4 w-4 mr-1" /> Nouveau
+          </Button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
-            <Input
-              type="text"
-              placeholder="Rechercher un client (nom, email, téléphone...)"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-              data-testid="search-clients-input"
-            />
-          </div>
+      <div className="max-w-6xl mx-auto px-4 py-4 space-y-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input placeholder="Rechercher..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9 text-sm" data-testid="search-clients-input" />
         </div>
 
-        {/* Clients Grid */}
-        {filteredClients.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredClients.map((client) => (
-              <Card
-                key={client.id}
-                className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all overflow-hidden"
-              >
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 bg-orange-100 rounded-full flex items-center justify-center">
-                        <User className="h-6 w-6 text-orange-600" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-slate-900">{client.name}</h3>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Mail className="h-4 w-4" />
-                      <span className="truncate">{client.email}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Phone className="h-4 w-4" />
-                      <span>{client.phone}</span>
-                    </div>
-                    <p className="text-sm text-slate-600 line-clamp-2">{client.address}</p>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleOpenDialog(client)}
-                      className="flex-1"
-                      data-testid={`edit-client-${client.id}`}
-                    >
-                      <Edit className="mr-2 h-4 w-4" />
-                      Modifier
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleDelete(client.id)}
-                      className="text-red-600 hover:bg-red-50"
-                      data-testid={`delete-client-${client.id}`}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {filtered.map(c => (
+            <Card key={c.id} className="bg-white border-0 shadow-sm p-4" data-testid={`client-card-${c.id}`}>
+              <div className="flex items-start gap-3 mb-3">
+                <div className="h-9 w-9 rounded-full flex items-center justify-center shrink-0" style={{ background: '#fff3e6' }}>
+                  <User className="h-4 w-4" style={{ color: '#e8712a' }} />
                 </div>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card className="bg-white border border-slate-200 rounded-xl shadow-sm p-12 text-center">
-            <User className="h-16 w-16 mx-auto mb-4 text-slate-300" />
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">Aucun client trouvé</h3>
-            <p className="text-slate-600 mb-4">Commencez par ajouter votre premier client</p>
-            <Button
-              onClick={() => handleOpenDialog()}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              <Plus className="mr-2 h-5 w-5" />
-              Ajouter un client
-            </Button>
+                <div className="min-w-0">
+                  <div className="font-semibold text-sm truncate">{c.name}</div>
+                  <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5"><Phone className="h-3 w-3" />{c.phone}</div>
+                  {c.email && <div className="text-xs text-gray-500 truncate">{c.email}</div>}
+                  <div className="flex items-start gap-1 text-xs text-gray-400 mt-0.5"><MapPin className="h-3 w-3 mt-0.5 shrink-0" /><span className="line-clamp-2">{c.address}</span></div>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => openDialog(c)} className="flex-1 h-7 text-xs" data-testid={`edit-client-${c.id}`}>
+                  <Edit className="h-3 w-3 mr-1" /> Modifier
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => handleDelete(c.id)} className="h-7 text-red-500 hover:bg-red-50" data-testid={`delete-client-${c.id}`}>
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+        {filtered.length === 0 && (
+          <Card className="bg-white border-0 shadow-sm p-10 text-center">
+            <User className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+            <p className="text-sm text-gray-500 mb-3">Aucun client</p>
+            <Button size="sm" onClick={() => openDialog()} style={{ background: '#e8712a' }} className="text-white"><Plus className="h-4 w-4 mr-1" /> Ajouter</Button>
           </Card>
         )}
       </div>
 
-      {/* Create/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="sm:max-w-[550px]">
-          <DialogHeader>
-            <DialogTitle>
-              {editingClient ? 'Modifier le client' : 'Nouveau client'}
-            </DialogTitle>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-[450px]" data-testid="client-dialog">
+          <DialogHeader><DialogTitle>{editing ? 'Modifier le client' : 'Nouveau client'}</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit}>
-            <div className="space-y-4 py-4">
-              <div>
-                <Label htmlFor="name">Nom complet *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                  data-testid="client-name-input"
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                  data-testid="client-email-input"
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone">Téléphone *</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  required
-                  data-testid="client-phone-input"
-                />
-              </div>
-              <div>
-                <Label htmlFor="address">Adresse *</Label>
-                <Textarea
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  required
-                  rows={2}
-                  data-testid="client-address-input"
-                />
-              </div>
-              <div>
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  rows={3}
-                  data-testid="client-notes-input"
-                />
-              </div>
+            <div className="space-y-3 py-3">
+              <div><Label className="text-xs text-gray-500">Nom complet *</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required className="h-9 text-sm" data-testid="client-name-input" /></div>
+              <div><Label className="text-xs text-gray-500">Téléphone *</Label><Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} required className="h-9 text-sm" data-testid="client-phone-input" /></div>
+              <div><Label className="text-xs text-gray-500">Adresse *</Label><Textarea value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} required rows={2} className="text-sm" data-testid="client-address-input" /></div>
+              <div><Label className="text-xs text-gray-500">Email (optionnel)</Label><Input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="h-9 text-sm" data-testid="client-email-input" /></div>
+              <div><Label className="text-xs text-gray-500">Notes</Label><Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} className="text-sm" data-testid="client-notes-input" /></div>
             </div>
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseDialog}
-                data-testid="cancel-client-btn"
-              >
-                Annuler
-              </Button>
-              <Button
-                type="submit"
-                className="bg-orange-500 hover:bg-orange-600 text-white"
-                data-testid="save-client-btn"
-              >
-                {editingClient ? 'Modifier' : 'Créer'}
-              </Button>
+              <Button type="button" variant="outline" onClick={() => setShowDialog(false)} size="sm" data-testid="cancel-client-btn">Annuler</Button>
+              <Button type="submit" size="sm" style={{ background: '#e8712a' }} className="text-white" data-testid="save-client-btn">{editing ? 'Modifier' : 'Créer'}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
