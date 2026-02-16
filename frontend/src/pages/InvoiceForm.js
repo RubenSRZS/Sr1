@@ -27,9 +27,10 @@ const InvoiceForm = () => {
   const [formData, setFormData] = useState({
     client_id: '',
     work_location: '',
-    work_surface: '',
     services: [],
+    remise_type: 'percent',
     remise_percent: 0,
+    remise_montant: 0,
     acompte_paid: 0,
     notes: '',
   });
@@ -45,9 +46,10 @@ const InvoiceForm = () => {
         setFormData({
           client_id: inv.client_id,
           work_location: inv.work_location,
-          work_surface: inv.work_surface || '',
           services: inv.services,
+          remise_type: inv.remise_percent > 0 ? 'percent' : (inv.remise_montant > 0 ? 'amount' : 'percent'),
           remise_percent: inv.remise_percent || 0,
+          remise_montant: inv.remise_montant || 0,
           acompte_paid: inv.acompte_paid || 0,
           notes: inv.notes || '',
         });
@@ -78,11 +80,13 @@ const InvoiceForm = () => {
 
   const totals = useMemo(() => {
     const brut = formData.services.reduce((sum, s) => sum + (s.total || 0), 0);
-    const remise = Math.round(brut * (formData.remise_percent || 0) / 100 * 100) / 100;
+    const remise = formData.remise_type === 'percent'
+      ? Math.round(brut * (formData.remise_percent || 0) / 100 * 100) / 100
+      : Math.round((formData.remise_montant || 0) * 100) / 100;
     const net = Math.round((brut - remise) * 100) / 100;
-    const reste = Math.round((net - (formData.acompte_paid || 0)) * 100) / 100;
-    return { total_brut: brut, remise, total_net: net, reste_a_payer: reste };
-  }, [formData.services, formData.remise_percent, formData.acompte_paid]);
+    const reste = Math.round((Math.max(net, 0) - (formData.acompte_paid || 0)) * 100) / 100;
+    return { total_brut: brut, remise, total_net: Math.max(net, 0), reste_a_payer: reste };
+  }, [formData.services, formData.remise_type, formData.remise_percent, formData.remise_montant, formData.acompte_paid]);
 
   const previewDoc = useMemo(() => {
     const client = clients.find(c => c.id === formData.client_id);
@@ -94,10 +98,11 @@ const InvoiceForm = () => {
       invoice_number: id ? undefined : 'XX',
       client_name: cName, client_address: cAddr, client_phone: cPhone, client_email: cEmail,
       date: new Date().toLocaleDateString('fr-FR'),
-      work_location: formData.work_location, work_surface: formData.work_surface,
+      work_location: formData.work_location,
       services: formData.services,
       ...totals,
-      remise_percent: formData.remise_percent,
+      remise_percent: formData.remise_type === 'percent' ? formData.remise_percent : 0,
+      remise_montant: formData.remise_type === 'amount' ? formData.remise_montant : 0,
       acompte_paid: formData.acompte_paid,
       notes: formData.notes,
     };
@@ -119,9 +124,10 @@ const InvoiceForm = () => {
         client_id: hasNewClient ? null : clientId,
         new_client: hasNewClient ? newClient : null,
         work_location: formData.work_location,
-        work_surface: formData.work_surface,
+        work_surface: '',
         services: formData.services,
-        remise_percent: formData.remise_percent,
+        remise_percent: formData.remise_type === 'percent' ? formData.remise_percent : 0,
+        remise_montant: formData.remise_type === 'amount' ? formData.remise_montant : 0,
         acompte_paid: formData.acompte_paid,
         notes: formData.notes,
       };
@@ -138,7 +144,7 @@ const InvoiceForm = () => {
   return (
     <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="invoice-form-page">
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)' }} className="text-white">
+      <div style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)' }} className="text-white lg:hidden">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate('/invoices')} className="text-white hover:bg-white/10 h-8 w-8 p-0" data-testid="back-button">
             <ArrowLeft className="h-5 w-5" />
@@ -148,6 +154,9 @@ const InvoiceForm = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="hidden lg:block mb-4">
+          <h1 className="text-xl font-bold text-gray-900">{id ? 'Voir la facture' : 'Nouvelle facture'}</h1>
+        </div>
         <form onSubmit={handleSubmit} className="flex gap-5">
           {/* LEFT - Form */}
           <div className="flex-1 min-w-0 space-y-4">
@@ -156,7 +165,7 @@ const InvoiceForm = () => {
               <div className="flex items-center justify-between mb-3">
                 <span className="font-semibold text-sm text-gray-800">Client</span>
                 <button type="button" onClick={() => setShowNewClient(!showNewClient)}
-                  className="text-xs font-medium hover:underline" style={{ color: '#e8712a' }} data-testid="toggle-new-client">
+                  className="text-xs font-medium hover:underline" style={{ color: '#3b82f6' }} data-testid="toggle-new-client">
                   {showNewClient ? 'Client existant' : '+ Nouveau client'}
                 </button>
               </div>
@@ -168,22 +177,16 @@ const InvoiceForm = () => {
                   </SelectContent>
                 </Select>
               ) : (
-                <div className="space-y-2 bg-orange-50/50 p-3 rounded-lg border border-orange-200/50">
+                <div className="space-y-2 bg-blue-50/50 p-3 rounded-lg border border-blue-200/50">
                   <Input placeholder="Nom complet *" value={newClient.name} onChange={e => setNewClient({ ...newClient, name: e.target.value })} className="h-9 text-sm" data-testid="new-client-name" />
                   <Input placeholder="Téléphone *" value={newClient.phone} onChange={e => setNewClient({ ...newClient, phone: e.target.value })} className="h-9 text-sm" data-testid="new-client-phone" />
                   <Input placeholder="Adresse *" value={newClient.address} onChange={e => setNewClient({ ...newClient, address: e.target.value })} className="h-9 text-sm" data-testid="new-client-address" />
                   <Input placeholder="Email (optionnel)" value={newClient.email} onChange={e => setNewClient({ ...newClient, email: e.target.value })} className="h-9 text-sm" data-testid="new-client-email" />
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-2 mt-3">
-                <div>
-                  <Label className="text-xs text-gray-500">Lieu des travaux *</Label>
-                  <Input value={formData.work_location} onChange={e => updateField('work_location', e.target.value)} placeholder="Adresse du chantier" className="h-9 text-sm" required data-testid="work-location-input" />
-                </div>
-                <div>
-                  <Label className="text-xs text-gray-500">Surface</Label>
-                  <Input value={formData.work_surface} onChange={e => updateField('work_surface', e.target.value)} placeholder="Ex: 120m²" className="h-9 text-sm" data-testid="work-surface-input" />
-                </div>
+              <div className="mt-3">
+                <Label className="text-xs text-gray-500">Lieu des travaux *</Label>
+                <Input value={formData.work_location} onChange={e => updateField('work_location', e.target.value)} placeholder="Adresse du chantier" className="h-9 text-sm" required data-testid="work-location-input" />
               </div>
             </Card>
 
@@ -195,7 +198,7 @@ const InvoiceForm = () => {
                   <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => setShowCatalog(true)} data-testid="catalog-btn">
                     <BookOpen className="h-3.5 w-3.5 mr-1" /> Catalogue
                   </Button>
-                  <Button type="button" size="sm" className="h-7 text-xs text-white" style={{ background: '#e8712a' }} onClick={addService} data-testid="add-service-btn">
+                  <Button type="button" size="sm" className="h-7 text-xs text-white" style={{ background: '#3b82f6' }} onClick={addService} data-testid="add-service-btn">
                     <Plus className="h-3.5 w-3.5 mr-1" /> Ajouter
                   </Button>
                 </div>
@@ -232,22 +235,41 @@ const InvoiceForm = () => {
 
             {/* Notes, Remise, Acompte */}
             <Card className="p-4 bg-white border-0 shadow-sm" data-testid="notes-section">
-              <div className="grid grid-cols-3 gap-3 mb-3">
-                <div>
-                  <Label className="text-xs text-gray-500">Remise (%)</Label>
-                  <Input type="number" min="0" max="100" step="1" value={formData.remise_percent}
-                    onChange={e => updateField('remise_percent', parseFloat(e.target.value) || 0)}
-                    placeholder="Ex: 30" className="h-9 text-sm" data-testid="remise-percent-input" />
+              <div className="mb-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Label className="text-xs text-gray-500">Remise</Label>
+                  <div className="flex bg-gray-100 rounded-md p-0.5">
+                    <button type="button" onClick={() => { updateField('remise_type', 'percent'); updateField('remise_montant', 0); }}
+                      className={`px-2.5 py-0.5 rounded text-xs font-medium transition-colors ${formData.remise_type === 'percent' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}
+                      data-testid="remise-type-percent">%</button>
+                    <button type="button" onClick={() => { updateField('remise_type', 'amount'); updateField('remise_percent', 0); }}
+                      className={`px-2.5 py-0.5 rounded text-xs font-medium transition-colors ${formData.remise_type === 'amount' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}
+                      data-testid="remise-type-amount">Montant €</button>
+                  </div>
                 </div>
-                <div>
-                  <Label className="text-xs text-gray-500">Montant remise</Label>
-                  <Input value={`${totals.remise.toFixed(2)} €`} readOnly className="h-9 text-sm bg-gray-50" />
-                </div>
-                <div>
-                  <Label className="text-xs text-gray-500">Acompte versé (€)</Label>
-                  <Input type="number" step="0.01" value={formData.acompte_paid}
-                    onChange={e => updateField('acompte_paid', parseFloat(e.target.value) || 0)}
-                    className="h-9 text-sm" data-testid="acompte-paid-input" />
+                <div className="grid grid-cols-3 gap-3">
+                  {formData.remise_type === 'percent' ? (
+                    <div>
+                      <Input type="number" min="0" max="100" step="1" value={formData.remise_percent}
+                        onChange={e => updateField('remise_percent', parseFloat(e.target.value) || 0)}
+                        placeholder="Ex: 30%" className="h-9 text-sm" data-testid="remise-percent-input" />
+                    </div>
+                  ) : (
+                    <div>
+                      <Input type="number" min="0" step="0.01" value={formData.remise_montant}
+                        onChange={e => updateField('remise_montant', parseFloat(e.target.value) || 0)}
+                        placeholder="Ex: 500€" className="h-9 text-sm" data-testid="remise-montant-input" />
+                    </div>
+                  )}
+                  <div>
+                    <Input value={`-${totals.remise.toFixed(2)} €`} readOnly className="h-9 text-sm bg-gray-50" />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-gray-500">Acompte versé (€)</Label>
+                    <Input type="number" step="0.01" value={formData.acompte_paid}
+                      onChange={e => updateField('acompte_paid', parseFloat(e.target.value) || 0)}
+                      className="h-9 text-sm" data-testid="acompte-paid-input" />
+                  </div>
                 </div>
               </div>
               <div>
@@ -260,7 +282,7 @@ const InvoiceForm = () => {
             <Card className="p-4 bg-white border-0 shadow-sm lg:hidden" data-testid="mobile-summary">
               <div className="space-y-1.5 mb-3">
                 <div className="flex justify-between text-sm"><span className="text-gray-500">Total brut</span><span className="font-medium">{totals.total_brut.toFixed(2)} €</span></div>
-                {totals.remise > 0 && <div className="flex justify-between text-sm" style={{ color: '#e8712a' }}><span>Remise ({formData.remise_percent}%)</span><span>-{totals.remise.toFixed(2)} €</span></div>}
+                {totals.remise > 0 && <div className="flex justify-between text-sm" style={{ color: '#f59e0b' }}><span>Remise{formData.remise_type === 'percent' ? ` (${formData.remise_percent}%)` : ''}</span><span>-{totals.remise.toFixed(2)} €</span></div>}
                 <div className="flex justify-between font-bold text-lg pt-1 border-t"><span>Total net</span><span>{totals.total_net.toFixed(2)} €</span></div>
                 <div className="flex justify-between text-sm text-green-600"><span>Acompte versé</span><span>{Number(formData.acompte_paid || 0).toFixed(2)} €</span></div>
                 <div className="flex justify-between font-bold text-red-600"><span>Reste à payer</span><span>{totals.reste_a_payer.toFixed(2)} €</span></div>
@@ -269,7 +291,7 @@ const InvoiceForm = () => {
                 <Button type="button" variant="outline" className="flex-1 h-10" onClick={() => setShowPreviewMobile(true)} data-testid="preview-btn-mobile">
                   <Eye className="h-4 w-4 mr-1.5" /> Aperçu
                 </Button>
-                <Button type="submit" disabled={loading} className="flex-1 h-10 text-white" style={{ background: '#0c1829' }} data-testid="save-invoice-btn">
+                <Button type="submit" disabled={loading} className="flex-1 h-10 text-white" style={{ background: '#3b82f6' }} data-testid="save-invoice-btn">
                   <Save className="h-4 w-4 mr-1.5" /> {loading ? 'Sauvegarde...' : 'Enregistrer'}
                 </Button>
               </div>
@@ -278,25 +300,25 @@ const InvoiceForm = () => {
 
           {/* RIGHT - Live Preview (desktop) */}
           <div className="hidden lg:block w-[420px] shrink-0">
-            <div className="sticky top-4 space-y-3">
+            <div className="sticky top-20 space-y-3">
               <Card className="p-4 bg-white border-0 shadow-sm">
                 <div className="space-y-1.5 mb-3">
                   <div className="flex justify-between text-sm"><span className="text-gray-500">Total brut</span><span className="font-medium">{totals.total_brut.toFixed(2)} €</span></div>
-                  {totals.remise > 0 && <div className="flex justify-between text-sm" style={{ color: '#e8712a' }}><span>Remise ({formData.remise_percent}%)</span><span>-{totals.remise.toFixed(2)} €</span></div>}
+                  {totals.remise > 0 && <div className="flex justify-between text-sm" style={{ color: '#f59e0b' }}><span>Remise{formData.remise_type === 'percent' ? ` (${formData.remise_percent}%)` : ''}</span><span>-{totals.remise.toFixed(2)} €</span></div>}
                   <div className="flex justify-between font-bold text-lg pt-1 border-t"><span>Total net</span><span>{totals.total_net.toFixed(2)} €</span></div>
                   <div className="flex justify-between text-sm text-green-600"><span>Acompte versé</span><span>{Number(formData.acompte_paid || 0).toFixed(2)} €</span></div>
                   <div className="flex justify-between font-bold text-red-600"><span>Reste à payer</span><span>{totals.reste_a_payer.toFixed(2)} €</span></div>
                 </div>
-                <Button type="submit" disabled={loading} className="w-full h-10 text-white" style={{ background: '#0c1829' }} data-testid="save-invoice-btn-desktop">
+                <Button type="submit" disabled={loading} className="w-full h-10 text-white" style={{ background: '#3b82f6' }} data-testid="save-invoice-btn-desktop">
                   <Save className="h-4 w-4 mr-1.5" /> {loading ? 'Sauvegarde...' : 'Enregistrer la facture'}
                 </Button>
               </Card>
 
               <Card className="bg-white border-0 shadow-sm overflow-hidden">
-                <div className="px-3 py-2 border-b border-gray-100 flex items-center justify-between">
+                <div className="px-3 py-2 border-b border-gray-100">
                   <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Aperçu en direct</span>
                 </div>
-                <div className="p-2 bg-gray-100 max-h-[65vh] overflow-y-auto" data-testid="live-preview-desktop">
+                <div className="p-2 bg-gray-100 max-h-[55vh] overflow-y-auto" data-testid="live-preview-desktop">
                   <div className="transform scale-[0.48] origin-top-left" style={{ width: '210mm' }}>
                     <PDFDocument document={previewDoc} type="invoice" compact={false} />
                   </div>
@@ -329,15 +351,15 @@ const InvoiceForm = () => {
           <div className="overflow-y-auto space-y-2 max-h-[60vh]">
             {catalog.map(item => (
               <div key={item.id} onClick={() => addFromCatalog(item)}
-                className="p-3 rounded-lg border border-gray-100 hover:border-orange-200 hover:bg-orange-50/30 cursor-pointer transition-colors"
+                className="p-3 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 cursor-pointer transition-colors"
                 data-testid={`catalog-item-${item.id}`}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-medium px-1.5 py-0.5 rounded" style={{ background: '#fff3e6', color: '#e8712a' }}>{item.category}</span>
+                  <span className="text-xs font-medium px-1.5 py-0.5 rounded" style={{ background: '#eff6ff', color: '#3b82f6' }}>{item.category}</span>
                   <span className="font-medium text-sm">{item.service_name}</span>
                 </div>
                 <p className="text-xs text-gray-500">{item.description}</p>
-                {item.default_price && <p className="text-xs font-medium mt-1" style={{ color: '#e8712a' }}>{item.default_price.toFixed(2)} €</p>}
+                {item.default_price && <p className="text-xs font-medium mt-1" style={{ color: '#3b82f6' }}>{item.default_price.toFixed(2)} €</p>}
               </div>
             ))}
           </div>
