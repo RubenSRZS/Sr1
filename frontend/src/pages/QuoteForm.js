@@ -47,10 +47,11 @@ const QuoteForm = () => {
         setFormData({
           client_id: q.client_id,
           work_location: q.work_location,
-          work_surface: q.work_surface || '',
           diagnostic: q.diagnostic || { mousses: false, lichens: false, tuiles_cassees: false, faitage: false, gouttieres: false, facade: false },
           services: q.services,
+          remise_type: q.remise_percent > 0 ? 'percent' : (q.remise_montant > 0 ? 'amount' : 'percent'),
           remise_percent: q.remise_percent || 0,
+          remise_montant: q.remise_montant || 0,
           notes: q.notes || '',
         });
       }).catch(() => toast.error('Erreur chargement devis'));
