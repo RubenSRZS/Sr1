@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { PDFDocument } from '@/components/PDFPreview';
+import { PDFDocument, downloadPDF, BRAND_BLUE, BRAND_ORANGE } from '@/components/PDFPreview';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -24,6 +24,8 @@ const QuoteForm = () => {
   const [showCatalog, setShowCatalog] = useState(false);
   const [showPreviewMobile, setShowPreviewMobile] = useState(false);
   const [showNewClient, setShowNewClient] = useState(false);
+  const pdfRef = useRef(null);
+  const mobilePdfRef = useRef(null);
 
   const [formData, setFormData] = useState({
     client_id: '',
@@ -109,6 +111,21 @@ const QuoteForm = () => {
     };
   }, [formData, newClient, showNewClient, clients, id, totals]);
 
+  const handleDownloadPDF = useCallback(async () => {
+    const ref = pdfRef.current || mobilePdfRef.current;
+    if (!ref) {
+      toast.error('Impossible de générer le PDF');
+      return;
+    }
+    const filename = `DEVIS_${previewDoc.quote_number || 'XX'}_${previewDoc.client_name?.replace(/\s+/g, '_') || 'client'}.pdf`;
+    const success = await downloadPDF(ref, filename);
+    if (success) {
+      toast.success('PDF téléchargé');
+    } else {
+      toast.error('Erreur de téléchargement');
+    }
+  }, [previewDoc]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const clientId = formData.client_id;
@@ -157,7 +174,7 @@ const QuoteForm = () => {
   return (
     <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="quote-form-page">
       {/* Header (mobile only - desktop uses DesktopNav) */}
-      <div style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)' }} className="text-white lg:hidden">
+      <div style={{ background: `linear-gradient(135deg, ${BRAND_BLUE} 0%, #3b82f6 100%)` }} className="text-white lg:hidden">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate('/quotes')} className="text-white hover:bg-white/10 h-8 w-8 p-0" data-testid="back-button">
             <ArrowLeft className="h-5 w-5" />
@@ -178,7 +195,7 @@ const QuoteForm = () => {
               <div className="flex items-center justify-between mb-3">
                 <span className="font-semibold text-sm text-gray-800">Client</span>
                 <button type="button" onClick={() => setShowNewClient(!showNewClient)}
-                  className="text-xs font-medium hover:underline" style={{ color: '#3b82f6' }} data-testid="toggle-new-client">
+                  className="text-xs font-medium hover:underline" style={{ color: BRAND_BLUE }} data-testid="toggle-new-client">
                   {showNewClient ? 'Client existant' : '+ Nouveau client'}
                 </button>
               </div>
@@ -224,7 +241,7 @@ const QuoteForm = () => {
                   <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => setShowCatalog(true)} data-testid="catalog-btn">
                     <BookOpen className="h-3.5 w-3.5 mr-1" /> Catalogue
                   </Button>
-                  <Button type="button" size="sm" className="h-7 text-xs text-white" style={{ background: '#3b82f6' }} onClick={addService} data-testid="add-service-btn">
+                  <Button type="button" size="sm" className="h-7 text-xs text-white" style={{ background: BRAND_BLUE }} onClick={addService} data-testid="add-service-btn">
                     <Plus className="h-3.5 w-3.5 mr-1" /> Ajouter
                   </Button>
                 </div>
@@ -302,15 +319,15 @@ const QuoteForm = () => {
             <Card className="p-4 bg-white border-0 shadow-sm lg:hidden" data-testid="mobile-summary">
               <div className="space-y-1.5 mb-3">
                 <div className="flex justify-between text-sm"><span className="text-gray-500">Total brut</span><span className="font-medium">{totals.total_brut.toFixed(2)} €</span></div>
-                {totals.remise > 0 && <div className="flex justify-between text-sm" style={{ color: '#f59e0b' }}><span>Remise{formData.remise_type === 'percent' ? ` (${formData.remise_percent}%)` : ''}</span><span>-{totals.remise.toFixed(2)} €</span></div>}
+                {totals.remise > 0 && <div className="flex justify-between text-sm" style={{ color: BRAND_ORANGE }}><span>Remise{formData.remise_type === 'percent' ? ` (${formData.remise_percent}%)` : ''}</span><span>-{totals.remise.toFixed(2)} €</span></div>}
                 <div className="flex justify-between font-bold text-lg pt-1 border-t"><span>Total net</span><span>{totals.total_net.toFixed(2)} €</span></div>
-                <div className="flex justify-between text-sm font-medium" style={{ color: '#f59e0b' }}><span>Acompte 30%</span><span>{totals.acompte_30.toFixed(2)} €</span></div>
+                <div className="flex justify-between text-sm font-medium" style={{ color: BRAND_ORANGE }}><span>Acompte 30%</span><span>{totals.acompte_30.toFixed(2)} €</span></div>
               </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" className="flex-1 h-10" onClick={() => setShowPreviewMobile(true)} data-testid="preview-btn-mobile">
                   <Eye className="h-4 w-4 mr-1.5" /> Aperçu
                 </Button>
-                <Button type="submit" disabled={loading} className="flex-1 h-10 text-white" style={{ background: '#3b82f6' }} data-testid="save-quote-btn">
+                <Button type="submit" disabled={loading} className="flex-1 h-10 text-white" style={{ background: BRAND_BLUE }} data-testid="save-quote-btn">
                   <Save className="h-4 w-4 mr-1.5" /> {loading ? 'Sauvegarde...' : 'Enregistrer'}
                 </Button>
               </div>
@@ -323,13 +340,25 @@ const QuoteForm = () => {
               <Card className="p-4 bg-white border-0 shadow-sm">
                 <div className="space-y-1.5 mb-3">
                   <div className="flex justify-between text-sm"><span className="text-gray-500">Total brut</span><span className="font-medium">{totals.total_brut.toFixed(2)} €</span></div>
-                  {totals.remise > 0 && <div className="flex justify-between text-sm" style={{ color: '#f59e0b' }}><span>Remise{formData.remise_type === 'percent' ? ` (${formData.remise_percent}%)` : ''}</span><span>-{totals.remise.toFixed(2)} €</span></div>}
+                  {totals.remise > 0 && <div className="flex justify-between text-sm" style={{ color: BRAND_ORANGE }}><span>Remise{formData.remise_type === 'percent' ? ` (${formData.remise_percent}%)` : ''}</span><span>-{totals.remise.toFixed(2)} €</span></div>}
                   <div className="flex justify-between font-bold text-lg pt-1 border-t"><span>Total net</span><span>{totals.total_net.toFixed(2)} €</span></div>
-                  <div className="flex justify-between text-sm font-medium" style={{ color: '#f59e0b' }}><span>Acompte 30%</span><span>{totals.acompte_30.toFixed(2)} €</span></div>
+                  <div className="flex justify-between text-sm font-medium" style={{ color: BRAND_ORANGE }}><span>Acompte 30%</span><span>{totals.acompte_30.toFixed(2)} €</span></div>
                 </div>
-                <Button type="submit" disabled={loading} className="w-full h-10 text-white" style={{ background: '#3b82f6' }} data-testid="save-quote-btn-desktop">
-                  <Save className="h-4 w-4 mr-1.5" /> {loading ? 'Sauvegarde...' : 'Enregistrer le devis'}
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="flex-1 h-10"
+                    style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }}
+                    onClick={handleDownloadPDF}
+                    data-testid="download-pdf-btn-desktop"
+                  >
+                    <Download className="h-4 w-4 mr-1.5" /> Télécharger PDF
+                  </Button>
+                  <Button type="submit" disabled={loading} className="flex-1 h-10 text-white" style={{ background: BRAND_BLUE }} data-testid="save-quote-btn-desktop">
+                    <Save className="h-4 w-4 mr-1.5" /> {loading ? 'Sauvegarde...' : 'Enregistrer'}
+                  </Button>
+                </div>
               </Card>
 
               <Card className="bg-white border-0 shadow-sm overflow-hidden">
@@ -338,7 +367,7 @@ const QuoteForm = () => {
                 </div>
                 <div className="p-2 bg-gray-100 max-h-[55vh] overflow-y-auto" data-testid="live-preview-desktop">
                   <div className="transform scale-[0.48] origin-top-left" style={{ width: '210mm' }}>
-                    <PDFDocument document={previewDoc} type="quote" compact={false} />
+                    <PDFDocument document={previewDoc} type="quote" compact={false} pdfRef={pdfRef} />
                   </div>
                 </div>
               </Card>
@@ -353,10 +382,22 @@ const QuoteForm = () => {
           <div className="bg-white rounded-xl w-full max-w-lg shadow-2xl animate-fade-in-up">
             <div className="sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between rounded-t-xl z-10">
               <span className="font-semibold text-sm">Aperçu du devis</span>
-              <Button variant="ghost" size="sm" onClick={() => setShowPreviewMobile(false)} className="h-7" data-testid="close-mobile-preview"><EyeOff className="h-4 w-4" /></Button>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleDownloadPDF}
+                  className="h-7 text-xs"
+                  style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }}
+                  data-testid="download-pdf-btn-mobile"
+                >
+                  <Download className="h-3.5 w-3.5 mr-1" /> PDF
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setShowPreviewMobile(false)} className="h-7" data-testid="close-mobile-preview"><EyeOff className="h-4 w-4" /></Button>
+              </div>
             </div>
             <div className="p-2 bg-gray-100">
-              <PDFDocument document={previewDoc} type="quote" compact={true} />
+              <PDFDocument document={previewDoc} type="quote" compact={true} pdfRef={mobilePdfRef} />
             </div>
           </div>
         </div>
@@ -373,11 +414,11 @@ const QuoteForm = () => {
                 data-testid={`catalog-item-${item.id}`}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-medium px-1.5 py-0.5 rounded" style={{ background: '#eff6ff', color: '#3b82f6' }}>{item.category}</span>
+                  <span className="text-xs font-medium px-1.5 py-0.5 rounded" style={{ background: '#eff6ff', color: BRAND_BLUE }}>{item.category}</span>
                   <span className="font-medium text-sm">{item.service_name}</span>
                 </div>
                 <p className="text-xs text-gray-500">{item.description}</p>
-                {item.default_price && <p className="text-xs font-medium mt-1" style={{ color: '#3b82f6' }}>{item.default_price.toFixed(2)} €</p>}
+                {item.default_price && <p className="text-xs font-medium mt-1" style={{ color: BRAND_BLUE }}>{item.default_price.toFixed(2)} €</p>}
               </div>
             ))}
           </div>
