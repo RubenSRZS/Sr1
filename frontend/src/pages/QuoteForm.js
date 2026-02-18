@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,19 +22,25 @@ const QuoteForm = () => {
   const [clients, setClients] = useState([]);
   const [catalog, setCatalog] = useState([]);
   const [showCatalog, setShowCatalog] = useState(false);
+  const [catalogTarget, setCatalogTarget] = useState('option1'); // 'option1' or 'option2'
   const [showPreviewMobile, setShowPreviewMobile] = useState(false);
   const [showNewClient, setShowNewClient] = useState(false);
-  const pdfRef = useRef(null);
-  const mobilePdfRef = useRef(null);
+  const [hasOption2, setHasOption2] = useState(false);
 
   const [formData, setFormData] = useState({
     client_id: '',
     work_location: '',
     diagnostic: { mousses: false, lichens: false, tuiles_cassees: false, faitage: false, gouttieres: false, facade: false },
+    // Option 1
     services: [],
     remise_type: 'percent',
     remise_percent: 0,
     remise_montant: 0,
+    // Option 2
+    option_2_services: [],
+    option_2_remise_type: 'percent',
+    option_2_remise_percent: 0,
+    option_2_remise_montant: 0,
     notes: '',
   });
 
@@ -46,14 +52,20 @@ const QuoteForm = () => {
     if (id) {
       axios.get(`${API}/quotes/${id}`).then(r => {
         const q = r.data;
+        const has2 = q.option_2_services && q.option_2_services.length > 0;
+        setHasOption2(has2);
         setFormData({
           client_id: q.client_id,
           work_location: q.work_location,
           diagnostic: q.diagnostic || { mousses: false, lichens: false, tuiles_cassees: false, faitage: false, gouttieres: false, facade: false },
-          services: q.services,
+          services: q.services || [],
           remise_type: q.remise_percent > 0 ? 'percent' : (q.remise_montant > 0 ? 'amount' : 'percent'),
           remise_percent: q.remise_percent || 0,
           remise_montant: q.remise_montant || 0,
+          option_2_services: q.option_2_services || [],
+          option_2_remise_type: q.option_2_remise_percent > 0 ? 'percent' : (q.option_2_remise_montant > 0 ? 'amount' : 'percent'),
+          option_2_remise_percent: q.option_2_remise_percent || 0,
+          option_2_remise_montant: q.option_2_remise_montant || 0,
           notes: q.notes || '',
         });
       }).catch(() => toast.error('Erreur chargement devis'));
@@ -62,14 +74,8 @@ const QuoteForm = () => {
 
   const updateField = (key, val) => setFormData(prev => ({ ...prev, [key]: val }));
 
+  // Option 1 services
   const addService = () => updateField('services', [...formData.services, { description: '', quantity: 1, unit_price: 0, total: 0 }]);
-
-  const addFromCatalog = (item) => {
-    updateField('services', [...formData.services, { description: item.description, quantity: 1, unit_price: item.default_price || 0, total: item.default_price || 0 }]);
-    setShowCatalog(false);
-    toast.success('Service ajouté');
-  };
-
   const updateService = (i, field, val) => {
     const s = [...formData.services];
     s[i] = { ...s[i], [field]: val };
@@ -78,10 +84,39 @@ const QuoteForm = () => {
     }
     updateField('services', s);
   };
-
   const removeService = (i) => updateField('services', formData.services.filter((_, idx) => idx !== i));
 
-  const totals = useMemo(() => {
+  // Option 2 services
+  const addService2 = () => updateField('option_2_services', [...formData.option_2_services, { description: '', quantity: 1, unit_price: 0, total: 0 }]);
+  const updateService2 = (i, field, val) => {
+    const s = [...formData.option_2_services];
+    s[i] = { ...s[i], [field]: val };
+    if (field === 'quantity' || field === 'unit_price') {
+      s[i].total = parseFloat(s[i].quantity || 0) * parseFloat(s[i].unit_price || 0);
+    }
+    updateField('option_2_services', s);
+  };
+  const removeService2 = (i) => updateField('option_2_services', formData.option_2_services.filter((_, idx) => idx !== i));
+
+  // Catalog handler
+  const addFromCatalog = (item) => {
+    const newService = { description: item.description, quantity: 1, unit_price: item.default_price || 0, total: item.default_price || 0 };
+    if (catalogTarget === 'option2') {
+      updateField('option_2_services', [...formData.option_2_services, newService]);
+    } else {
+      updateField('services', [...formData.services, newService]);
+    }
+    setShowCatalog(false);
+    toast.success('Service ajouté');
+  };
+
+  const openCatalog = (target) => {
+    setCatalogTarget(target);
+    setShowCatalog(true);
+  };
+
+  // Option 1 totals
+  const totals1 = useMemo(() => {
     const brut = formData.services.reduce((sum, s) => sum + (s.total || 0), 0);
     const remise = formData.remise_type === 'percent'
       ? Math.round(brut * (formData.remise_percent || 0) / 100 * 100) / 100
@@ -90,6 +125,16 @@ const QuoteForm = () => {
     return { total_brut: brut, remise, total_net: Math.max(net, 0), acompte_30: Math.round(Math.max(net, 0) * 0.3 * 100) / 100 };
   }, [formData.services, formData.remise_type, formData.remise_percent, formData.remise_montant]);
 
+  // Option 2 totals
+  const totals2 = useMemo(() => {
+    const brut = formData.option_2_services.reduce((sum, s) => sum + (s.total || 0), 0);
+    const remise = formData.option_2_remise_type === 'percent'
+      ? Math.round(brut * (formData.option_2_remise_percent || 0) / 100 * 100) / 100
+      : Math.round((formData.option_2_remise_montant || 0) * 100) / 100;
+    const net = Math.round((brut - remise) * 100) / 100;
+    return { total_brut: brut, remise, total_net: Math.max(net, 0), acompte_30: Math.round(Math.max(net, 0) * 0.3 * 100) / 100 };
+  }, [formData.option_2_services, formData.option_2_remise_type, formData.option_2_remise_percent, formData.option_2_remise_montant]);
+
   // Live preview document
   const previewDoc = useMemo(() => {
     const client = clients.find(c => c.id === formData.client_id);
@@ -97,33 +142,35 @@ const QuoteForm = () => {
     const cAddr = showNewClient ? newClient.address : client?.address || '';
     const cPhone = showNewClient ? newClient.phone : client?.phone || '';
     const cEmail = showNewClient ? newClient.email : client?.email || '';
-    return {
+    
+    const doc = {
       quote_number: id ? undefined : 'XX',
       client_name: cName, client_address: cAddr, client_phone: cPhone, client_email: cEmail,
       date: new Date().toLocaleDateString('fr-FR'),
       work_location: formData.work_location,
       diagnostic: formData.diagnostic,
       services: formData.services,
-      ...totals,
+      ...totals1,
       remise_percent: formData.remise_type === 'percent' ? formData.remise_percent : 0,
       remise_montant: formData.remise_type === 'amount' ? formData.remise_montant : 0,
       notes: formData.notes,
     };
-  }, [formData, newClient, showNewClient, clients, id, totals]);
+    
+    // Add option 2 if enabled
+    if (hasOption2 && formData.option_2_services.length > 0) {
+      doc.option_2_services = formData.option_2_services;
+      doc.option_2_total_brut = totals2.total_brut;
+      doc.option_2_remise = totals2.remise;
+      doc.option_2_remise_percent = formData.option_2_remise_type === 'percent' ? formData.option_2_remise_percent : 0;
+      doc.option_2_total_net = totals2.total_net;
+      doc.option_2_acompte_30 = totals2.acompte_30;
+    }
+    
+    return doc;
+  }, [formData, newClient, showNewClient, clients, id, totals1, totals2, hasOption2]);
 
   const handleDownloadPDF = useCallback(async () => {
-    const ref = pdfRef.current || mobilePdfRef.current;
-    if (!ref) {
-      toast.error('Impossible de générer le PDF');
-      return;
-    }
-    const filename = `DEVIS_${previewDoc.quote_number || 'XX'}_${previewDoc.client_name?.replace(/\s+/g, '_') || 'client'}.pdf`;
-    const success = await downloadPDF(ref, filename);
-    if (success) {
-      toast.success('PDF téléchargé');
-    } else {
-      toast.error('Erreur de téléchargement');
-    }
+    await downloadPDF(previewDoc, 'quote');
   }, [previewDoc]);
 
   const handleSubmit = async (e) => {
@@ -131,7 +178,8 @@ const QuoteForm = () => {
     const clientId = formData.client_id;
     const hasNewClient = showNewClient && newClient.name;
     if (!clientId && !hasNewClient) { toast.error('Sélectionnez ou créez un client'); return; }
-    if (formData.services.length === 0) { toast.error('Ajoutez au moins un service'); return; }
+    if (formData.services.length === 0) { toast.error('Ajoutez au moins un service à l\'option 1'); return; }
+    if (hasOption2 && formData.option_2_services.length === 0) { toast.error('Ajoutez au moins un service à l\'option 2 ou désactivez-la'); return; }
     if (showNewClient && (!newClient.name || !newClient.phone || !newClient.address)) {
       toast.error('Nom, téléphone et adresse sont obligatoires'); return;
     }
@@ -148,6 +196,10 @@ const QuoteForm = () => {
         remise_percent: formData.remise_type === 'percent' ? formData.remise_percent : 0,
         remise_montant: formData.remise_type === 'amount' ? formData.remise_montant : 0,
         notes: formData.notes,
+        // Option 2
+        option_2_services: hasOption2 ? formData.option_2_services : [],
+        option_2_remise_percent: hasOption2 && formData.option_2_remise_type === 'percent' ? formData.option_2_remise_percent : 0,
+        option_2_remise_montant: hasOption2 && formData.option_2_remise_type === 'amount' ? formData.option_2_remise_montant : 0,
       };
       if (id) {
         payload.client_id = payload.client_id || formData.client_id;
@@ -171,9 +223,94 @@ const QuoteForm = () => {
     { key: 'gouttieres', label: 'Gouttières' }, { key: 'facade', label: 'Façade' },
   ];
 
+  // Services section component to avoid repetition
+  const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, optionNum, totals, remiseType, remisePercent, remiseMontant, onRemiseTypeChange, onRemisePercentChange, onRemiseMontantChange }) => (
+    <Card className="p-4 bg-white border-0 shadow-sm" data-testid={`services-section-${optionNum}`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span 
+            className="font-bold text-sm px-2 py-0.5 rounded"
+            style={{ background: optionNum === 1 ? '#eff6ff' : '#fff7ed', color: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE }}
+          >
+            OPTION {optionNum}
+          </span>
+        </div>
+        <div className="flex gap-2">
+          <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={openCat} data-testid={`catalog-btn-${optionNum}`}>
+            <BookOpen className="h-3.5 w-3.5 mr-1" /> Catalogue
+          </Button>
+          <Button type="button" size="sm" className="h-7 text-xs text-white" style={{ background: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE }} onClick={addSvc} data-testid={`add-service-btn-${optionNum}`}>
+            <Plus className="h-3.5 w-3.5 mr-1" /> Ajouter
+          </Button>
+        </div>
+      </div>
+      <div className="space-y-3">
+        {services.map((s, i) => (
+          <div key={i} className="bg-gray-50 rounded-lg p-3 border border-gray-100" data-testid={`service-row-${optionNum}-${i}`}>
+            <Textarea value={s.description} onChange={e => updateSvc(i, 'description', e.target.value)}
+              placeholder="Description du service" rows={2} className="text-sm mb-2 resize-none" data-testid={`service-desc-${optionNum}-${i}`} />
+            <div className="grid grid-cols-4 gap-2 items-end">
+              <div>
+                <Label className="text-xs text-gray-500">Qté</Label>
+                <Input type="number" step="0.01" value={s.quantity} onChange={e => updateSvc(i, 'quantity', e.target.value)} className="h-8 text-sm" />
+              </div>
+              <div>
+                <Label className="text-xs text-gray-500">Prix unit. €</Label>
+                <Input type="number" step="0.01" value={s.unit_price} onChange={e => updateSvc(i, 'unit_price', e.target.value)} className="h-8 text-sm" />
+              </div>
+              <div>
+                <Label className="text-xs text-gray-500">Total €</Label>
+                <Input value={(s.total || 0).toFixed(2)} readOnly className="h-8 text-sm bg-gray-100 font-medium" />
+              </div>
+              <Button type="button" variant="ghost" size="sm" onClick={() => removeSvc(i)} className="h-8 text-red-500 hover:bg-red-50">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+        {services.length === 0 && (
+          <div className="text-center py-4 text-sm text-gray-400">Ajoutez des services</div>
+        )}
+      </div>
+      {/* Remise for this option */}
+      <div className="mt-4 pt-3 border-t border-gray-100">
+        <div className="flex items-center gap-2 mb-2">
+          <Label className="text-xs text-gray-500">Remise Option {optionNum}</Label>
+          <div className="flex bg-gray-100 rounded-md p-0.5">
+            <button type="button" onClick={() => onRemiseTypeChange('percent')}
+              className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${remiseType === 'percent' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}>%</button>
+            <button type="button" onClick={() => onRemiseTypeChange('amount')}
+              className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${remiseType === 'amount' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}>€</button>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {remiseType === 'percent' ? (
+            <Input type="number" min="0" max="100" step="1" value={remisePercent}
+              onChange={e => onRemisePercentChange(parseFloat(e.target.value) || 0)}
+              placeholder="%" className="h-8 text-sm" />
+          ) : (
+            <Input type="number" min="0" step="0.01" value={remiseMontant}
+              onChange={e => onRemiseMontantChange(parseFloat(e.target.value) || 0)}
+              placeholder="€" className="h-8 text-sm" />
+          )}
+          <Input value={`-${totals.remise.toFixed(2)} €`} readOnly className="h-8 text-sm bg-gray-50" />
+        </div>
+      </div>
+      {/* Totals for this option */}
+      <div className="mt-3 p-3 rounded-lg" style={{ background: optionNum === 1 ? '#eff6ff' : '#fff7ed' }}>
+        <div className="flex justify-between text-sm mb-1"><span className="text-gray-600">Total brut</span><span className="font-medium">{totals.total_brut.toFixed(2)} €</span></div>
+        {totals.remise > 0 && <div className="flex justify-between text-sm mb-1" style={{ color: BRAND_ORANGE }}><span>Remise</span><span>-{totals.remise.toFixed(2)} €</span></div>}
+        <div className="flex justify-between font-bold text-lg pt-1 border-t" style={{ borderColor: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE, color: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE }}>
+          <span>Total Option {optionNum}</span><span>{totals.total_net.toFixed(2)} €</span>
+        </div>
+        <div className="flex justify-between text-sm font-medium mt-1" style={{ color: BRAND_ORANGE }}><span>Acompte 30%</span><span>{totals.acompte_30.toFixed(2)} €</span></div>
+      </div>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="quote-form-page">
-      {/* Header (mobile only - desktop uses DesktopNav) */}
+      {/* Header */}
       <div style={{ background: `linear-gradient(135deg, ${BRAND_BLUE} 0%, #3b82f6 100%)` }} className="text-white lg:hidden">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate('/quotes')} className="text-white hover:bg-white/10 h-8 w-8 p-0" data-testid="back-button">
@@ -233,102 +370,95 @@ const QuoteForm = () => {
               </div>
             </Card>
 
-            {/* Services */}
-            <Card className="p-4 bg-white border-0 shadow-sm" data-testid="services-section">
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold text-sm text-gray-800">Services</span>
-                <div className="flex gap-2">
-                  <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => setShowCatalog(true)} data-testid="catalog-btn">
-                    <BookOpen className="h-3.5 w-3.5 mr-1" /> Catalogue
-                  </Button>
-                  <Button type="button" size="sm" className="h-7 text-xs text-white" style={{ background: BRAND_BLUE }} onClick={addService} data-testid="add-service-btn">
-                    <Plus className="h-3.5 w-3.5 mr-1" /> Ajouter
-                  </Button>
-                </div>
-              </div>
-              <div className="space-y-3">
-                {formData.services.map((s, i) => (
-                  <div key={i} className="bg-gray-50 rounded-lg p-3 border border-gray-100 animate-fade-in-up" data-testid={`service-row-${i}`}>
-                    <Textarea value={s.description} onChange={e => updateService(i, 'description', e.target.value)}
-                      placeholder="Description du service" rows={2} className="text-sm mb-2 resize-none" data-testid={`service-desc-${i}`} />
-                    <div className="grid grid-cols-4 gap-2 items-end">
-                      <div>
-                        <Label className="text-xs text-gray-500">Qté</Label>
-                        <Input type="number" step="0.01" value={s.quantity} onChange={e => updateService(i, 'quantity', e.target.value)} className="h-8 text-sm" data-testid={`service-qty-${i}`} />
-                      </div>
-                      <div>
-                        <Label className="text-xs text-gray-500">Prix unit. €</Label>
-                        <Input type="number" step="0.01" value={s.unit_price} onChange={e => updateService(i, 'unit_price', e.target.value)} className="h-8 text-sm" data-testid={`service-price-${i}`} />
-                      </div>
-                      <div>
-                        <Label className="text-xs text-gray-500">Total €</Label>
-                        <Input value={s.total.toFixed(2)} readOnly className="h-8 text-sm bg-gray-100 font-medium" data-testid={`service-total-${i}`} />
-                      </div>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => removeService(i)} className="h-8 text-red-500 hover:bg-red-50" data-testid={`remove-service-${i}`}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                {formData.services.length === 0 && (
-                  <div className="text-center py-6 text-sm text-gray-400">Ajoutez des services depuis le catalogue ou manuellement</div>
-                )}
-              </div>
-            </Card>
+            {/* Option 1 Services */}
+            <ServicesSection
+              services={formData.services}
+              updateSvc={updateService}
+              removeSvc={removeService}
+              addSvc={addService}
+              openCat={() => openCatalog('option1')}
+              optionNum={1}
+              totals={totals1}
+              remiseType={formData.remise_type}
+              remisePercent={formData.remise_percent}
+              remiseMontant={formData.remise_montant}
+              onRemiseTypeChange={(t) => { updateField('remise_type', t); if(t === 'percent') updateField('remise_montant', 0); else updateField('remise_percent', 0); }}
+              onRemisePercentChange={(v) => updateField('remise_percent', v)}
+              onRemiseMontantChange={(v) => updateField('remise_montant', v)}
+            />
 
-            {/* Notes & Remise */}
+            {/* Toggle Option 2 */}
+            {!hasOption2 ? (
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full h-12 border-dashed border-2"
+                style={{ borderColor: BRAND_ORANGE, color: BRAND_ORANGE }}
+                onClick={() => setHasOption2(true)}
+                data-testid="add-option-2-btn"
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Ajouter une Option 2 (alternative)
+              </Button>
+            ) : (
+              <>
+                {/* Option 2 Services */}
+                <ServicesSection
+                  services={formData.option_2_services}
+                  updateSvc={updateService2}
+                  removeSvc={removeService2}
+                  addSvc={addService2}
+                  openCat={() => openCatalog('option2')}
+                  optionNum={2}
+                  totals={totals2}
+                  remiseType={formData.option_2_remise_type}
+                  remisePercent={formData.option_2_remise_percent}
+                  remiseMontant={formData.option_2_remise_montant}
+                  onRemiseTypeChange={(t) => { updateField('option_2_remise_type', t); if(t === 'percent') updateField('option_2_remise_montant', 0); else updateField('option_2_remise_percent', 0); }}
+                  onRemisePercentChange={(v) => updateField('option_2_remise_percent', v)}
+                  onRemiseMontantChange={(v) => updateField('option_2_remise_montant', v)}
+                />
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  className="w-full text-red-500 hover:bg-red-50"
+                  onClick={() => { setHasOption2(false); updateField('option_2_services', []); }}
+                  data-testid="remove-option-2-btn"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Supprimer l'Option 2
+                </Button>
+              </>
+            )}
+
+            {/* Notes */}
             <Card className="p-4 bg-white border-0 shadow-sm" data-testid="notes-section">
-              <div className="mb-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Label className="text-xs text-gray-500">Remise</Label>
-                  <div className="flex bg-gray-100 rounded-md p-0.5">
-                    <button type="button" onClick={() => { updateField('remise_type', 'percent'); updateField('remise_montant', 0); }}
-                      className={`px-2.5 py-0.5 rounded text-xs font-medium transition-colors ${formData.remise_type === 'percent' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}
-                      data-testid="remise-type-percent">%</button>
-                    <button type="button" onClick={() => { updateField('remise_type', 'amount'); updateField('remise_percent', 0); }}
-                      className={`px-2.5 py-0.5 rounded text-xs font-medium transition-colors ${formData.remise_type === 'amount' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}
-                      data-testid="remise-type-amount">Montant €</button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {formData.remise_type === 'percent' ? (
-                    <div>
-                      <Input type="number" min="0" max="100" step="1" value={formData.remise_percent}
-                        onChange={e => updateField('remise_percent', parseFloat(e.target.value) || 0)}
-                        placeholder="Ex: 30%" className="h-9 text-sm" data-testid="remise-percent-input" />
-                    </div>
-                  ) : (
-                    <div>
-                      <Input type="number" min="0" step="0.01" value={formData.remise_montant}
-                        onChange={e => updateField('remise_montant', parseFloat(e.target.value) || 0)}
-                        placeholder="Ex: 500€" className="h-9 text-sm" data-testid="remise-montant-input" />
-                    </div>
-                  )}
-                  <div>
-                    <Input value={`-${totals.remise.toFixed(2)} €`} readOnly className="h-9 text-sm bg-gray-50" />
-                  </div>
-                </div>
-              </div>
-              <div>
-                <Label className="text-xs text-gray-500">Notes</Label>
-                <Textarea value={formData.notes} onChange={e => updateField('notes', e.target.value)} rows={2} placeholder="Remarques, conditions..." className="text-sm resize-none" data-testid="notes-input" />
-              </div>
+              <Label className="text-xs text-gray-500">Notes</Label>
+              <Textarea value={formData.notes} onChange={e => updateField('notes', e.target.value)} rows={2} placeholder="Remarques, conditions..." className="text-sm resize-none" data-testid="notes-input" />
             </Card>
 
-            {/* Summary + Save (mobile) */}
+            {/* Mobile Summary + Save */}
             <Card className="p-4 bg-white border-0 shadow-sm lg:hidden" data-testid="mobile-summary">
-              <div className="space-y-1.5 mb-3">
-                <div className="flex justify-between text-sm"><span className="text-gray-500">Total brut</span><span className="font-medium">{totals.total_brut.toFixed(2)} €</span></div>
-                {totals.remise > 0 && <div className="flex justify-between text-sm" style={{ color: BRAND_ORANGE }}><span>Remise{formData.remise_type === 'percent' ? ` (${formData.remise_percent}%)` : ''}</span><span>-{totals.remise.toFixed(2)} €</span></div>}
-                <div className="flex justify-between font-bold text-lg pt-1 border-t"><span>Total net</span><span>{totals.total_net.toFixed(2)} €</span></div>
-                <div className="flex justify-between text-sm font-medium" style={{ color: BRAND_ORANGE }}><span>Acompte 30%</span><span>{totals.acompte_30.toFixed(2)} €</span></div>
+              <div className="space-y-2 mb-3">
+                <div className="p-2 rounded-lg" style={{ background: '#eff6ff' }}>
+                  <div className="flex justify-between font-bold" style={{ color: BRAND_BLUE }}>
+                    <span>Option 1</span><span>{totals1.total_net.toFixed(2)} €</span>
+                  </div>
+                </div>
+                {hasOption2 && formData.option_2_services.length > 0 && (
+                  <div className="p-2 rounded-lg" style={{ background: '#fff7ed' }}>
+                    <div className="flex justify-between font-bold" style={{ color: BRAND_ORANGE }}>
+                      <span>Option 2</span><span>{totals2.total_net.toFixed(2)} €</span>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" className="flex-1 h-10" onClick={() => setShowPreviewMobile(true)} data-testid="preview-btn-mobile">
                   <Eye className="h-4 w-4 mr-1.5" /> Aperçu
                 </Button>
                 <Button type="submit" disabled={loading} className="flex-1 h-10 text-white" style={{ background: BRAND_BLUE }} data-testid="save-quote-btn">
-                  <Save className="h-4 w-4 mr-1.5" /> {loading ? 'Sauvegarde...' : 'Enregistrer'}
+                  <Save className="h-4 w-4 mr-1.5" /> {loading ? '...' : 'Enregistrer'}
                 </Button>
               </div>
             </Card>
@@ -338,11 +468,23 @@ const QuoteForm = () => {
           <div className="hidden lg:block w-[420px] shrink-0">
             <div className="sticky top-20 space-y-3">
               <Card className="p-4 bg-white border-0 shadow-sm">
-                <div className="space-y-1.5 mb-3">
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Total brut</span><span className="font-medium">{totals.total_brut.toFixed(2)} €</span></div>
-                  {totals.remise > 0 && <div className="flex justify-between text-sm" style={{ color: BRAND_ORANGE }}><span>Remise{formData.remise_type === 'percent' ? ` (${formData.remise_percent}%)` : ''}</span><span>-{totals.remise.toFixed(2)} €</span></div>}
-                  <div className="flex justify-between font-bold text-lg pt-1 border-t"><span>Total net</span><span>{totals.total_net.toFixed(2)} €</span></div>
-                  <div className="flex justify-between text-sm font-medium" style={{ color: BRAND_ORANGE }}><span>Acompte 30%</span><span>{totals.acompte_30.toFixed(2)} €</span></div>
+                <div className="space-y-2 mb-3">
+                  <div className="p-2 rounded-lg" style={{ background: '#eff6ff' }}>
+                    <div className="flex justify-between text-sm"><span className="text-gray-600">Option 1 brut</span><span>{totals1.total_brut.toFixed(2)} €</span></div>
+                    {totals1.remise > 0 && <div className="flex justify-between text-sm" style={{ color: BRAND_ORANGE }}><span>Remise</span><span>-{totals1.remise.toFixed(2)} €</span></div>}
+                    <div className="flex justify-between font-bold pt-1 border-t" style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }}>
+                      <span>Total Option 1</span><span>{totals1.total_net.toFixed(2)} €</span>
+                    </div>
+                  </div>
+                  {hasOption2 && formData.option_2_services.length > 0 && (
+                    <div className="p-2 rounded-lg" style={{ background: '#fff7ed' }}>
+                      <div className="flex justify-between text-sm"><span className="text-gray-600">Option 2 brut</span><span>{totals2.total_brut.toFixed(2)} €</span></div>
+                      {totals2.remise > 0 && <div className="flex justify-between text-sm" style={{ color: BRAND_ORANGE }}><span>Remise</span><span>-{totals2.remise.toFixed(2)} €</span></div>}
+                      <div className="flex justify-between font-bold pt-1 border-t" style={{ borderColor: BRAND_ORANGE, color: BRAND_ORANGE }}>
+                        <span>Total Option 2</span><span>{totals2.total_net.toFixed(2)} €</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button 
@@ -353,10 +495,10 @@ const QuoteForm = () => {
                     onClick={handleDownloadPDF}
                     data-testid="download-pdf-btn-desktop"
                   >
-                    <Download className="h-4 w-4 mr-1.5" /> Télécharger PDF
+                    <Download className="h-4 w-4 mr-1.5" /> PDF
                   </Button>
                   <Button type="submit" disabled={loading} className="flex-1 h-10 text-white" style={{ background: BRAND_BLUE }} data-testid="save-quote-btn-desktop">
-                    <Save className="h-4 w-4 mr-1.5" /> {loading ? 'Sauvegarde...' : 'Enregistrer'}
+                    <Save className="h-4 w-4 mr-1.5" /> {loading ? '...' : 'Enregistrer'}
                   </Button>
                 </div>
               </Card>
@@ -367,7 +509,7 @@ const QuoteForm = () => {
                 </div>
                 <div className="p-2 bg-gray-100 max-h-[55vh] overflow-y-auto" data-testid="live-preview-desktop">
                   <div className="transform scale-[0.48] origin-top-left" style={{ width: '210mm' }}>
-                    <PDFDocument document={previewDoc} type="quote" compact={false} pdfRef={pdfRef} />
+                    <PDFDocument document={previewDoc} type="quote" compact={false} />
                   </div>
                 </div>
               </Card>
@@ -397,7 +539,7 @@ const QuoteForm = () => {
               </div>
             </div>
             <div className="p-2 bg-gray-100">
-              <PDFDocument document={previewDoc} type="quote" compact={true} pdfRef={mobilePdfRef} />
+              <PDFDocument document={previewDoc} type="quote" compact={true} />
             </div>
           </div>
         </div>
@@ -406,7 +548,14 @@ const QuoteForm = () => {
       {/* Catalog Dialog */}
       <Dialog open={showCatalog} onOpenChange={setShowCatalog}>
         <DialogContent className="sm:max-w-[600px] max-h-[80vh]" data-testid="catalog-dialog">
-          <DialogHeader><DialogTitle>Catalogue de services</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>
+              Catalogue de services 
+              <span className="ml-2 text-sm font-normal" style={{ color: catalogTarget === 'option1' ? BRAND_BLUE : BRAND_ORANGE }}>
+                (pour {catalogTarget === 'option1' ? 'Option 1' : 'Option 2'})
+              </span>
+            </DialogTitle>
+          </DialogHeader>
           <div className="overflow-y-auto space-y-2 max-h-[60vh]">
             {catalog.map(item => (
               <div key={item.id} onClick={() => addFromCatalog(item)}
