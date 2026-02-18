@@ -258,11 +258,21 @@ async def create_quote(input: QuoteCreate):
     client_data = await get_or_create_client(input.client_id, input.new_client)
     client_id = client_data["id"]
 
+    # Option 1 calculations
     total_brut = sum(s.total for s in input.services)
     remise_from_pct = round(total_brut * input.remise_percent / 100, 2) if input.remise_percent > 0 else 0
     remise = remise_from_pct if input.remise_percent > 0 else round(input.remise_montant, 2)
     total_net = round(total_brut - remise, 2)
     acompte_30 = round(total_net * 0.30, 2)
+    
+    # Option 2 calculations
+    opt2_services = input.option_2_services or []
+    opt2_total_brut = sum(s.total for s in opt2_services) if opt2_services else 0
+    opt2_remise_from_pct = round(opt2_total_brut * input.option_2_remise_percent / 100, 2) if input.option_2_remise_percent > 0 else 0
+    opt2_remise = opt2_remise_from_pct if input.option_2_remise_percent > 0 else round(input.option_2_remise_montant, 2)
+    opt2_total_net = round(opt2_total_brut - opt2_remise, 2)
+    opt2_acompte_30 = round(opt2_total_net * 0.30, 2)
+    
     quote_number = await get_next_quote_number(client_id)
 
     quote = Quote(
@@ -283,13 +293,19 @@ async def create_quote(input: QuoteCreate):
         remise=remise,
         total_net=total_net,
         acompte_30=acompte_30,
+        # Option 2
+        option_2_services=opt2_services,
+        option_2_total_brut=opt2_total_brut,
+        option_2_remise_percent=input.option_2_remise_percent,
+        option_2_remise_montant=input.option_2_remise_montant,
+        option_2_remise=opt2_remise,
+        option_2_total_net=opt2_total_net,
+        option_2_acompte_30=opt2_acompte_30,
         notes=input.notes or "",
         status="draft",
     )
     doc = quote.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
-    if doc.get('diagnostic'):
-        pass  # already dict from model_dump
     await db.quotes.insert_one(doc)
     return quote
 
