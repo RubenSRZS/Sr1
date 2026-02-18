@@ -65,6 +65,10 @@ class QuoteCreate(BaseModel):
     services: List[Service]
     remise_percent: float = 0.0
     remise_montant: float = 0.0
+    # Option 2 fields
+    option_2_services: Optional[List[Service]] = []
+    option_2_remise_percent: float = 0.0
+    option_2_remise_montant: float = 0.0
     notes: Optional[str] = ""
 
 class Quote(BaseModel):
@@ -87,6 +91,14 @@ class Quote(BaseModel):
     remise: float = 0.0
     total_net: float
     acompte_30: float
+    # Option 2 fields
+    option_2_services: Optional[List[Service]] = []
+    option_2_total_brut: float = 0.0
+    option_2_remise_percent: float = 0.0
+    option_2_remise_montant: float = 0.0
+    option_2_remise: float = 0.0
+    option_2_total_net: float = 0.0
+    option_2_acompte_30: float = 0.0
     notes: Optional[str] = ""
     status: str = "draft"
     signature_data: Optional[str] = None
