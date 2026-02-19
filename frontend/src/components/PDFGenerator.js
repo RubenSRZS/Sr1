@@ -14,46 +14,47 @@ const DiagnosticLabels = {
   faitage: 'Faîtage', gouttieres: 'Gouttières', facade: 'Façade',
 };
 
-// PDF Styles
+// PDF Styles - Optimized for clean output
 const styles = StyleSheet.create({
   page: {
     fontFamily: 'Helvetica',
-    fontSize: 10,
-    padding: 30,
+    fontSize: 9,
+    padding: 25,
     backgroundColor: '#ffffff',
+    lineHeight: 1.3,
   },
   // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 15,
-    borderBottomWidth: 3,
+    alignItems: 'flex-start',
+    marginBottom: 15,
+    paddingBottom: 10,
+    borderBottomWidth: 2,
     borderBottomColor: BRAND_BLUE,
   },
   logo: {
-    width: 120,
-    height: 50,
+    width: 100,
+    height: 40,
   },
   headerRight: {
     textAlign: 'right',
   },
   docType: {
-    fontSize: 10,
+    fontSize: 8,
     color: '#666',
-    letterSpacing: 2,
-    marginBottom: 2,
+    letterSpacing: 1.5,
+    marginBottom: 3,
   },
   docNumber: {
-    fontSize: 28,
+    fontSize: 24,
     fontFamily: 'Helvetica-Bold',
     color: BRAND_BLUE,
   },
   docDate: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#666',
-    marginTop: 2,
+    marginTop: 3,
   },
   
   // Info boxes
