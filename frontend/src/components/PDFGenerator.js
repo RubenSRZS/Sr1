@@ -106,12 +106,12 @@ const styles = StyleSheet.create({
   // Work location
   workLocation: {
     backgroundColor: '#f8fafc',
-    padding: 10,
-    borderRadius: 4,
-    marginBottom: 15,
+    padding: 8,
+    borderRadius: 3,
+    marginBottom: 10,
   },
   workLocationText: {
-    fontSize: 9,
+    fontSize: 8,
   },
   workLocationLabel: {
     fontFamily: 'Helvetica-Bold',
@@ -121,43 +121,43 @@ const styles = StyleSheet.create({
   // Diagnostic
   diagnosticBox: {
     backgroundColor: '#f8fafc',
-    padding: 10,
-    borderRadius: 4,
-    marginBottom: 15,
+    padding: 8,
+    borderRadius: 3,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: '#e2e8f0',
   },
   diagnosticTitle: {
-    fontSize: 8,
+    fontSize: 7,
     fontFamily: 'Helvetica-Bold',
     color: BRAND_BLUE,
-    letterSpacing: 1,
-    marginBottom: 6,
-    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 4,
   },
   diagnosticItems: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
   },
   diagnosticItem: {
     backgroundColor: '#dbeafe',
     color: BRAND_BLUE,
-    fontSize: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
+    fontSize: 7,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginRight: 4,
+    marginBottom: 3,
   },
   
   // Option title
   optionTitle: {
-    fontSize: 14,
+    fontSize: 11,
     fontFamily: 'Helvetica-Bold',
     color: BRAND_BLUE,
-    marginTop: 10,
-    marginBottom: 8,
-    paddingBottom: 4,
-    borderBottomWidth: 2,
+    marginTop: 8,
+    marginBottom: 6,
+    paddingBottom: 3,
+    borderBottomWidth: 1.5,
     borderBottomColor: BRAND_BLUE,
   },
   
