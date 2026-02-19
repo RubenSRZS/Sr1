@@ -201,55 +201,59 @@ const styles = StyleSheet.create({
   
   // Totals
   totalsContainer: {
-    marginTop: 10,
+    marginTop: 8,
     alignItems: 'flex-end',
   },
   totalsBox: {
-    width: 220,
+    width: 200,
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 4,
-    paddingHorizontal: 10,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
   },
   totalLabel: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#666',
   },
   totalValue: {
-    fontSize: 9,
+    fontSize: 8,
     fontFamily: 'Helvetica-Bold',
+    color: '#333',
   },
   remiseRow: {
     backgroundColor: '#fff7ed',
-    borderRadius: 3,
+    borderRadius: 2,
+    marginTop: 2,
   },
   remiseText: {
     color: BRAND_ORANGE,
   },
   totalNetRow: {
     backgroundColor: BRAND_BLUE,
-    borderRadius: 4,
-    marginTop: 4,
+    borderRadius: 3,
+    marginTop: 3,
+    paddingVertical: 5,
   },
   totalNetLabel: {
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: 'Helvetica-Bold',
     color: '#ffffff',
   },
   totalNetValue: {
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: 'Helvetica-Bold',
     color: '#ffffff',
   },
   acompteRow: {
     backgroundColor: BRAND_ORANGE,
-    borderRadius: 4,
-    marginTop: 4,
+    borderRadius: 3,
+    marginTop: 2,
+    paddingVertical: 4,
   },
   acompteText: {
-    fontSize: 9,
+    fontSize: 8,
     fontFamily: 'Helvetica-Bold',
     color: '#ffffff',
   },
