@@ -381,10 +381,10 @@ const ServicesTable = ({ services, title }) => (
     </View>
     {services && services.length > 0 ? services.map((service, i) => (
       <View key={i} style={[styles.tableRow, i % 2 === 1 && styles.tableRowEven]}>
-        <Text style={[styles.tableCell, styles.colDesc]}>{service.description}</Text>
+        <Text style={[styles.tableCell, styles.colDesc]}>{service.description || '—'}</Text>
         <Text style={[styles.tableCell, styles.colQty]}>{service.quantity}</Text>
-        <Text style={[styles.tableCell, styles.colPrice]}>{Number(service.unit_price).toFixed(2)} €</Text>
-        <Text style={[styles.tableCell, styles.colTotal]}>{Number(service.total).toFixed(2)} €</Text>
+        <Text style={[styles.tableCell, styles.colPrice]}>{Number(service.unit_price || 0).toFixed(2)} €</Text>
+        <Text style={[styles.tableCell, styles.colTotal]}>{Number(service.total || 0).toFixed(2)} €</Text>
       </View>
     )) : (
       <View style={styles.tableRow}>
@@ -399,7 +399,7 @@ const ServicesTable = ({ services, title }) => (
 // Totals component
 const TotalsSection = ({ totalBrut, remise, remisePercent, totalNet, acompte30, isQuote, label }) => (
   <View style={styles.totalsContainer}>
-    {label && <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: BRAND_BLUE, marginBottom: 5 }}>{label}</Text>}
+    {label && <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: BRAND_BLUE, marginBottom: 4 }}>{label}</Text>}
     <View style={styles.totalsBox}>
       <View style={styles.totalRow}>
         <Text style={styles.totalLabel}>Total brut</Text>
