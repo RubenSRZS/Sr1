@@ -111,18 +111,7 @@ const InvoiceForm = () => {
   }, [formData, newClient, showNewClient, clients, id, totals]);
 
   const handleDownloadPDF = useCallback(async () => {
-    const ref = pdfRef.current || mobilePdfRef.current;
-    if (!ref) {
-      toast.error('Impossible de générer le PDF');
-      return;
-    }
-    const filename = `FACTURE_${previewDoc.invoice_number || 'XX'}_${previewDoc.client_name?.replace(/\s+/g, '_') || 'client'}.pdf`;
-    const success = await downloadPDF(ref, filename);
-    if (success) {
-      toast.success('PDF téléchargé');
-    } else {
-      toast.error('Erreur de téléchargement');
-    }
+    await downloadPDF(previewDoc, 'invoice');
   }, [previewDoc]);
 
   const handleSubmit = async (e) => {
