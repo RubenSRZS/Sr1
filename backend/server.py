@@ -328,11 +328,21 @@ async def update_quote(quote_id: str, input: QuoteCreate):
         raise HTTPException(status_code=404, detail="Devis non trouvé")
 
     client_data = await get_or_create_client(input.client_id, input.new_client)
+    
+    # Option 1 calculations
     total_brut = sum(s.total for s in input.services)
     remise_from_pct = round(total_brut * input.remise_percent / 100, 2) if input.remise_percent > 0 else 0
     remise = remise_from_pct if input.remise_percent > 0 else round(input.remise_montant, 2)
     total_net = round(total_brut - remise, 2)
     acompte_30 = round(total_net * 0.30, 2)
+    
+    # Option 2 calculations
+    opt2_services = input.option_2_services or []
+    opt2_total_brut = sum(s.total for s in opt2_services) if opt2_services else 0
+    opt2_remise_from_pct = round(opt2_total_brut * input.option_2_remise_percent / 100, 2) if input.option_2_remise_percent > 0 else 0
+    opt2_remise = opt2_remise_from_pct if input.option_2_remise_percent > 0 else round(input.option_2_remise_montant, 2)
+    opt2_total_net = round(opt2_total_brut - opt2_remise, 2)
+    opt2_acompte_30 = round(opt2_total_net * 0.30, 2)
 
     update_data = {
         "client_id": client_data["id"],
@@ -350,6 +360,14 @@ async def update_quote(quote_id: str, input: QuoteCreate):
         "remise": remise,
         "total_net": total_net,
         "acompte_30": acompte_30,
+        # Option 2 fields
+        "option_2_services": [s.model_dump() for s in opt2_services],
+        "option_2_total_brut": opt2_total_brut,
+        "option_2_remise_percent": input.option_2_remise_percent,
+        "option_2_remise_montant": input.option_2_remise_montant,
+        "option_2_remise": opt2_remise,
+        "option_2_total_net": opt2_total_net,
+        "option_2_acompte_30": opt2_acompte_30,
         "notes": input.notes or "",
     }
     await db.quotes.update_one({"id": quote_id}, {"$set": update_data})
