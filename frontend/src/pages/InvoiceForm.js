@@ -23,8 +23,6 @@ const InvoiceForm = () => {
   const [showCatalog, setShowCatalog] = useState(false);
   const [showPreviewMobile, setShowPreviewMobile] = useState(false);
   const [showNewClient, setShowNewClient] = useState(false);
-  const pdfRef = useRef(null);
-  const mobilePdfRef = useRef(null);
 
   const [formData, setFormData] = useState({
     client_id: '',
