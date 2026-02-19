@@ -540,13 +540,13 @@ const QuotePDFDocument = ({ document, type = 'quote' }) => {
         {!isQuote && (
           <View style={styles.totalsContainer}>
             <View style={styles.totalsBox}>
-              <View style={[styles.totalRow, { backgroundColor: '#f0fdf4', borderRadius: 3 }]}>
+              <View style={[styles.totalRow, { backgroundColor: '#f0fdf4', borderRadius: 2, marginTop: 2 }]}>
                 <Text style={[styles.totalLabel, { color: '#16a34a' }]}>Acompte versé</Text>
                 <Text style={[styles.totalValue, { color: '#16a34a' }]}>{Number(document.acompte_paid || 0).toFixed(2)} €</Text>
               </View>
-              <View style={[styles.totalRow, { backgroundColor: '#dc2626', borderRadius: 4, marginTop: 4 }]}>
-                <Text style={[styles.totalNetLabel, { fontSize: 10 }]}>RESTE À PAYER</Text>
-                <Text style={[styles.totalNetValue, { fontSize: 10 }]}>{Number(document.reste_a_payer || 0).toFixed(2)} €</Text>
+              <View style={[styles.totalRow, { backgroundColor: '#dc2626', borderRadius: 3, marginTop: 3, paddingVertical: 5 }]}>
+                <Text style={[styles.totalNetLabel, { fontSize: 9 }]}>RESTE À PAYER</Text>
+                <Text style={[styles.totalNetValue, { fontSize: 9 }]}>{Number(document.reste_a_payer || 0).toFixed(2)} €</Text>
               </View>
             </View>
           </View>
@@ -587,9 +587,9 @@ const QuotePDFDocument = ({ document, type = 'quote' }) => {
               <Text style={styles.footerTitle}>Assurance</Text>
               <Text style={styles.footerText}>RC Pro: Banque Populaire{'\n'}Garantie décennale</Text>
             </View>
-            <View style={[styles.footerCol, { alignItems: 'flex-end' }]}>
+            <View style={styles.footerCol}>
               <Text style={styles.footerTitle}>Paiement</Text>
-              <Text style={[styles.footerText, { textAlign: 'right' }]}>
+              <Text style={styles.footerText}>
                 Chèque, Espèces, Virement
                 {isQuote ? '\nAcompte 30% à la signature' : ''}
               </Text>
