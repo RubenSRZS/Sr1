@@ -163,37 +163,41 @@ const styles = StyleSheet.create({
   
   // Table
   table: {
-    marginBottom: 10,
+    marginBottom: 8,
   },
   tableHeader: {
     flexDirection: 'row',
     backgroundColor: BRAND_BLUE,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
+    paddingVertical: 6,
+    paddingHorizontal: 0,
   },
   tableHeaderCell: {
     color: '#ffffff',
-    fontSize: 9,
+    fontSize: 8,
     fontFamily: 'Helvetica-Bold',
-    padding: 8,
+    paddingHorizontal: 5,
   },
   tableRow: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
+    borderBottomWidth: 0.5,
     borderBottomColor: '#e2e8f0',
+    paddingVertical: 5,
+    paddingHorizontal: 0,
   },
   tableRowEven: {
     backgroundColor: '#f8fafc',
   },
   tableCell: {
-    fontSize: 9,
-    padding: 8,
+    fontSize: 8,
+    paddingHorizontal: 5,
     color: '#333',
   },
   colDesc: { width: '50%' },
   colQty: { width: '12%', textAlign: 'center' },
   colPrice: { width: '19%', textAlign: 'right' },
-  colTotal: { width: '19%', textAlign: 'right' },
+  colTotal: { width: '19%', textAlign: 'right', fontFamily: 'Helvetica-Bold' },
   
   // Totals
   totalsContainer: {
