@@ -60,30 +60,30 @@ const styles = StyleSheet.create({
   // Info boxes
   infoRow: {
     flexDirection: 'row',
-    gap: 15,
-    marginBottom: 15,
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
   infoBox: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 4,
+    width: '48%',
+    padding: 10,
+    borderRadius: 3,
   },
   entrepriseBox: {
     backgroundColor: '#eff6ff',
-    borderLeftWidth: 3,
+    borderLeftWidth: 2,
     borderLeftColor: BRAND_BLUE,
   },
   clientBox: {
     backgroundColor: '#fff7ed',
-    borderLeftWidth: 3,
+    borderLeftWidth: 2,
     borderLeftColor: BRAND_ORANGE,
   },
   infoTitle: {
-    fontSize: 8,
+    fontSize: 7,
     fontFamily: 'Helvetica-Bold',
-    letterSpacing: 1,
-    marginBottom: 6,
-    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 4,
+    color: '#666',
   },
   infoTitleBlue: {
     color: BRAND_BLUE,
@@ -92,13 +92,14 @@ const styles = StyleSheet.create({
     color: BRAND_ORANGE,
   },
   infoName: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: 'Helvetica-Bold',
-    marginBottom: 4,
+    marginBottom: 3,
+    color: '#1a1a1a',
   },
   infoText: {
-    fontSize: 9,
-    color: '#444',
+    fontSize: 8,
+    color: '#555',
     lineHeight: 1.4,
   },
   
