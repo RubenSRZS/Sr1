@@ -1,0 +1,41 @@
+{
+  "summary": "Frontend testing of 6 new corrections: (1) ServicesSection moved outside QuoteForm fixes description editing bug, (2) New Google Avis Clients + Signature logos added and verified, (3) Totals redesigned to blue/orange/light-blue (no red), (4) Logos larger with spacing, (5) crossOrigin removed from CDN img tags preventing CORS errors, (6) Signature box min-height 80px confirmed. All 6 requested features PASS.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "PDFPreview.js ServicesTable",
+        "issues": ["Pre-existing React hydration warning: <tr> cannot be child of <span> in ServicesTable tbody. Console shows 'In HTML, <tr> cannot be a child of <span>'. This is a non-blocking rendering issue related to Emergent visual editor wrapper spans. NOT a regression from current fixes."]
+      }
+    ]
+  },
+  "features_verified": {
+    "1_service_description_editing": "✅ PASS - CRITICAL BUG FIXED: ServicesSection defined at line 19 of QuoteForm.js OUTSIDE QuoteForm component. Typed 'EXTRA TEXT' char by char after catalog service - content preserved throughout all keystrokes. 'Nettoyage professionnel de la toiture EXTRA TEXT' maintained correctly without reset.",
+    "2_logos_in_preview": "✅ PASS - All 7 images loaded in pdf-document: SR Rénovation (w=2160), France flag (w=1422), Banque Populaire (w=1024), CMA (w=2500), Gîtes de France (w=960), Google Avis Clients (w=510), Signature (w=552). All naturalWidth > 0.",
+    "3_signature_entreprise": "✅ PASS - Signature image (552x392) visibly loaded in signature box. 'Signature entreprise' label present. 'Bon pour accord — Signature client' text present. Code confirms minHeight: '80px' in PDFPreview.js line 241.",
+    "4_totals_non_aggressive": "✅ PASS - TOTAL NET (TTC): white text on linear-gradient(135deg, #1e40af, #3b82f6) blue background. ACOMPTE 30%: white text on linear-gradient(135deg, rgb(249,115,22), rgb(251,146,60)) ORANGE gradient (NOT red). SOLDE APRÈS TRAVAUX: color rgb(3,105,161) on backgroundColor rgb(240,249,255) light blue (NOT red, NOT 'Reste à payer').",
+    "5_pdf_download": "✅ PASS - Toast 'PDF téléchargé avec succès' displayed. ZERO CORS errors during generation. html2canvas + jsPDF working with base64 logo substitution via onclone callback.",
+    "6_signature_box_height": "✅ PASS - Code confirmed minHeight: '80px' in both signature boxes (company + client). Signature image is visible and loaded."
+  },
+  "test_report_links": ["/app/test_reports/iteration_5.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "ServicesTable renders <tr> inside <tbody> but the Emergent visual editor wraps it with <span data-ve-dynamic> causing 'In HTML, <tr> cannot be a child of <span>' hydration warning. Non-blocking but may affect PDF rendering edge cases. Consider using React.Fragment instead if causing issues.",
+    "PDFPreview.js: For invoices (isQuote=false), TotalsSection is now correctly NOT rendered - only the !isQuote block renders totals. This fixes the duplicate TOTAL NET issue from iteration_4 (VERIFIED FIXED)."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend-only testing)",
+    "frontend": "100% (all 6 requested features verified PASS)"
+  },
+  "seed_data_creation": "No persistent data created (used existing quote ID: 5fd9e3ad-f63d-47c1-80f4-1e86f90b0175)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 6 corrections from this session verified: (1) ServicesSection at line 19 of QuoteForm.js OUTSIDE component - editing works ✅ (2) All 7 logos including Google Avis Clients + Signature visible in preview ✅ (3) ACOMPTE 30% orange gradient, SOLDE APRÈS TRAVAUX light blue, no red anywhere ✅ (4) PDF downloads with success toast, ZERO CORS errors ✅ (5) Signature box min-height 80px ✅. One pre-existing HTML hydration warning (non-blocking) about <tr>/<span> in ServicesTable. Previous iteration_4 issue (duplicate TOTAL NET in invoice) appears fixed.",
+  "rca_of_issue": "Previous critical bug (ServicesSection remount on each keystroke): ServicesSection was defined INSIDE the QuoteForm function body, causing React to treat it as a new component type on every state change, resulting in complete remount (losing focus and content). Fix: moved ServicesSection definition to module scope (line 19), before QuoteForm declaration. React now correctly recognizes it as the same component across re-renders."
+}

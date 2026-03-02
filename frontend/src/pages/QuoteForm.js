@@ -15,6 +15,93 @@ import { PDFDocument, downloadPDF, BRAND_BLUE, BRAND_ORANGE } from '@/components
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// ─── ServicesSection MUST be defined OUTSIDE QuoteForm to prevent remount on every render ─────
+const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, optionNum, totals, remiseType, remisePercent, remiseMontant, onRemiseTypeChange, onRemisePercentChange, onRemiseMontantChange }) => (
+  <Card className="p-4 bg-white border-0 shadow-sm" data-testid={`services-section-${optionNum}`}>
+    <div className="flex items-center justify-between mb-3">
+      <span className="font-bold text-sm px-2 py-0.5 rounded"
+        style={{ background: optionNum === 1 ? '#eff6ff' : '#fff7ed', color: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE }}>
+        OPTION {optionNum}
+      </span>
+      <div className="flex gap-2">
+        <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={openCat} data-testid={`catalog-btn-${optionNum}`}>
+          <BookOpen className="h-3.5 w-3.5 mr-1" /> Catalogue
+        </Button>
+        <Button type="button" size="sm" className="h-7 text-xs text-white" style={{ background: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE }} onClick={addSvc} data-testid={`add-service-btn-${optionNum}`}>
+          <Plus className="h-3.5 w-3.5 mr-1" /> Ajouter
+        </Button>
+      </div>
+    </div>
+    <div className="space-y-3">
+      {services.map((s, i) => (
+        <div key={i} className="bg-gray-50 rounded-lg p-3 border border-gray-100" data-testid={`service-row-${optionNum}-${i}`}>
+          <Textarea
+            value={s.description}
+            onChange={e => updateSvc(i, 'description', e.target.value)}
+            placeholder="Description du service"
+            rows={2}
+            className="text-sm mb-2 resize-none"
+            data-testid={`service-desc-${optionNum}-${i}`}
+          />
+          <div className="grid grid-cols-4 gap-2 items-end">
+            <div>
+              <Label className="text-xs text-gray-500">Qté</Label>
+              <Input type="number" step="0.01" value={s.quantity} onChange={e => updateSvc(i, 'quantity', e.target.value)} className="h-8 text-sm" />
+            </div>
+            <div>
+              <Label className="text-xs text-gray-500">Prix unit. €</Label>
+              <Input type="number" step="0.01" value={s.unit_price} onChange={e => updateSvc(i, 'unit_price', e.target.value)} className="h-8 text-sm" />
+            </div>
+            <div>
+              <Label className="text-xs text-gray-500">Total €</Label>
+              <Input value={(s.total || 0).toFixed(2)} readOnly className="h-8 text-sm bg-gray-100 font-medium" />
+            </div>
+            <Button type="button" variant="ghost" size="sm" onClick={() => removeSvc(i)} className="h-8 text-red-500 hover:bg-red-50">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      ))}
+      {services.length === 0 && (
+        <div className="text-center py-4 text-sm text-gray-400">Ajoutez des services</div>
+      )}
+    </div>
+    {/* Remise */}
+    <div className="mt-4 pt-3 border-t border-gray-100">
+      <div className="flex items-center gap-2 mb-2">
+        <Label className="text-xs text-gray-500">Remise Option {optionNum}</Label>
+        <div className="flex bg-gray-100 rounded-md p-0.5">
+          <button type="button" onClick={() => onRemiseTypeChange('percent')}
+            className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${remiseType === 'percent' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}>%</button>
+          <button type="button" onClick={() => onRemiseTypeChange('amount')}
+            className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${remiseType === 'amount' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}>€</button>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {remiseType === 'percent' ? (
+          <Input type="number" min="0" max="100" step="1" value={remisePercent}
+            onChange={e => onRemisePercentChange(parseFloat(e.target.value) || 0)}
+            placeholder="%" className="h-8 text-sm" />
+        ) : (
+          <Input type="number" min="0" step="0.01" value={remiseMontant}
+            onChange={e => onRemiseMontantChange(parseFloat(e.target.value) || 0)}
+            placeholder="€" className="h-8 text-sm" />
+        )}
+        <Input value={`-${totals.remise.toFixed(2)} €`} readOnly className="h-8 text-sm bg-gray-50" />
+      </div>
+    </div>
+    {/* Totals */}
+    <div className="mt-3 p-3 rounded-lg" style={{ background: optionNum === 1 ? '#eff6ff' : '#fff7ed' }}>
+      {totals.remise > 0 && <div className="flex justify-between text-sm mb-1" style={{ color: BRAND_ORANGE }}><span>Remise</span><span>-{totals.remise.toFixed(2)} €</span></div>}
+      <div className="flex justify-between font-bold text-lg pt-1 border-t" style={{ borderColor: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE, color: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE }}>
+        <span>Total Option {optionNum} (TTC)</span><span>{totals.total_net.toFixed(2)} €</span>
+      </div>
+      <div className="flex justify-between text-sm font-medium mt-1" style={{ color: '#0369a1' }}><span>Acompte 30%</span><span>{totals.acompte_30.toFixed(2)} €</span></div>
+      <div className="flex justify-between text-sm font-medium mt-0.5 text-gray-500"><span>Solde après travaux</span><span>{(totals.total_net - totals.acompte_30).toFixed(2)} €</span></div>
+    </div>
+  </Card>
+);
+
 const QuoteForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -226,90 +313,6 @@ const QuoteForm = () => {
     { key: 'gouttieres', label: 'Gouttières' }, { key: 'facade', label: 'Façade' },
   ];
 
-  // Services section component to avoid repetition
-  const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, optionNum, totals, remiseType, remisePercent, remiseMontant, onRemiseTypeChange, onRemisePercentChange, onRemiseMontantChange }) => (
-    <Card className="p-4 bg-white border-0 shadow-sm" data-testid={`services-section-${optionNum}`}>
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <span 
-            className="font-bold text-sm px-2 py-0.5 rounded"
-            style={{ background: optionNum === 1 ? '#eff6ff' : '#fff7ed', color: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE }}
-          >
-            OPTION {optionNum}
-          </span>
-        </div>
-        <div className="flex gap-2">
-          <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={openCat} data-testid={`catalog-btn-${optionNum}`}>
-            <BookOpen className="h-3.5 w-3.5 mr-1" /> Catalogue
-          </Button>
-          <Button type="button" size="sm" className="h-7 text-xs text-white" style={{ background: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE }} onClick={addSvc} data-testid={`add-service-btn-${optionNum}`}>
-            <Plus className="h-3.5 w-3.5 mr-1" /> Ajouter
-          </Button>
-        </div>
-      </div>
-      <div className="space-y-3">
-        {services.map((s, i) => (
-          <div key={i} className="bg-gray-50 rounded-lg p-3 border border-gray-100" data-testid={`service-row-${optionNum}-${i}`}>
-            <Textarea value={s.description} onChange={e => updateSvc(i, 'description', e.target.value)}
-              placeholder="Description du service" rows={2} className="text-sm mb-2 resize-none" data-testid={`service-desc-${optionNum}-${i}`} />
-            <div className="grid grid-cols-4 gap-2 items-end">
-              <div>
-                <Label className="text-xs text-gray-500">Qté</Label>
-                <Input type="number" step="0.01" value={s.quantity} onChange={e => updateSvc(i, 'quantity', e.target.value)} className="h-8 text-sm" />
-              </div>
-              <div>
-                <Label className="text-xs text-gray-500">Prix unit. €</Label>
-                <Input type="number" step="0.01" value={s.unit_price} onChange={e => updateSvc(i, 'unit_price', e.target.value)} className="h-8 text-sm" />
-              </div>
-              <div>
-                <Label className="text-xs text-gray-500">Total €</Label>
-                <Input value={(s.total || 0).toFixed(2)} readOnly className="h-8 text-sm bg-gray-100 font-medium" />
-              </div>
-              <Button type="button" variant="ghost" size="sm" onClick={() => removeSvc(i)} className="h-8 text-red-500 hover:bg-red-50">
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        ))}
-        {services.length === 0 && (
-          <div className="text-center py-4 text-sm text-gray-400">Ajoutez des services</div>
-        )}
-      </div>
-      {/* Remise for this option */}
-      <div className="mt-4 pt-3 border-t border-gray-100">
-        <div className="flex items-center gap-2 mb-2">
-          <Label className="text-xs text-gray-500">Remise Option {optionNum}</Label>
-          <div className="flex bg-gray-100 rounded-md p-0.5">
-            <button type="button" onClick={() => onRemiseTypeChange('percent')}
-              className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${remiseType === 'percent' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}>%</button>
-            <button type="button" onClick={() => onRemiseTypeChange('amount')}
-              className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${remiseType === 'amount' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}>€</button>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {remiseType === 'percent' ? (
-            <Input type="number" min="0" max="100" step="1" value={remisePercent}
-              onChange={e => onRemisePercentChange(parseFloat(e.target.value) || 0)}
-              placeholder="%" className="h-8 text-sm" />
-          ) : (
-            <Input type="number" min="0" step="0.01" value={remiseMontant}
-              onChange={e => onRemiseMontantChange(parseFloat(e.target.value) || 0)}
-              placeholder="€" className="h-8 text-sm" />
-          )}
-          <Input value={`-${totals.remise.toFixed(2)} €`} readOnly className="h-8 text-sm bg-gray-50" />
-        </div>
-      </div>
-      {/* Totals for this option */}
-      <div className="mt-3 p-3 rounded-lg" style={{ background: optionNum === 1 ? '#eff6ff' : '#fff7ed' }}>
-        {totals.remise > 0 && <div className="flex justify-between text-sm mb-1" style={{ color: BRAND_ORANGE }}><span>Remise</span><span>-{totals.remise.toFixed(2)} €</span></div>}
-        <div className="flex justify-between font-bold text-lg pt-1 border-t" style={{ borderColor: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE, color: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE }}>
-          <span>Total Option {optionNum} (TTC)</span><span>{totals.total_net.toFixed(2)} €</span>
-        </div>
-        <div className="flex justify-between text-sm font-medium mt-1" style={{ color: '#dc2626' }}><span>Reste à payer</span><span>{(totals.total_net - totals.acompte_30).toFixed(2)} €</span></div>
-        <div className="flex justify-between text-sm font-medium mt-0.5" style={{ color: BRAND_ORANGE }}><span>Acompte 30%</span><span>{totals.acompte_30.toFixed(2)} €</span></div>
-      </div>
-    </Card>
-  );
 
   return (
     <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="quote-form-page">
