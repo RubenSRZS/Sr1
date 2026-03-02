@@ -367,7 +367,7 @@ const InvoiceForm = () => {
               </div>
             </div>
             <div className="p-2 bg-gray-100">
-              <PDFDocument document={previewDoc} type="invoice" compact={true} pdfRef={mobilePdfRef} />
+              <PDFDocument document={previewDoc} type="invoice" compact={true} />
             </div>
           </div>
         </div>
