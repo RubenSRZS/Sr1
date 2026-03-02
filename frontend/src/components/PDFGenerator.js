@@ -217,67 +217,53 @@ const styles = StyleSheet.create({
   // Notes
   notesBox: {
     backgroundColor: '#f8fafc',
-    padding: 8,
-    borderRadius: 3,
-    marginTop: 10,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+    padding: 10,
+    marginTop: 15,
+    marginBottom: 15,
   },
   notesTitle: {
-    fontSize: 7,
+    fontSize: 8,
     fontFamily: 'Helvetica-Bold',
-    color: '#666',
-    marginBottom: 3,
+    marginBottom: 5,
   },
   notesText: {
-    fontSize: 8,
-    color: '#444',
-    lineHeight: 1.3,
+    fontSize: 9,
+    color: '#333',
   },
   
   // TVA notice
   tvaNotice: {
     textAlign: 'center',
-    fontSize: 7,
+    fontSize: 8,
     color: '#999',
     fontStyle: 'italic',
-    marginTop: 10,
-    marginBottom: 10,
+    marginVertical: 10,
   },
   
   // Signatures
   signaturesRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 12,
-    marginBottom: 12,
+    marginTop: 20,
+    marginBottom: 20,
   },
   signatureBox: {
     width: '48%',
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderRadius: 3,
-    padding: 8,
-    minHeight: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  signatureBoxBlue: {
-    borderColor: BRAND_BLUE_LIGHT,
-  },
-  signatureBoxOrange: {
-    borderColor: BRAND_ORANGE,
+    borderColor: '#999',
+    padding: 15,
+    minHeight: 60,
   },
   signatureTitle: {
-    fontSize: 7,
+    fontSize: 9,
     fontFamily: 'Helvetica-Bold',
-    color: '#666',
     textAlign: 'center',
+    marginBottom: 5,
   },
   signatureSubtitle: {
-    fontSize: 6,
+    fontSize: 7,
     color: '#999',
-    marginTop: 2,
     textAlign: 'center',
   },
   
