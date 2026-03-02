@@ -355,6 +355,16 @@ const QuoteForm = () => {
                 </div>
               )}
               <div className="mt-3">
+                <Label className="text-xs text-gray-500">Numéro de devis (optionnel)</Label>
+                <Input
+                  value={formData.custom_quote_number}
+                  onChange={e => updateField('custom_quote_number', e.target.value)}
+                  placeholder="Ex: DEVIS-2025-001 (auto si vide)"
+                  className="h-9 text-sm"
+                  data-testid="quote-number-input"
+                />
+              </div>
+              <div className="mt-3">
                 <Label className="text-xs text-gray-500">Lieu des travaux *</Label>
                 <Input value={formData.work_location} onChange={e => updateField('work_location', e.target.value)} placeholder="Adresse du chantier" className="h-9 text-sm" required data-testid="work-location-input" />
               </div>
