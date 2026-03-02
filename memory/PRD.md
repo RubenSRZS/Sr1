@@ -12,13 +12,13 @@ Application web pour créer des devis et factures professionnels pour l'entrepri
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── PDFPreview.js       # ACTIF: Aperçu HTML + génération PDF (html2canvas+jsPDF)
-│   │   │   ├── PDFGenerator.js     # ORPHELIN (peut être supprimé)
-│   │   │   ├── PDFGeneratorPro.js  # ORPHELIN (peut être supprimé)
-│   │   │   └── PDFGenerator_simple.js # ORPHELIN
+│   │   │   ├── PDFPreview.js           # ACTIF: Aperçu HTML + PDF (html2canvas+jsPDF)
+│   │   │   ├── PDFGenerator.js         # ORPHELIN — à supprimer
+│   │   │   ├── PDFGeneratorPro.js      # ORPHELIN — à supprimer
+│   │   │   └── PDFGenerator_simple.js  # ORPHELIN — à supprimer
 │   │   ├── pages/
-│   │   │   ├── QuoteForm.js        # Formulaire devis + aperçu live + PDF
-│   │   │   ├── InvoiceForm.js      # Formulaire facture + aperçu live + PDF
+│   │   │   ├── QuoteForm.js        # Devis (ServicesSection hors composant pour édition correcte)
+│   │   │   ├── InvoiceForm.js      # Factures
 │   │   │   ├── Dashboard.js        # Tableau de bord
 │   │   │   ├── QuotesList.js
 │   │   │   ├── InvoicesList.js
@@ -31,87 +31,56 @@ Application web pour créer des devis et factures professionnels pour l'entrepri
 
 ## Technologies
 - Frontend: React 19, Tailwind CSS, html2canvas, jsPDF
-- Backend: FastAPI, Pydantic, Motor (MongoDB async)
+- Backend: FastAPI, Motor (MongoDB async)
 - Database: MongoDB
 
-## Fonctionnalités implémentées (au 02/03/2026)
+## Logos intégrés (base64 WebP dans PDFPreview.js)
+| Logo | Usage | Source |
+|------|-------|--------|
+| SR Rénovation | En-tête header gauche | job_538ea579 |
+| Drapeau Français | En-tête header droite | job_intelinvoice |
+| Banque Populaire | Footer partenaires | job_intelinvoice |
+| Chambre des Métiers | Footer partenaires | job_intelinvoice |
+| Gîtes de France | Footer partenaires | job_e13a9390 |
+| Google Avis Clients | Footer partenaires | job_e13a9390 |
+| Signature Ruben | Case signature entreprise | job_e13a9390 |
 
-### Génération PDF
-- **Approche**: html2canvas + jsPDF capture le composant HTML `PDFDocument`
-- **Logos**: 5 logos intégrés en base64 WebP (évite les erreurs CORS): SR Rénovation, Drapeau Français, Banque Populaire, CMA, Gîtes de France
-- **Multi-page**: Gestion automatique si le contenu dépasse une page A4
-- **Qualité**: Scale 2.5x
+## Design document
+- Header: gradient bleu→orange, logo SR (gauche), drapeau + N°/date (droite)
+- Client: carte orange (à droite), Entreprise: carte bleue (à gauche)
+- Tableau: border-collapse collapse, headers inline styles (fix pdf alignment)
+- Totaux: TOTAL NET (bleu) → ACOMPTE 30% (orange) → SOLDE APRÈS TRAVAUX (bleu clair, non agressif)
+- Signatures: boîtes dashed (min-height 80px), signature image dans case entreprise
+- Footer: 4 logos partenaires + infos contact + Sr-Renovation.fr
 
-### Aperçu HTML (PDFDocument component)
-- Header: Gradient bleu→orange, logo SR (gauche), drapeau français + numéro + date (droite)
-- Section entreprise (bleu) et client (orange) avec email affiché
-- Tableau des services: colonnes Description, Qté, P.U., Total TTC
-- **Section totaux (format simplifié):**
-  - TOTAL NET (TTC) — bleu gradient
-  - RESTE À PAYER — rouge (devis: 70% restant; facture: après acompte versé)
-  - ACOMPTE 30% — orange (devis uniquement)
-- Mentions légales: TVA non applicable, art. 293 B du CGI
-- Zones de signature (devis uniquement)
-- **Footer partenaires**: Banque Populaire, Chambre des Métiers (CMA), Gîtes de France, badge Google 5★
-- Info contact (RC Pro, modes de paiement, téléphone)
-
-### Gestion des devis
-- Numéro auto-généré OU personnalisé (champ optionnel dans formulaire)
-- Devis multi-options (Option 1 / Option 2 avec totaux séparés)
-- Diagnostic visuel (mousses, lichens, tuiles cassées, etc.)
-- Remise en % ou montant fixe
-- Totaux affichés: Total Option X (TTC) / Reste à payer / Acompte 30%
-
-### Gestion des factures
-- Total net (TTC), Acompte versé, Reste à payer
-
-### Dashboard
-- Boutons: "Nouveau Devis" (bleu) / "Nouvelle Facture" (orange — corrigé)
-- Stats: Clients, Devis, Factures, Chiffre d'affaires
-- Listes récentes
-
-### Clients
-- CRUD avec email (optionnel)
-- Email affiché dans la section client du document
-
-### Catalogue
-- Descriptions de services pré-remplies
-
-## Schéma DB principal
-
-### Quote
-```
-client_id, quote_number (auto ou custom), client_name, client_address, client_phone, client_email,
-date, work_location, diagnostic, services: [Service], total_brut, remise_percent, 
-remise_montant, remise, total_net, acompte_30, option_2_services, option_2_total_net, notes
-```
-
-### Invoice
-```
-client_id, invoice_number, services, total_net, acompte_paid, reste_a_payer
-```
-
-## Couleurs marque
-- Bleu principal: #1e40af
-- Bleu clair: #3b82f6
-- Orange: #f97316
-- Orange clair: #fb923c
+## Fonctionnalités
+- Devis: numéro auto ou personnalisé, multi-options, diagnostic visuel, remise %/€
+- Factures: total TTC, acompte versé, reste à payer
+- Clients: CRUD + email optionnel affiché dans document
+- Catalogue: descriptions pré-remplies
+- PDF: html2canvas+jsPDF (identique au live preview), tous logos base64 (sans CORS)
 
 ## CHANGELOG
-- 02/03/2026 (session 1): Refonte PDF (html2canvas+jsPDF), dashboard couleurs, numéro devis personnalisable, badges partenaires
-- 02/03/2026 (session 2): Vrais logos (BP, CMA, Gîtes, drapeau FR), suppression décennale, totaux simplifiés (sans Total brut), bouton Facture orange
+- 02/03/2026 (S1): Refonte PDF html2canvas+jsPDF, dashboard couleurs, numéro devis custom
+- 02/03/2026 (S2): Vrais logos partenaires, sans décennale, totaux sans rouge
+- 02/03/2026 (S3): Google/signature logos, ServicesSection extrait (fix édition), totaux élégants, CORS résolu
 
-## Backlog prioritaire
+## Backlog
 
-### P1 - Intégration email (Resend)
-- Envoyer PDF par email au client directement depuis l'application
+### P1 — Email Resend
+Envoyer PDF par email au client avec pièce jointe et message personnalisé
 
-### P2 - Signature électronique
-- Pad de signature pour le client (acceptation du devis)
+### P2 — Signature électronique
+Pad de signature pour le client (acceptation du devis en ligne)
 
-### P3 - Nettoyage code
-- Supprimer fichiers orphelins: PDFGenerator.js, PDFGeneratorPro.js, PDFGenerator_simple.js
+### P3 — Nettoyage
+Supprimer PDFGenerator.js, PDFGeneratorPro.js, PDFGenerator_simple.js
 
-### P3 - Améliorations design
-- Upload de logos personnalisés par l'utilisateur (pour future mise à jour)
-- Expansion du catalogue de prestations
+### P3 — Numérotation par année
+DEVIS-2026-001, remise à zéro chaque année
+
+### P4 — Dashboard amélioré
+Graphique CA mensuel
+
+### P4 — Convertir devis → facture
+Bouton 1-clic sur la liste des devis
