@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test PDF generation flow for quotes with two options (Option 1 and Option 2). Verify live preview display and PDF download functionality."
+user_problem_statement: "Test PDF generation flow for invoices. Create new invoice with Client Test PDF, add 2 services (Nettoyage réalisé: 100×30€, Traitement anti-mousse: 50×15€), 5% discount, 1000€ advance payment, verify 'Reste à payer' display and PDF download functionality."
 
 frontend:
   - task: "PDF Generation and Preview for Quotes"
@@ -122,6 +122,21 @@ frontend:
         - working: true
           agent: "testing"
           comment: "✅ RETEST AFTER REFACTOR COMPLETED SUCCESSFULLY. Verified the simplified PDF structure with @react-pdf/renderer: 1) Successfully navigated to DEVIS-01 quote with 'Client Test PDF', 2) Confirmed both options display correctly (Option 1: 3375.00€, Option 2: 5700.00€), 3) Live preview shows clean, professional layout with both options clearly separated, 4) PDF download button functional, 5) All elements properly aligned with no text overlaps, 6) Tables are clean and readable, 7) Totals are correct and clearly visible. The simplified structure appears to be working as intended with improved robustness."
+
+  - task: "PDF Generation and Preview for Invoices"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/InvoiceForm.js, /app/frontend/src/components/PDFPreview.js, /app/frontend/src/components/PDFGenerator.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Starting comprehensive test of invoice PDF generation flow including form creation, calculations, live preview and PDF download functionality"
+        - working: true
+          agent: "testing"
+          comment: "✅ INVOICE PDF GENERATION TEST COMPLETED SUCCESSFULLY. Fixed critical pdfRef missing references issue in InvoiceForm.js. All functionality verified: 1) Invoice form loads correctly with Client Test PDF selection, 2) Services addition works (Nettoyage réalisé: 100×30€=3000€, Traitement anti-mousse: 50×15€=750€), 3) Calculations are accurate (Total brut: 3750€, Discount 5%: -187.50€, Total net: 3562.50€, Advance: 1000€, Reste à payer: 2562.50€), 4) Live preview displays 'RESTE À PAYER' correctly, 5) PDF download functionality works perfectly (4925 bytes valid PDF generated), 6) PDF saved successfully as /tmp/facture_test_final.pdf, 7) All UI elements properly formatted and functional. Invoice PDF system is production-ready."
 
 metadata:
   created_by: "testing_agent"
