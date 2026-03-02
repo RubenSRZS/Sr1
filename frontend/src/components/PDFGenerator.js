@@ -128,41 +128,37 @@ const styles = StyleSheet.create({
   
   // Table
   table: {
-    marginBottom: 8,
+    marginTop: 5,
+    marginBottom: 15,
   },
   tableHeader: {
     flexDirection: 'row',
     backgroundColor: BRAND_BLUE,
-    borderTopLeftRadius: 3,
-    borderTopRightRadius: 3,
-    paddingVertical: 6,
-    paddingHorizontal: 0,
+    padding: 8,
   },
-  tableHeaderCell: {
+  tableHeaderText: {
     color: '#ffffff',
-    fontSize: 8,
+    fontSize: 9,
     fontFamily: 'Helvetica-Bold',
-    paddingHorizontal: 5,
   },
   tableRow: {
     flexDirection: 'row',
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#e2e8f0',
-    paddingVertical: 5,
-    paddingHorizontal: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
   },
-  tableRowEven: {
+  tableRowAlt: {
     backgroundColor: '#f8fafc',
   },
   tableCell: {
-    fontSize: 8,
-    paddingHorizontal: 5,
+    fontSize: 9,
     color: '#333',
   },
   colDesc: { width: '50%' },
-  colQty: { width: '12%', textAlign: 'center' },
-  colPrice: { width: '19%', textAlign: 'right' },
-  colTotal: { width: '19%', textAlign: 'right', fontFamily: 'Helvetica-Bold' },
+  colQty: { width: '15%', textAlign: 'center' },
+  colPrice: { width: '17%', textAlign: 'right' },
+  colTotal: { width: '18%', textAlign: 'right' },
   
   // Totals
   totalsContainer: {
