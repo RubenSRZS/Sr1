@@ -311,24 +311,32 @@ const styles = StyleSheet.create({
   },
 });
 
-// Services table component
+// Services table component - SIMPLIFIÉ
 const ServicesTable = ({ services, title }) => (
   <View style={styles.table}>
     {title && <Text style={styles.optionTitle}>{title}</Text>}
+    
+    {/* Header */}
     <View style={styles.tableHeader}>
-      <Text style={[styles.tableHeaderCell, styles.colDesc]}>Description</Text>
-      <Text style={[styles.tableHeaderCell, styles.colQty]}>Qté</Text>
-      <Text style={[styles.tableHeaderCell, styles.colPrice]}>P.U. HT</Text>
-      <Text style={[styles.tableHeaderCell, styles.colTotal]}>Total HT</Text>
+      <Text style={[styles.tableHeaderText, styles.colDesc]}>Description</Text>
+      <Text style={[styles.tableHeaderText, styles.colQty]}>Qté</Text>
+      <Text style={[styles.tableHeaderText, styles.colPrice]}>P.U. HT</Text>
+      <Text style={[styles.tableHeaderText, styles.colTotal]}>Total HT</Text>
     </View>
-    {services && services.length > 0 ? services.map((service, i) => (
-      <View key={i} style={[styles.tableRow, i % 2 === 1 && styles.tableRowEven]}>
-        <Text style={[styles.tableCell, styles.colDesc]}>{service.description || '—'}</Text>
-        <Text style={[styles.tableCell, styles.colQty]}>{service.quantity}</Text>
-        <Text style={[styles.tableCell, styles.colPrice]}>{Number(service.unit_price || 0).toFixed(2)} €</Text>
-        <Text style={[styles.tableCell, styles.colTotal]}>{Number(service.total || 0).toFixed(2)} €</Text>
-      </View>
-    )) : (
+    
+    {/* Rows */}
+    {services && services.length > 0 ? (
+      services.map((service, i) => (
+        <View key={i} style={[styles.tableRow, i % 2 === 1 && styles.tableRowAlt]}>
+          <Text style={[styles.tableCell, styles.colDesc]}>{service.description || '—'}</Text>
+          <Text style={[styles.tableCell, styles.colQty]}>{service.quantity}</Text>
+          <Text style={[styles.tableCell, styles.colPrice]}>{Number(service.unit_price || 0).toFixed(2)} €</Text>
+          <Text style={[styles.tableCell, styles.colTotal, { fontFamily: 'Helvetica-Bold' }]}>
+            {Number(service.total || 0).toFixed(2)} €
+          </Text>
+        </View>
+      ))
+    ) : (
       <View style={styles.tableRow}>
         <Text style={[styles.tableCell, { width: '100%', textAlign: 'center', color: '#999' }]}>
           Aucun service
@@ -338,31 +346,45 @@ const ServicesTable = ({ services, title }) => (
   </View>
 );
 
-// Totals component
+// Totals component - SIMPLIFIÉ
 const TotalsSection = ({ totalBrut, remise, remisePercent, totalNet, acompte30, isQuote, label }) => (
   <View style={styles.totalsContainer}>
-    {label && <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: BRAND_BLUE, marginBottom: 4 }}>{label}</Text>}
+    {label && (
+      <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: BRAND_BLUE, marginBottom: 8, textAlign: 'right' }}>
+        {label}
+      </Text>
+    )}
+    
     <View style={styles.totalsBox}>
+      {/* Total brut */}
       <View style={styles.totalRow}>
         <Text style={styles.totalLabel}>Total brut</Text>
         <Text style={styles.totalValue}>{Number(totalBrut || 0).toFixed(2)} €</Text>
       </View>
+      
+      {/* Remise */}
       {Number(remise || 0) > 0 && (
-        <View style={[styles.totalRow, styles.remiseRow]}>
-          <Text style={[styles.totalLabel, styles.remiseText]}>
+        <View style={styles.totalRow}>
+          <Text style={[styles.totalLabel, { color: BRAND_ORANGE }]}>
             Remise{remisePercent > 0 ? ` (${remisePercent}%)` : ''}
           </Text>
-          <Text style={[styles.totalValue, styles.remiseText]}>-{Number(remise).toFixed(2)} €</Text>
+          <Text style={[styles.totalValue, { color: BRAND_ORANGE }]}>
+            -{Number(remise).toFixed(2)} €
+          </Text>
         </View>
       )}
-      <View style={[styles.totalRow, styles.totalNetRow]}>
+      
+      {/* Total net */}
+      <View style={styles.totalNetRow}>
         <Text style={styles.totalNetLabel}>TOTAL NET</Text>
         <Text style={styles.totalNetValue}>{Number(totalNet || 0).toFixed(2)} €</Text>
       </View>
+      
+      {/* Acompte */}
       {isQuote && acompte30 > 0 && (
-        <View style={[styles.totalRow, styles.acompteRow]}>
-          <Text style={styles.acompteText}>Acompte 30%</Text>
-          <Text style={styles.acompteText}>{Number(acompte30).toFixed(2)} €</Text>
+        <View style={styles.acompteRow}>
+          <Text style={styles.acompteLabel}>Acompte 30%</Text>
+          <Text style={styles.acompteLabel}>{Number(acompte30).toFixed(2)} €</Text>
         </View>
       )}
     </View>
