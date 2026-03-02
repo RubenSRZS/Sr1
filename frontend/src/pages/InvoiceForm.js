@@ -113,7 +113,7 @@ const InvoiceForm = () => {
   }, [formData, newClient, showNewClient, clients, id, totals]);
 
   const handleDownloadPDF = useCallback(async () => {
-    await generatePDF(previewDoc, 'invoice');
+    await downloadPDF(previewDoc, 'invoice');
   }, [previewDoc]);
 
   const handleSubmit = async (e) => {
