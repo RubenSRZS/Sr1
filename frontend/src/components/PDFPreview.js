@@ -1,8 +1,10 @@
 import React from 'react';
 import { X, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { generatePDF } from './PDFGenerator';
 import { toast } from 'sonner';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
+import { createRoot } from 'react-dom/client';
 
 // Brand colors
 const BRAND_BLUE = '#1e40af';
@@ -21,7 +23,7 @@ const DiagnosticLabels = {
 const ServicesTable = ({ services, title, compact }) => (
   <div className="mb-4">
     {title && (
-      <div 
+      <div
         className="text-sm font-bold mb-2 pb-1 border-b-2"
         style={{ color: BRAND_BLUE, borderColor: BRAND_BLUE }}
       >
@@ -89,7 +91,7 @@ const TotalsSection = ({ totalBrut, remise, remisePercent, totalNet, acompte30, 
   </div>
 );
 
-// Main preview document component (HTML version for live preview)
+// Main preview document component (HTML version)
 const PDFDocument = ({ document, type, compact = false }) => {
   if (!document) return null;
   const isQuote = type === 'quote';
@@ -97,12 +99,10 @@ const PDFDocument = ({ document, type, compact = false }) => {
   const number = isQuote ? document.quote_number : document.invoice_number;
   const fs = compact ? '9px' : '11px';
 
-  // Check if diagnostic has any checked items
   const diagItems = document.diagnostic
     ? Object.entries(document.diagnostic).filter(([, v]) => v === true)
     : [];
 
-  // Check if multi-option
   const hasOption2 = isQuote && document.option_2_services && document.option_2_services.length > 0;
 
   return (
@@ -111,17 +111,23 @@ const PDFDocument = ({ document, type, compact = false }) => {
       style={{
         width: compact ? '100%' : '210mm',
         minHeight: compact ? 'auto' : '297mm',
-        fontFamily: "'DM Sans', sans-serif",
+        fontFamily: "'Manrope', 'Inter', sans-serif",
         fontSize: fs,
         lineHeight: 1.4,
       }}
       data-testid="pdf-document"
     >
-      {/* Header */}
+      {/* Header gradient */}
       <div className="relative" style={{ background: `linear-gradient(135deg, ${BRAND_BLUE} 0%, ${BRAND_BLUE_LIGHT} 40%, ${BRAND_ORANGE} 100%)` }}>
         <div className="px-5 py-4 flex items-center justify-between text-white">
           <div className="flex items-center gap-2">
-            <img src={LOGO_SR} alt="SR" className={compact ? "h-10" : "h-14"} style={{ filter: 'brightness(1.1)' }} />
+            <img
+              src={LOGO_SR}
+              alt="SR Rénovation"
+              className={compact ? "h-10" : "h-14"}
+              style={{ filter: 'brightness(1.1)', objectFit: 'contain' }}
+              crossOrigin="anonymous"
+            />
           </div>
           <div className="text-right">
             <div className="text-xs uppercase tracking-[0.2em] opacity-70 font-medium">{docLabel}</div>
@@ -146,7 +152,8 @@ const PDFDocument = ({ document, type, compact = false }) => {
             <div className="text-xs text-gray-600 leading-relaxed">
               1 Chemin de l'Etang Jean Guyon<br />
               39570 COURLAOUX<br />
-              06 80 33 45 46
+              06 80 33 45 46<br />
+              SIRET: 894 908 227 00024
             </div>
           </div>
           <div className="rounded-lg p-2.5" style={{ background: '#fff7ed', borderLeft: `3px solid ${BRAND_ORANGE}` }}>
@@ -155,6 +162,7 @@ const PDFDocument = ({ document, type, compact = false }) => {
             <div className="text-xs text-gray-600 leading-relaxed">
               {document.client_address || '—'}<br />
               {document.client_phone || '—'}
+              {document.client_email && <><br />{document.client_email}</>}
             </div>
           </div>
         </div>
@@ -180,12 +188,12 @@ const PDFDocument = ({ document, type, compact = false }) => {
         )}
 
         {/* Option 1 services */}
-        <ServicesTable 
-          services={document.services} 
+        <ServicesTable
+          services={document.services}
           title={hasOption2 ? "OPTION 1" : null}
           compact={compact}
         />
-        
+
         {/* Option 1 totals */}
         <TotalsSection
           totalBrut={document.total_brut}
@@ -198,11 +206,11 @@ const PDFDocument = ({ document, type, compact = false }) => {
           compact={compact}
         />
 
-        {/* Option 2 if exists */}
+        {/* Option 2 */}
         {hasOption2 && (
           <>
-            <ServicesTable 
-              services={document.option_2_services} 
+            <ServicesTable
+              services={document.option_2_services}
               title="OPTION 2"
               compact={compact}
             />
@@ -258,13 +266,41 @@ const PDFDocument = ({ document, type, compact = false }) => {
             </div>
             <div className="border border-dashed rounded-lg p-2 text-center text-xs text-gray-400" style={{ borderColor: BRAND_ORANGE_LIGHT }}>
               <div className="font-semibold">Bon pour accord</div>
+              <div className="text-gray-300 text-xs mt-1">Précédé de "Lu et approuvé"</div>
             </div>
           </div>
         )}
 
         {/* Footer */}
-        <div className="border-t pt-2" style={{ borderColor: '#e5e7eb' }}>
-          <div className="text-center pt-1">
+        <div className="border-t pt-3" style={{ borderColor: '#e5e7eb' }}>
+          {/* Partner badges */}
+          <div className="flex items-center justify-center gap-2 flex-wrap mb-2">
+            <div className="px-2 py-1 rounded text-white font-bold" style={{ background: '#006231', fontSize: '7px', letterSpacing: '0.05em' }}>
+              BANQUE POPULAIRE
+            </div>
+            <div className="px-2 py-1 rounded text-white font-bold" style={{ background: '#003C8F', fontSize: '7px', letterSpacing: '0.05em' }}>
+              CHAMBRE DES MÉTIERS
+            </div>
+            <div className="px-2 py-1 rounded text-white font-bold" style={{ background: BRAND_ORANGE, fontSize: '7px', letterSpacing: '0.05em' }}>
+              GARANTIE DÉCENNALE
+            </div>
+          </div>
+          {/* Info row */}
+          <div className="grid grid-cols-3 gap-2 text-center mb-2" style={{ fontSize: '8px', color: '#6b7280' }}>
+            <div>
+              <div className="font-semibold" style={{ color: BRAND_BLUE }}>Assurance</div>
+              <div>RC Pro · Décennale</div>
+            </div>
+            <div>
+              <div className="font-semibold" style={{ color: BRAND_BLUE }}>Paiement</div>
+              <div>Chèque · Espèces · Virement</div>
+            </div>
+            <div>
+              <div className="font-semibold" style={{ color: BRAND_BLUE }}>Contact</div>
+              <div>06 80 33 45 46</div>
+            </div>
+          </div>
+          <div className="text-center pt-1 border-t" style={{ borderColor: '#f3f4f6' }}>
             <span className="font-bold text-sm" style={{ color: BRAND_BLUE }}>Sr-Renovation.fr</span>
             <span className="text-xs text-gray-400 ml-2">Nettoyage toitures, façades et terrasses</span>
           </div>
@@ -274,15 +310,110 @@ const PDFDocument = ({ document, type, compact = false }) => {
   );
 };
 
-// Download function using the new PDF generator
-const downloadPDF = async (document, type) => {
-  const success = await generatePDF(document, type);
-  if (success) {
-    toast.success('PDF téléchargé');
-  } else {
-    toast.error('Erreur de téléchargement');
+// ─── PDF generation using html2canvas + jsPDF ─────────────────────────────────
+const generatePDFFromHTML = async (document, type) => {
+  const isQuote = type === 'quote';
+  const number = isQuote ? document.quote_number : document.invoice_number;
+  const prefix = isQuote ? 'DEVIS' : 'FACTURE';
+  const filename = `${prefix}_${number || 'XX'}_${(document.client_name || 'client').replace(/\s+/g, '_')}.pdf`;
+
+  // 1. Pre-fetch logo as base64 to avoid CORS issues in html2canvas
+  let logoBase64 = null;
+  try {
+    const resp = await fetch(LOGO_SR, { mode: 'cors' });
+    if (resp.ok) {
+      const blob = await resp.blob();
+      logoBase64 = await new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+    }
+  } catch (e) {
+    console.warn('Logo pre-fetch failed, proceeding without base64 conversion');
   }
-  return success;
+
+  // 2. Create a hidden container at A4 width
+  const container = window.document.createElement('div');
+  container.style.cssText = 'position:fixed;top:0;left:-9999px;width:794px;background:white;z-index:-9999;pointer-events:none;';
+  window.document.body.appendChild(container);
+
+  // 3. Render PDFDocument component into container
+  const root = createRoot(container);
+  root.render(<PDFDocument document={document} type={type} compact={false} />);
+
+  try {
+    // 4. Wait for render + fonts
+    await new Promise(r => setTimeout(r, 900));
+    await window.document.fonts.ready;
+
+    // 5. Capture with html2canvas
+    const canvas = await html2canvas(container.firstChild, {
+      scale: 2.5,
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: '#ffffff',
+      logging: false,
+      onclone: logoBase64 ? (clonedDoc) => {
+        clonedDoc.querySelectorAll('img').forEach(img => {
+          if (img.src && (img.src.includes('emergentagent.com') || img.src === LOGO_SR)) {
+            img.src = logoBase64;
+          }
+        });
+      } : undefined,
+    });
+
+    // 6. Build PDF from canvas slices (multi-page support)
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageWidthMm = pdf.internal.pageSize.getWidth();   // 210mm
+    const pageHeightMm = pdf.internal.pageSize.getHeight(); // 297mm
+
+    // Calculate pixel height of one A4 page at the canvas scale
+    const pxPerMm = canvas.width / pageWidthMm;
+    const pageHeightPx = pageHeightMm * pxPerMm;
+    const totalPages = Math.ceil(canvas.height / pageHeightPx);
+
+    for (let page = 0; page < totalPages; page++) {
+      if (page > 0) pdf.addPage();
+
+      // Slice the canvas for this page
+      const sliceCanvas = window.document.createElement('canvas');
+      sliceCanvas.width = canvas.width;
+      const sliceStartPx = page * pageHeightPx;
+      const sliceEndPx = Math.min(sliceStartPx + pageHeightPx, canvas.height);
+      sliceCanvas.height = Math.ceil(sliceEndPx - sliceStartPx);
+
+      const ctx = sliceCanvas.getContext('2d');
+      ctx.drawImage(canvas, 0, -sliceStartPx);
+
+      const sliceHeightMm = (sliceCanvas.height / canvas.width) * pageWidthMm;
+      const imgData = sliceCanvas.toDataURL('image/jpeg', 0.95);
+      pdf.addImage(imgData, 'JPEG', 0, 0, pageWidthMm, sliceHeightMm);
+    }
+
+    pdf.save(filename);
+    return true;
+  } finally {
+    root.unmount();
+    window.document.body.removeChild(container);
+  }
+};
+
+// Download function exposed for external use
+const downloadPDF = async (document, type) => {
+  try {
+    const success = await generatePDFFromHTML(document, type);
+    if (success) {
+      toast.success('PDF téléchargé avec succès');
+    } else {
+      toast.error('Erreur lors du téléchargement');
+    }
+    return success;
+  } catch (err) {
+    console.error('PDF error:', err);
+    toast.error('Erreur lors de la génération du PDF');
+    return false;
+  }
 };
 
 // Modal preview component
@@ -290,7 +421,7 @@ const PDFPreview = ({ document, type, onClose }) => {
   const handleDownload = async () => {
     await downloadPDF(document, type);
   };
-  
+
   if (!document) return null;
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-4 pt-8 backdrop-blur-sm overflow-y-auto"
@@ -302,9 +433,9 @@ const PDFPreview = ({ document, type, onClose }) => {
             Aperçu {type === 'quote' ? 'Devis' : 'Facture'}
           </h2>
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleDownload}
               className="text-sm"
               style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }}
@@ -328,5 +459,5 @@ const PDFPreview = ({ document, type, onClose }) => {
   );
 };
 
-export { PDFDocument, downloadPDF, BRAND_BLUE, BRAND_ORANGE };
+export { PDFDocument, downloadPDF, generatePDFFromHTML, BRAND_BLUE, BRAND_ORANGE };
 export default PDFPreview;
