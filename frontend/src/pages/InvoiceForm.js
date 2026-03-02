@@ -286,9 +286,8 @@ const InvoiceForm = () => {
             {/* Summary + Save (mobile) */}
             <Card className="p-4 bg-white border-0 shadow-sm lg:hidden" data-testid="mobile-summary">
               <div className="space-y-1.5 mb-3">
-                <div className="flex justify-between text-sm"><span className="text-gray-500">Total brut</span><span className="font-medium">{totals.total_brut.toFixed(2)} €</span></div>
                 {totals.remise > 0 && <div className="flex justify-between text-sm" style={{ color: BRAND_ORANGE }}><span>Remise{formData.remise_type === 'percent' ? ` (${formData.remise_percent}%)` : ''}</span><span>-{totals.remise.toFixed(2)} €</span></div>}
-                <div className="flex justify-between font-bold text-lg pt-1 border-t"><span>Total net</span><span>{totals.total_net.toFixed(2)} €</span></div>
+                <div className="flex justify-between font-bold text-lg pt-1 border-t" style={{ color: BRAND_BLUE }}><span>Total net (TTC)</span><span>{totals.total_net.toFixed(2)} €</span></div>
                 <div className="flex justify-between text-sm text-green-600"><span>Acompte versé</span><span>{Number(formData.acompte_paid || 0).toFixed(2)} €</span></div>
                 <div className="flex justify-between font-bold text-red-600"><span>Reste à payer</span><span>{totals.reste_a_payer.toFixed(2)} €</span></div>
               </div>
@@ -308,9 +307,8 @@ const InvoiceForm = () => {
             <div className="sticky top-20 space-y-3">
               <Card className="p-4 bg-white border-0 shadow-sm">
                 <div className="space-y-1.5 mb-3">
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Total brut</span><span className="font-medium">{totals.total_brut.toFixed(2)} €</span></div>
                   {totals.remise > 0 && <div className="flex justify-between text-sm" style={{ color: BRAND_ORANGE }}><span>Remise{formData.remise_type === 'percent' ? ` (${formData.remise_percent}%)` : ''}</span><span>-{totals.remise.toFixed(2)} €</span></div>}
-                  <div className="flex justify-between font-bold text-lg pt-1 border-t"><span>Total net</span><span>{totals.total_net.toFixed(2)} €</span></div>
+                  <div className="flex justify-between font-bold text-lg pt-1 border-t" style={{ color: BRAND_BLUE }}><span>Total net (TTC)</span><span>{totals.total_net.toFixed(2)} €</span></div>
                   <div className="flex justify-between text-sm text-green-600"><span>Acompte versé</span><span>{Number(formData.acompte_paid || 0).toFixed(2)} €</span></div>
                   <div className="flex justify-between font-bold text-red-600"><span>Reste à payer</span><span>{totals.reste_a_payer.toFixed(2)} €</span></div>
                 </div>

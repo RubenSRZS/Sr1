@@ -1,0 +1,52 @@
+{
+  "summary": "Frontend testing of 6 corrections: orange button, partner logos, totals format, PDF download, invoice totals, and Garantie Décennale removal. All 6 requested features verified as PASS, with 1 design bug found (duplicate TOTAL NET in invoice document).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "PDFPreview.js / PDFDocument",
+        "issue": "TOTAL NET (TTC) appears TWICE in invoice PDF document. TotalsSection (line 246) renders 'TOTAL NET (TTC)' for invoices, AND the !isQuote block (lines 277-300) ALSO renders 'TOTAL NET (TTC)' + 'Acompte versé' + 'RESTE À PAYER'. Fix: skip TotalsSection for invoices since the !isQuote block already handles invoice totals display.",
+        "selector": "[data-testid='pdf-document']",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "PDF Generation (all documents)",
+        "issue": "CORS errors for all 5 CDN logo URLs (SR Rénovation, Drapeau, BP, CMA, Gîtes) during html2canvas. These are non-blocking because logos are swapped to base64 via onclone callback. PDF still generates with 'PDF téléchargé avec succès' toast. Logos ARE visible in live preview (CDN loads fine for img tags). This was already noted in iteration_3.",
+        "affected_selectors": ["[data-testid='download-pdf-btn-desktop']"]
+      }
+    ],
+    "design_issues": []
+  },
+  "features_verified": {
+    "1_dashboard_orange_button": "✅ PASS - 'Nouvelle Facture' button: linear-gradient(135deg, rgb(249,115,22) 0%, rgb(251,146,60) 100%) = ORANGE #f97316. Screenshot confirms clearly orange button.",
+    "2_partner_logos": "✅ PASS - All 3 partner logos (Banque Populaire, Chambre des Métiers, Gîtes de France) visible in live preview footer. Drapeau français visible in document header next to document number. 5 images confirmed: SR Rénovation, France flag, BP, CMA, Gîtes.",
+    "3_totals_no_total_brut": "✅ PASS - QuoteForm shows 'Total Option 1 (TTC)' (blue), 'Reste à payer' (red), 'Acompte 30%' (orange). No 'Total brut' text anywhere.",
+    "4_pdf_download": "✅ PASS - Toast 'PDF téléchargé avec succès' displayed after clicking PDF button. html2canvas+jsPDF working with base64 logos via onclone.",
+    "5_invoice_total_net": "✅ PASS - InvoiceForm summary shows 'Total net (TTC)' (not 'Total brut'). Invoice form renders without crash. Live preview shows 'TOTAL NET (TTC)' label.",
+    "6_no_garantie_decennale": "✅ PASS - No 'GARANTIE DÉCENNALE' badge found in either quote or invoice preview footer. Footer only contains BP, CMA, Gîtes de France, Google 5 stars badge."
+  },
+  "test_report_links": ["/app/test_reports/iteration_4.json"],
+  "action_items": [
+    "MEDIUM: Fix duplicate 'TOTAL NET (TTC)' in invoice PDFDocument. In PDFPreview.js, TotalsSection is called for ALL document types (isQuote=false for invoices shows only TOTAL NET without payment details). Then the separate !isQuote block also shows TOTAL NET + Acompte versé + RESTE À PAYER. Fix: Conditionally skip TotalsSection when isQuote=false (since the !isQuote block handles invoice totals), OR move invoice payment logic inside TotalsSection."
+  ],
+  "critical_code_review_comments": [
+    "PDFPreview.js PDFDocument: For invoices, TotalsSection (line 246) renders 'TOTAL NET (TTC)', then the !isQuote block (lines 277-300) ALSO renders 'TOTAL NET (TTC)' + 'Acompte versé' + 'RESTE À PAYER'. This causes 'TOTAL NET' to appear twice. Fix by adding condition: only render TotalsSection when isQuote=true, or restructure the invoice totals into TotalsSection.",
+    "PDFPreview.js: CORS warnings for all CDN logo URLs are expected and non-blocking (base64 fallback works). However, the live preview img tags show CDN logos which ARE visible in browser. For production quality, consider hosting logos with proper CORS headers.",
+    "Multiple orphaned PDF generator files: PDFGenerator.js, PDFGeneratorPro.js, PDFGenerator_simple.js still exist but are unused (system now uses PDFPreview.js). Should be cleaned up to avoid confusion."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend-only testing)",
+    "frontend": "95% (all 6 requested features verified PASS, 1 medium design bug: duplicate TOTAL NET in invoice)"
+  },
+  "seed_data_creation": "No persistent data created",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "All 6 corrections verified: (1) Orange button #f97316 ✅ (2) BP/CMA/Gîtes logos + drapeau in preview ✅ (3) Total Option 1 TTC / Reste à payer / Acompte 30% (no Total brut) ✅ (4) PDF downloads with success toast ✅ (5) Invoice shows 'Total net (TTC)' not 'Total brut' ✅ (6) No GARANTIE DÉCENNALE badge ✅. One design bug: 'TOTAL NET (TTC)' appears TWICE in invoice document (PDFPreview.js TotalsSection + !isQuote block both render it).",
+  "rca_of_issue": "Duplicate TOTAL NET in invoice: In PDFDocument, TotalsSection is called unconditionally for all document types (lines 246-254). For invoices (isQuote=false), TotalsSection renders 'TOTAL NET (TTC)' only (no RESTE À PAYER since that requires isQuote=true AND acompte30>0). Then immediately after, the !isQuote block (lines 277-300) renders a SECOND 'TOTAL NET (TTC)' plus 'Acompte versé' and 'RESTE À PAYER'. The fix is to either: (a) wrap TotalsSection in a condition `{isQuote && <TotalsSection />}` and let the !isQuote block handle invoice totals, or (b) merge the invoice totals into TotalsSection by passing all invoice-specific props."
+}

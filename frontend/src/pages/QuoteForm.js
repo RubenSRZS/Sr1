@@ -301,12 +301,12 @@ const QuoteForm = () => {
       </div>
       {/* Totals for this option */}
       <div className="mt-3 p-3 rounded-lg" style={{ background: optionNum === 1 ? '#eff6ff' : '#fff7ed' }}>
-        <div className="flex justify-between text-sm mb-1"><span className="text-gray-600">Total brut</span><span className="font-medium">{totals.total_brut.toFixed(2)} €</span></div>
         {totals.remise > 0 && <div className="flex justify-between text-sm mb-1" style={{ color: BRAND_ORANGE }}><span>Remise</span><span>-{totals.remise.toFixed(2)} €</span></div>}
         <div className="flex justify-between font-bold text-lg pt-1 border-t" style={{ borderColor: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE, color: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE }}>
-          <span>Total Option {optionNum}</span><span>{totals.total_net.toFixed(2)} €</span>
+          <span>Total Option {optionNum} (TTC)</span><span>{totals.total_net.toFixed(2)} €</span>
         </div>
-        <div className="flex justify-between text-sm font-medium mt-1" style={{ color: BRAND_ORANGE }}><span>Acompte 30%</span><span>{totals.acompte_30.toFixed(2)} €</span></div>
+        <div className="flex justify-between text-sm font-medium mt-1" style={{ color: '#dc2626' }}><span>Reste à payer</span><span>{(totals.total_net - totals.acompte_30).toFixed(2)} €</span></div>
+        <div className="flex justify-between text-sm font-medium mt-0.5" style={{ color: BRAND_ORANGE }}><span>Acompte 30%</span><span>{totals.acompte_30.toFixed(2)} €</span></div>
       </div>
     </Card>
   );
@@ -483,7 +483,6 @@ const QuoteForm = () => {
               <Card className="p-4 bg-white border-0 shadow-sm">
                 <div className="space-y-2 mb-3">
                   <div className="p-2 rounded-lg" style={{ background: '#eff6ff' }}>
-                    <div className="flex justify-between text-sm"><span className="text-gray-600">Option 1 brut</span><span>{totals1.total_brut.toFixed(2)} €</span></div>
                     {totals1.remise > 0 && <div className="flex justify-between text-sm" style={{ color: BRAND_ORANGE }}><span>Remise</span><span>-{totals1.remise.toFixed(2)} €</span></div>}
                     <div className="flex justify-between font-bold pt-1 border-t" style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }}>
                       <span>Total Option 1</span><span>{totals1.total_net.toFixed(2)} €</span>
@@ -491,7 +490,6 @@ const QuoteForm = () => {
                   </div>
                   {hasOption2 && formData.option_2_services.length > 0 && (
                     <div className="p-2 rounded-lg" style={{ background: '#fff7ed' }}>
-                      <div className="flex justify-between text-sm"><span className="text-gray-600">Option 2 brut</span><span>{totals2.total_brut.toFixed(2)} €</span></div>
                       {totals2.remise > 0 && <div className="flex justify-between text-sm" style={{ color: BRAND_ORANGE }}><span>Remise</span><span>-{totals2.remise.toFixed(2)} €</span></div>}
                       <div className="flex justify-between font-bold pt-1 border-t" style={{ borderColor: BRAND_ORANGE, color: BRAND_ORANGE }}>
                         <span>Total Option 2</span><span>{totals2.total_net.toFixed(2)} €</span>
