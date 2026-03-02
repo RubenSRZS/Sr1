@@ -42,260 +42,146 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   
-  // Info boxes
-  infoRow: {
+  // Info section
+  section: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+    color: BRAND_BLUE,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     marginBottom: 15,
   },
-  infoBox: {
-    width: '48%',
-    padding: 10,
-    backgroundColor: '#f8fafc',
+  col: {
+    flex: 1,
   },
-  infoTitle: {
+  label: {
     fontSize: 8,
-    fontFamily: 'Helvetica-Bold',
-    marginBottom: 5,
-    color: BRAND_BLUE,
-  },
-  infoName: {
-    fontSize: 11,
-    fontFamily: 'Helvetica-Bold',
-    marginBottom: 3,
-  },
-  infoText: {
-    fontSize: 9,
-    color: '#333',
-    lineHeight: 1.4,
-  },
-  
-  // Work location
-  workLocation: {
-    backgroundColor: '#f8fafc',
-    padding: 10,
-    marginBottom: 15,
-  },
-  workLocationText: {
-    fontSize: 9,
-  },
-  workLocationLabel: {
-    fontFamily: 'Helvetica-Bold',
-    color: BRAND_BLUE,
-  },
-  
-  // Diagnostic
-  diagnosticBox: {
-    backgroundColor: '#f8fafc',
-    padding: 10,
-    marginBottom: 15,
-  },
-  diagnosticTitle: {
-    fontSize: 8,
-    fontFamily: 'Helvetica-Bold',
-    color: BRAND_BLUE,
-    marginBottom: 5,
-  },
-  diagnosticItem: {
-    fontSize: 8,
-    color: '#333',
+    color: '#666',
     marginBottom: 2,
   },
-  
-  // Option title
-  optionTitle: {
-    fontSize: 12,
+  value: {
+    fontSize: 10,
     fontFamily: 'Helvetica-Bold',
-    color: BRAND_BLUE,
-    marginTop: 15,
-    marginBottom: 10,
-    paddingBottom: 5,
-    borderBottomWidth: 2,
-    borderBottomColor: BRAND_BLUE,
+  },
+  text: {
+    fontSize: 9,
+    lineHeight: 1.4,
   },
   
   // Table
   table: {
-    marginTop: 5,
-    marginBottom: 15,
+    marginTop: 15,
+    marginBottom: 20,
+  },
+  tableTitle: {
+    fontSize: 12,
+    fontFamily: 'Helvetica-Bold',
+    color: BRAND_BLUE,
+    marginBottom: 10,
   },
   tableHeader: {
     flexDirection: 'row',
     backgroundColor: BRAND_BLUE,
-    padding: 8,
+    padding: 10,
   },
   tableHeaderText: {
-    color: '#ffffff',
+    color: 'white',
     fontSize: 9,
     fontFamily: 'Helvetica-Bold',
   },
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
+    borderBottomColor: '#ddd',
+    padding: 8,
   },
   tableRowAlt: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#f9fafb',
   },
-  tableCell: {
+  cell: {
     fontSize: 9,
-    color: '#333',
   },
-  colDesc: { width: '50%' },
-  colQty: { width: '15%', textAlign: 'center' },
-  colPrice: { width: '17%', textAlign: 'right' },
-  colTotal: { width: '18%', textAlign: 'right' },
+  cellBold: {
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+  },
+  col1: { width: '50%' },
+  col2: { width: '15%', textAlign: 'center' },
+  col3: { width: '17%', textAlign: 'right' },
+  col4: { width: '18%', textAlign: 'right' },
   
   // Totals
-  totalsContainer: {
-    marginTop: 10,
-    marginBottom: 15,
-  },
   totalsBox: {
+    marginTop: 10,
     marginLeft: 'auto',
-    width: 220,
-    border: '1px solid #e5e7eb',
-    padding: 10,
+    width: 250,
+    border: '1 solid #ddd',
+    padding: 15,
   },
-  totalRow: {
+  totalLine: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 5,
+    marginBottom: 8,
   },
   totalLabel: {
     fontSize: 9,
-    color: '#666',
   },
   totalValue: {
     fontSize: 9,
     fontFamily: 'Helvetica-Bold',
   },
-  totalNetRow: {
+  totalFinal: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     backgroundColor: BRAND_BLUE,
-    padding: 8,
-    marginTop: 5,
+    color: 'white',
+    padding: 10,
+    marginTop: 10,
   },
-  totalNetLabel: {
-    fontSize: 11,
+  totalFinalText: {
+    fontSize: 12,
     fontFamily: 'Helvetica-Bold',
-    color: '#ffffff',
+    color: 'white',
   },
-  totalNetValue: {
-    fontSize: 11,
-    fontFamily: 'Helvetica-Bold',
-    color: '#ffffff',
-  },
-  acompteRow: {
+  acompte: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     backgroundColor: BRAND_ORANGE,
-    padding: 6,
+    color: 'white',
+    padding: 8,
     marginTop: 5,
   },
-  acompteLabel: {
-    fontSize: 9,
+  acompteText: {
+    fontSize: 10,
     fontFamily: 'Helvetica-Bold',
-    color: '#ffffff',
-  },
-  
-  // Notes
-  notesBox: {
-    backgroundColor: '#f8fafc',
-    padding: 10,
-    marginTop: 15,
-    marginBottom: 15,
-  },
-  notesTitle: {
-    fontSize: 8,
-    fontFamily: 'Helvetica-Bold',
-    marginBottom: 5,
-  },
-  notesText: {
-    fontSize: 9,
-    color: '#333',
-  },
-  
-  // TVA notice
-  tvaNotice: {
-    textAlign: 'center',
-    fontSize: 8,
-    color: '#999',
-    fontStyle: 'italic',
-    marginVertical: 10,
-  },
-  
-  // Signatures
-  signaturesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  signatureBox: {
-    width: '48%',
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: '#999',
-    padding: 15,
-    minHeight: 60,
-  },
-  signatureTitle: {
-    fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
-    textAlign: 'center',
-    marginBottom: 5,
-  },
-  signatureSubtitle: {
-    fontSize: 7,
-    color: '#999',
-    textAlign: 'center',
+    color: 'white',
   },
   
   // Footer
   footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 30,
-    right: 30,
-    paddingTop: 10,
+    marginTop: 30,
+    paddingTop: 15,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-  },
-  footerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  footerCol: {
-    width: '30%',
-  },
-  footerTitle: {
-    fontSize: 8,
-    fontFamily: 'Helvetica-Bold',
-    marginBottom: 3,
+    borderTopColor: '#ddd',
   },
   footerText: {
-    fontSize: 7,
+    fontSize: 8,
     color: '#666',
-  },
-  footerBrand: {
     textAlign: 'center',
-    paddingTop: 8,
-    borderTopWidth: 2,
-    borderTopColor: BRAND_BLUE,
+    marginBottom: 5,
   },
-  footerBrandName: {
-    fontSize: 10,
+  brand: {
+    fontSize: 11,
     fontFamily: 'Helvetica-Bold',
     color: BRAND_BLUE,
-  },
-  footerBrandSlogan: {
-    fontSize: 7,
-    color: '#999',
+    textAlign: 'center',
+    marginTop: 10,
   },
 });
 
