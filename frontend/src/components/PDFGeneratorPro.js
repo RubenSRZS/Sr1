@@ -23,11 +23,6 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexDirection: 'column',
   },
-  logo: {
-    width: 120,
-    height: 50,
-    marginBottom: 10,
-  },
   companyInfo: {
     fontSize: 8,
     color: '#333',
