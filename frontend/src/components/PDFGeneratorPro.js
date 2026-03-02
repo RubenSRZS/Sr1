@@ -290,16 +290,9 @@ const styles = StyleSheet.create({
     borderTopColor: BRAND_BLUE,
   },
   footerLogos: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
     marginBottom: 15,
-    paddingVertical: 10,
+    paddingVertical: 12,
     backgroundColor: '#f8fafc',
-  },
-  partnerLogo: {
-    width: 60,
-    height: 30,
   },
   footerInfo: {
     flexDirection: 'row',
