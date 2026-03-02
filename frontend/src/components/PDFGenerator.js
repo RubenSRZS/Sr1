@@ -391,7 +391,7 @@ const TotalsSection = ({ totalBrut, remise, remisePercent, totalNet, acompte30, 
   </View>
 );
 
-// Main PDF Document component
+// Main PDF Document component - STRUCTURE SIMPLIFIÉE
 const QuotePDFDocument = ({ document, type = 'quote' }) => {
   const isQuote = type === 'quote';
   const docLabel = isQuote ? 'DEVIS' : 'FACTURE';
@@ -418,10 +418,10 @@ const QuotePDFDocument = ({ document, type = 'quote' }) => {
           </View>
         </View>
         
-        {/* Info boxes */}
+        {/* Info boxes - Entreprise et Client */}
         <View style={styles.infoRow}>
-          <View style={[styles.infoBox, styles.entrepriseBox]}>
-            <Text style={[styles.infoTitle, styles.infoTitleBlue]}>ENTREPRISE</Text>
+          <View style={styles.infoBox}>
+            <Text style={styles.infoTitle}>ENTREPRISE</Text>
             <Text style={styles.infoName}>Ruben SUAREZ-SAR</Text>
             <Text style={styles.infoText}>
               1 Chemin de l'Etang Jean Guyon{'\n'}
@@ -431,8 +431,9 @@ const QuotePDFDocument = ({ document, type = 'quote' }) => {
               SIRET: 894 908 227 00024
             </Text>
           </View>
-          <View style={[styles.infoBox, styles.clientBox]}>
-            <Text style={[styles.infoTitle, styles.infoTitleOrange]}>CLIENT</Text>
+          
+          <View style={styles.infoBox}>
+            <Text style={styles.infoTitle}>CLIENT</Text>
             <Text style={styles.infoName}>{document.client_name || '—'}</Text>
             <Text style={styles.infoText}>
               {document.client_address || '—'}{'\n'}
@@ -454,23 +455,21 @@ const QuotePDFDocument = ({ document, type = 'quote' }) => {
         {isQuote && diagItems.length > 0 && (
           <View style={styles.diagnosticBox}>
             <Text style={styles.diagnosticTitle}>DIAGNOSTIC</Text>
-            <View style={styles.diagnosticItems}>
-              {diagItems.map(([key]) => (
-                <Text key={key} style={styles.diagnosticItem}>
-                  ✓ {DiagnosticLabels[key] || key}
-                </Text>
-              ))}
-            </View>
+            {diagItems.map(([key]) => (
+              <Text key={key} style={styles.diagnosticItem}>
+                ✓ {DiagnosticLabels[key] || key}
+              </Text>
+            ))}
           </View>
         )}
         
-        {/* Services - Option 1 or single option */}
+        {/* Services - Option 1 ou liste unique */}
         <ServicesTable 
           services={document.services} 
           title={hasOption2 ? "OPTION 1" : null}
         />
         
-        {/* Totals for Option 1 */}
+        {/* Totals Option 1 */}
         <TotalsSection
           totalBrut={document.total_brut}
           remise={document.remise}
@@ -481,7 +480,7 @@ const QuotePDFDocument = ({ document, type = 'quote' }) => {
           label={hasOption2 ? "Total Option 1" : null}
         />
         
-        {/* Option 2 if exists */}
+        {/* Option 2 si elle existe */}
         {hasOption2 && (
           <>
             <ServicesTable 
@@ -500,17 +499,21 @@ const QuotePDFDocument = ({ document, type = 'quote' }) => {
           </>
         )}
         
-        {/* Invoice specific */}
+        {/* Spécifique factures - Reste à payer */}
         {!isQuote && (
           <View style={styles.totalsContainer}>
             <View style={styles.totalsBox}>
-              <View style={[styles.totalRow, { backgroundColor: '#f0fdf4', borderRadius: 2, marginTop: 2 }]}>
+              <View style={[styles.totalRow, { backgroundColor: '#f0fdf4', padding: 5, marginBottom: 5 }]}>
                 <Text style={[styles.totalLabel, { color: '#16a34a' }]}>Acompte versé</Text>
-                <Text style={[styles.totalValue, { color: '#16a34a' }]}>{Number(document.acompte_paid || 0).toFixed(2)} €</Text>
+                <Text style={[styles.totalValue, { color: '#16a34a' }]}>
+                  {Number(document.acompte_paid || 0).toFixed(2)} €
+                </Text>
               </View>
-              <View style={[styles.totalRow, { backgroundColor: '#dc2626', borderRadius: 3, marginTop: 3, paddingVertical: 5 }]}>
-                <Text style={[styles.totalNetLabel, { fontSize: 9 }]}>RESTE À PAYER</Text>
-                <Text style={[styles.totalNetValue, { fontSize: 9 }]}>{Number(document.reste_a_payer || 0).toFixed(2)} €</Text>
+              <View style={[styles.totalNetRow, { backgroundColor: '#dc2626' }]}>
+                <Text style={styles.totalNetLabel}>RESTE À PAYER</Text>
+                <Text style={styles.totalNetValue}>
+                  {Number(document.reste_a_payer || 0).toFixed(2)} €
+                </Text>
               </View>
             </View>
           </View>
@@ -527,13 +530,13 @@ const QuotePDFDocument = ({ document, type = 'quote' }) => {
         {/* TVA notice */}
         <Text style={styles.tvaNotice}>TVA non applicable, art. 293 B du CGI</Text>
         
-        {/* Signatures (quotes only) */}
+        {/* Signatures (devis uniquement) */}
         {isQuote && (
           <View style={styles.signaturesRow}>
-            <View style={[styles.signatureBox, styles.signatureBoxBlue]}>
+            <View style={styles.signatureBox}>
               <Text style={styles.signatureTitle}>Signature de l'entreprise</Text>
             </View>
-            <View style={[styles.signatureBox, styles.signatureBoxOrange]}>
+            <View style={styles.signatureBox}>
               <Text style={styles.signatureTitle}>Bon pour accord</Text>
               <Text style={styles.signatureSubtitle}>Précédé de "Lu et approuvé"</Text>
             </View>
@@ -545,11 +548,15 @@ const QuotePDFDocument = ({ document, type = 'quote' }) => {
           <View style={styles.footerRow}>
             <View style={styles.footerCol}>
               <Text style={styles.footerTitle}>Informations</Text>
-              <Text style={styles.footerText}>SIRET: 894 908 227 00024{'\n'}Micro-entreprise</Text>
+              <Text style={styles.footerText}>
+                SIRET: 894 908 227 00024{'\n'}Micro-entreprise
+              </Text>
             </View>
             <View style={styles.footerCol}>
               <Text style={styles.footerTitle}>Assurance</Text>
-              <Text style={styles.footerText}>RC Pro: Banque Populaire{'\n'}Garantie décennale</Text>
+              <Text style={styles.footerText}>
+                RC Pro: Banque Populaire{'\n'}Garantie décennale
+              </Text>
             </View>
             <View style={styles.footerCol}>
               <Text style={styles.footerTitle}>Paiement</Text>
