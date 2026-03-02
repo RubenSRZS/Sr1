@@ -269,34 +269,35 @@ const styles = StyleSheet.create({
   
   // Footer
   footer: {
-    marginTop: 'auto',
+    position: 'absolute',
+    bottom: 30,
+    left: 30,
+    right: 30,
     paddingTop: 10,
-    borderTopWidth: 0.5,
-    borderTopColor: '#e2e8f0',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
   },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   footerCol: {
-    width: '32%',
+    width: '30%',
   },
   footerTitle: {
-    fontSize: 7,
+    fontSize: 8,
     fontFamily: 'Helvetica-Bold',
-    color: '#333',
-    marginBottom: 2,
+    marginBottom: 3,
   },
   footerText: {
-    fontSize: 6,
+    fontSize: 7,
     color: '#666',
-    lineHeight: 1.3,
   },
   footerBrand: {
     textAlign: 'center',
-    paddingTop: 6,
-    borderTopWidth: 1.5,
+    paddingTop: 8,
+    borderTopWidth: 2,
     borderTopColor: BRAND_BLUE,
   },
   footerBrandName: {
@@ -307,7 +308,6 @@ const styles = StyleSheet.create({
   footerBrandSlogan: {
     fontSize: 7,
     color: '#999',
-    marginTop: 1,
   },
 });
 
