@@ -146,7 +146,7 @@ const QuoteForm = () => {
     const cEmail = showNewClient ? newClient.email : client?.email || '';
     
     const doc = {
-      quote_number: id ? undefined : 'XX',
+      quote_number: formData.custom_quote_number || (id ? undefined : 'XX'),
       client_name: cName, client_address: cAddr, client_phone: cPhone, client_email: cEmail,
       date: new Date().toLocaleDateString('fr-FR'),
       work_location: formData.work_location,
