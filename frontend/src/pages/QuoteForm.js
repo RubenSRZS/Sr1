@@ -171,7 +171,7 @@ const QuoteForm = () => {
   }, [formData, newClient, showNewClient, clients, id, totals1, totals2, hasOption2]);
 
   const handleDownloadPDF = useCallback(async () => {
-    await downloadPDF(previewDoc, 'quote');
+    await generatePDF(previewDoc, 'quote');
   }, [previewDoc]);
 
   const handleSubmit = async (e) => {
