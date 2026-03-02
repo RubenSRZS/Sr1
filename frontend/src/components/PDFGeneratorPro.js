@@ -367,10 +367,18 @@ const QuotePDFDocument = ({ document, type = 'quote' }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* HEADER PROFESSIONNEL */}
+        {/* HEADER PROFESSIONNEL AVEC LOGO TEXTE */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Image src={LOGO_SR} style={styles.logo} />
+            {/* Logo texte stylisé */}
+            <View style={{ backgroundColor: BRAND_BLUE, padding: 8, marginBottom: 10, width: 180 }}>
+              <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: 'white', letterSpacing: 1 }}>
+                SR-RENOVATION
+              </Text>
+              <Text style={{ fontSize: 8, color: 'white', opacity: 0.9 }}>
+                Nettoyage professionnel
+              </Text>
+            </View>
             <Text style={styles.companyInfo}>
               Ruben SUAREZ-SAR{"\n"}
               1 Chemin de l'Etang Jean Guyon{"\n"}
