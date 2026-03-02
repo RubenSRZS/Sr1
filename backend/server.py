@@ -59,6 +59,7 @@ class Diagnostic(BaseModel):
 class QuoteCreate(BaseModel):
     client_id: Optional[str] = None
     new_client: Optional[ClientCreate] = None
+    custom_quote_number: Optional[str] = None
     work_location: str
     work_surface: Optional[str] = ""
     diagnostic: Optional[Diagnostic] = None
