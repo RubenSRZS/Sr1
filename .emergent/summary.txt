@@ -3,158 +3,176 @@ The user, representing the renovation company Sr-Renovation.fr, requires a web a
 
 **PRODUCT REQUIREMENTS:**
 1.  **Core Functionality:** Create, view, and manage quotes and invoices.
-2.  **Unique Design:** A professional and unique document design reflecting the brand identity of .
+2.  **Unique Design:** A professional and unique document design reflecting the brand identity of , including specific logos.
 3.  **Client Management:** Manage a list of clients.
 4.  **Catalog:** A pre-filled catalog of professional service descriptions.
 5.  **Email Integration:** Ability to send documents via email (planned with Resend).
-6.  **E-Signature:** A simple electronic signature solution.
+6.  **E-Signature:** A simple electronic signature solution, including displaying a signature image.
 7.  **Mobile-First Design:** The application must be optimized for mobile use.
-8.  **Integrated Workflow:** Create a client and a quote/invoice in a single, streamlined process.
-9.  **Flexible Forms:**
+8.  **Flexible Forms:**
     *   Client's email must be optional.
-    *   Allow discounts as both a percentage (%) and a fixed amount (€).
-    *   The surface area field was deemed useless and removed.
-10. **Live Preview:** Users must see a live preview of the PDF document as they fill out the form.
-11. **Document Numbering:** Quotes/invoices numbered sequentially per client (e.g., DEVIS-01, DEVIS-02 for a specific client).
-12. **Multi-Option Quotes:** Ability to create a single quote with two distinct options for the client to choose from.
+    *   Allow discounts as both a percentage (%) and a fixed amount (€), and also per service item.
+    *   Allow custom units for services (m², ml, unit, etc.).
+    *   Allow custom quote numbering.
+9.  **Live Preview:** Users must see a live preview of the PDF document as they fill out the form.
+10. **Document Numbering & Sorting:** Quotes/invoices numbered sequentially per client, but the list should be sorted by Client Name.
+11. **Multi-Option Quotes:** Ability to create a single quote with two distinct options.
+12. **Payment Plans:** Ability to specify payment terms (e.g., 30% deposit, installments).
+13. **PDF Download:** A clean, professional-looking PDF of the quote/invoice must be downloadable.
 
 **User's preferred language**: French
 
 **what currently exists?**
-A full-stack application with a React frontend and a FastAPI backend. The application has undergone two major refactoring cycles to address user feedback. The UI now features a modern design with both mobile and desktop navigation, a live PDF preview on forms, and a dual-mode discount system (% or €). The backend supports per-client document numbering.
+A full-stack application (React, FastAPI, MongoDB) for creating quotes and invoices. The biggest issue from the previous session—unprofessional and buggy PDF downloads—has been resolved by replacing  with a new method that uses  and  to capture a live HTML preview. This ensures the downloaded PDF is a pixel-perfect copy of what the user sees on screen.
 
-**CRITICAL FLAW:** The application still uses a **non-persistent, in-memory Python dictionary for all data storage**. All clients, quotes, and invoices are lost upon server restart, making the application non-viable for real-world use.
+Numerous user-requested features and bug fixes have been implemented, including correct brand colors, partner logos, a custom quote number field, and a fix for a critical bug that prevented editing service descriptions.
+
+The agent is currently in the middle of implementing a large batch of new features requested by the user to add more flexibility and detail to the quotes.
 
 **Last working item**:
-*   **Last item agent was working:** The agent had just finished a second major refactor based on user feedback and was preparing to finish the task. However, the user provided three new critical requirements. The agent's last action was to acknowledge these new requests and formulate a plan to address them.
-*   **Status:** NOT STARTED
-*   **Agent Testing Done:** N
-*   **Which testing method agent to use?** Both. The backend needs testing for the new multi-option quote logic. The frontend needs testing for the UI changes (color theme, download button).
-*   **User Testing Done:** N
+- **Last item agent was working:** The agent was implementing a large set of new features requested by the user in a single batch. This includes adding units and per-item discounts to services, an option for payment plans, updating the diagnostic checklist, improving the PDF footer, and sorting the main quote list by client name. Changes have been made to the backend (), the quote list (), and the main quote form (). The work was paused just before updating the PDF preview component () to display all these new elements.
+- **Status:** IN PROGRESS
+- **Agent Testing Done:** N
+- **Which testing method agent to use?** both. The backend has new data models and sorting logic, and the frontend has significant UI and logic changes. A full end-to-end test using the testing agent is required after the implementation is complete.
+- **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-*   **Issue 1: Implement Latest User Feedback (P0)**
-*   **Issue 2: Data is Not Persistent (CRITICAL FLAW) (P0)**
+- **Issue 1: Complete and Verify New Quote Features Implementation (P0)**
+- **Issue 2: Minor PDF Text Alignment Bug (P1)**
 
 **Issues Detail:**
-*   **Issue 1: Implement Latest User Feedback (P0)**
-    *   **Attempted fixes:** None. This is new work based on the user's last message.
-    *   **Next debug checklist:**
-        1.  **Fix Colors:** In the frontend CSS and components, adjust the color theme. The user wants a different shade of blue (less light) and a true orange gradient, not yellow.
-        2.  **Add PDF Download:** In  and , add a button that allows the user to download the generated document as a PDF file.
-        3.  **Implement Multi-Option Quotes:** This is a major feature.
-            *   **Backend ():** Modify the data models for quotes to support a second list of items (), a second total, etc. Update the  and  endpoints.
-            *   **Frontend (, ):** Add UI elements to manage a second set of services (Option 2). Update the live preview component to render the two options clearly on the PDF.
-    *   **Why fix this issue and what will be achieved with the fix?** To address direct and explicit user requests. The download feature is essential for usability, and the multi-option quote is a key business requirement.
-    *   **Status:** NOT STARTED
-    *   **Is recurring issue?** N (these are new requests)
-    *   **Should Test frontend/backend/both after fix?** Both
-    *   **Blocked on other issue:** None
+- **Issue 1: Complete and Verify New Quote Features Implementation (P0)**
+    - **Attempted fixes:** The agent has already implemented the backend changes () and updated the form (, ) to handle the new data. The work is mid-flight.
+    - **Next debug checklist:**
+        1.  Modify  to correctly display all the new fields:
+            *   Show the  (e.g., m², ml) for each service line item.
+            *   Display the per-item .
+            *   Update the totals calculation to reflect per-item discounts.
+            *   Display the chosen  details clearly.
+            *   Use the new  logo and increase the size of the partner logos (Banque Populaire, Gîtes de France).
+            *   Update the footer with RC Pro · Banque Populaire and the company website.
+        2.  Refine the layout of the Modalités de règlement (Totals) section to ensure it's clear and not confusing for the end client.
+        3.  Conduct a full end-to-end test: create a new quote using all the new features, save it, download the PDF, and verify every single piece of new information is present and correct.
+        4.  Verify that the  page now sorts the list of quotes by the client's name.
+    - **Why fix this issue and what will be achieved with the fix?** This will fulfill a large set of direct user requests, making the quotes significantly more detailed, flexible, and professional.
+    - **Status:** IN PROGRESS
+    - **Is recurring issue?** N
+    - **Should Test frontend/backend/both after fix?** Both
+    - **Blocked on other issue:** None
 
-*   **Issue 2: Data is Not Persistent (CRITICAL FLAW) (P0)**
-    *   **Attempted fixes:** None. This issue has been ignored since the project's inception.
-    *   **Next debug checklist:**
-        1.  In , remove the global  dictionary.
-        2.  Establish a connection to MongoDB using the  environment variable.
-        3.  Refactor every data-handling function (, , , etc.) to perform CRUD operations on MongoDB collections instead of the dictionary.
-        4.  Ensure all API responses correctly serialize data from MongoDB, excluding the internal  field to prevent JSON errors.
-    *   **Why fix this issue and what will be achieved with the fix?** To make the application functional. Without persistent storage, the application is merely a temporary demo and cannot be used for its intended purpose.
-    *   **Status:** NOT STARTED
-    *   **Is recurring issue?** Y
-    *   **Should Test frontend/backend/both after fix?** Backend
-    *   **Blocked on other issue:** None
+- **Issue 2: Minor PDF Text Alignment Bug (P1)**
+    - **Attempted fixes:** None.
+    - **Next debug checklist:**
+        1.  In , inspect the CSS for the header section of the services table (the blue banner with Description, Quantité, etc.).
+        2.  The user reported that text appears to be falling off the bottom of the banner in the downloaded PDF. Adjust the vertical alignment ( in flexbox, or  in table-cell) and padding to ensure the text is perfectly centered.
+    - **Why fix this issue and what will be achieved with the fix?** It's a small but important visual polish that aligns with the user's high standards for a professional design.
+    - **Status:** NOT STARTED
+    - **Is recurring issue?** Y (Relates to the general theme of user's focus on design details)
+    - **Should Test frontend/backend/both after fix?** Frontend
+    - **Blocked on other issue:** Issue 1 (should be fixed as part of the  update).
 
 **In progress Task List**:
-*   None. The previous task was completed before the user provided new feedback.
+- **Task 1: Finalize Multi-Feature Update**
+    - **Where to resume:** Open  and begin implementing the UI changes to display the new data fields and visual adjustments (logos, footer, etc.) as detailed in Issue 1.
+    - **What will be achieved with this?** A fully functional quote creation tool that incorporates units, per-item discounts, payment plans, and has a more professional and detailed PDF output.
+    - **Status:** IN PROGRESS
+    - **Should Test frontend/backend/both after fix?** Both
+    - **Blocked on something:** None.
 
 **Upcoming and Future Tasks**
-*   **Upcoming Tasks:**
-    *   **(P1) Resend Email Integration:** Implement a feature to send generated PDFs to clients via email using the Resend API.
-    *   **(P2) Electronic Signature:** Integrate the  component to allow clients to sign documents.
-*   **Future Tasks:**
-    *   **(P3) Enhance Catalog:** Expand the list of pre-filled service descriptions in the catalog.
+*   **Upcoming Tasks (User-interested):**
+    *   **(P1) Email Integration:** Add a Send to Client button to email the PDF using Resend.
+    *   **(P2) Online Quote Acceptance:** Allow clients to accept and sign a quote via a unique link.
+    *   **(P3) Convert Quote to Invoice:** Add a one-click button to convert an accepted quote into a new invoice.
+*   **Future Tasks (Agent-suggested):**
+    *   Automatic yearly quote numbering (e.g., DEVIS-2026-001).
+    *   An enhanced dashboard with revenue charts.
+    *   Automatic follow-up reminders for unaccepted quotes.
 
 **Completed work in this session**
-*   **Recently completed:**
-    - **Total UI/UX Overhaul:** The entire frontend was rewritten to be more modern, user-friendly, and responsive, including a new desktop navigation bar.
-    - **Live PDF Preview:** Implemented a real-time preview of the quote/invoice PDF directly within the form.
-    - **Dual Discount System:** Enabled users to apply discounts as either a fixed amount (€) or a percentage (%).
-    - **Per-Client Document Numbering:** Backend logic was updated to generate sequential document numbers for each client (e.g., DEVIS-01, FACTURE-01).
-    - **Backend Data Model Update:** Pydantic models and API endpoints in  were refactored to support the new discount system.
-    - **PDF Design Iteration:** The  component was completely redesigned twice to incorporate user feedback on layout, colors, and logo placement.
-    - **Form Cleanup:** Removed the redundant surface field and the duplicate SR RENOVATION text logo.
+- **Resolved Core PDF Generation Issue:** Replaced the problematic  with  and  to create perfect PDF copies of the live preview.
+- **Fixed Critical Uneditable Description Bug:** Refactored  by extracting the  component, which solved the input focus loss issue.
+- **Implemented Major UI/UX Improvements:**
+    - Corrected dashboard colors to match brand identity.
+    - Added partner logos, user's signature, and French flag to the PDF.
+    - Redesigned the totals section for better clarity (, , ).
+    - Fixed all CORS-related image loading errors by embedding images as Base64 data.
+- **Added Key Functionality:**
+    - A field for a custom quote number.
+    - Logic to handle multi-option quotes in the UI and PDF.
 
 **Earlier issues found/mentioned but not fixed**
-*   **Issue 1: Non-persistent database.** The most critical issue from the start of the project—migrating from an in-memory dictionary to MongoDB—has been completely overlooked.
+- All major issues from the previous handoff (unprofessional PDF, missing client email field) have been addressed and resolved in this session.
 
 **Known issue recurrence from previous fork**
-*   **User Dissatisfaction with Design:** The user has very specific, evolving aesthetic requirements. The agent has made multiple attempts to fix the PDF and UI design, but each fix is met with further nuanced feedback. The new agent should expect this iterative cycle.
+- **User's High Sensitivity to Design Details:** The user consistently provides feedback on minor visual details like logo sizes, colors, and text alignment. While the core ugliness is fixed, the next agent must remain vigilant and prioritize pixel-perfect implementation of visual designs.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-*   **Frontend:** React, React Router, Tailwind CSS,  for PDF generation.
-*   **Backend:** FastAPI (Python), Pydantic.
-*   **Database:** In-memory Python dictionary (MUST be migrated to MongoDB).
+*   **Frontend:** React, Tailwind CSS.
+*   **Backend:** FastAPI, Pydantic.
+*   **Database:** MongoDB.
+*   **PDF Generation:**  captures a specified HTML element () as a canvas, which is then converted to a PDF using . This is the established and working pattern.
+*   **Image Handling:** To prevent CORS issues and ensure reliability, all logos are converted to Base64 (as compressed WebP strings) and embedded directly into the React components.
 
 **key DB schema**
-The application currently uses dictionary structures. The  and  models now include:
-*   
-*   
-*   
+- **quotes collection:** Documents contain fields like , , , , , and .
+- **items array (within a quote):** Each item object has , , ,  (new), and  (new).
 
-This schema will need significant changes to support multi-option quotes and must be migrated to a proper database structure.
+**changes in tech stack**
+- The PDF generation strategy has fundamentally changed from  to a combination of **** and ****. This change is critical and should not be reversed.
 
 **All files of reference**
-*   : Contains all backend logic. Needs MongoDB migration and multi-option quote logic.
-*   : The main form. Requires color fixes, a download button, and the new UI for multi-option quotes.
-*   : Renders the document. Needs color fixes and logic to display multi-option quotes.
-*   : The desktop navigation component.
-*   : The main frontend entry point and router.
+- : For backend logic and data models.
+- : The main form for creating quotes, contains most of the frontend logic.
+- : The template for the PDF document; this is the next primary file to be modified.
+- : The page listing all quotes.
 
-**Areas that need refactoring**
-*   **Backend Monolith:** The  file contains all API endpoints, data models, and business logic. It should be broken down into a more scalable structure (e.g., separate files for routes, models, and services/controllers).
-*   **Database Implementation:** The entire data layer needs to be rewritten to use MongoDB instead of a volatile dictionary.
+**Areas that need refactoring**:
+-  and  are both very large monolithic components. While functional, they would benefit from being broken down into smaller, more manageable sub-components (e.g., , , ) to improve maintainability.
+- Base64 image strings are hardcoded in . For a more scalable solution, these could be fetched from a backend endpoint or managed in a separate configuration file.
+
+**key api endpoints**
+- : Retrieves all quotes, now sorted by .
+- : Creates a new quote with the newly added fields.
+- : Updates an existing quote.
 
 **Critical Info for New Agent**
-*   **THE DATABASE IS NOT PERSISTENT.** This is the #1 technical priority. The application is fundamentally broken until this is fixed. You should strongly consider addressing this before or alongside the complex multi-option quote feature.
-*   **The User's Feedback is King:** The user is highly engaged and has very specific design and UX requirements. Do not assume a feature is done until the user explicitly approves. Be prepared for iterative feedback, especially on visual elements.
-*   **Immediate Tasks:** Your first actions must be to address the user's latest three requests: 1) Fix colors, 2) Add a PDF download button, 3) Plan and implement the multi-option quote feature.
+- **Do not change the PDF generation method.** The current  +  approach works and is what the user approved. All PDF changes should be made by editing the HTML/CSS in .
+- **Resume the current task.** Your immediate priority is to finish the large feature-update task by modifying  to render all the new data correctly.
+- **Pay attention to visual details.** The user has a keen eye for design. Double-check logo sizes, spacing, text alignment, and colors against their requests. Specifically address the text alignment issue in the PDF table header.
+- **The uneditable description bug is solved.** The  component was extracted from  to fix it. Do not re-nest it.
 
 **documents and test reports created in this job**
-*    (Updated twice)
-*   
-*   
+- 
+-  (and previous iterations)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **Latest User (Pending):** The colors are wrong (yellow instead of orange, blue is too light). Critically, there is no way to download the generated PDF. Requests a new major feature: quotes with two options.
-2.  **Agent:** Announces all tests have passed and is ready to finalize the work.
-3.  **Agent:** Runs the testing agent.
-4.  **User:** Praises the new UI, confirms the diagnostic and fixed discount amount are working as expected in the live preview.
-5.  **Agent:** Takes a screenshot of the new quote form, showing the live preview in action.
-6.  **User:** Acknowledges the new dashboard design looks clean.
-7.  **Agent:** Takes a screenshot of the redesigned dashboard with desktop navigation.
-8.  **Agent:** Updates dashboard stat card colors.
-9.  **Agent:** Updates dashboard quick action card colors.
-10. **Agent:** Updates QuoteForm accent colors.
+1.  **#229:** A long list of new feature requests: units (m², ml), per-item discounts, payment plan option, better diagnostics, improved footer, clearer totals, sort quotes by client name, use new logo. **Status: IN PROGRESS.**
+2.  **#225:** Agent proposed several improvements (emailing, e-signature, etc.). **Status: Acknowledged by user, not yet prioritized.**
+3.  **#172:** User reported several issues and requests: the bug where service descriptions can't be edited (now fixed), logos are too small, Reste à payer color is too aggressive (now fixed), PDF text alignment is off, and a request for a signature image to be added. **Status: Mostly resolved, alignment issue pending.**
+4.  **#120:** User pointed out a remaining yellow color, missing décennale (now removed), requested real logos, and a new format for totals. **Status: Resolved.**
+5.  **#92:** Agent noted a CORS issue with logos during testing. **Status: Resolved.**
+6.  **#82:** Agent shows screenshot of corrected dashboard gradient. **Status: Resolved.**
+7.  **#4:** The user's initial frustrated message for this session, complaining the downloaded PDF is horrible compared to the beautiful live preview. **Status: Resolved.**
 
 **Project Health Check:**
-*   **Broken:**
-    *   **Data Persistence:** The application uses an in-memory dictionary. All data is lost on restart. This is a critical failure.
-*   **Mocked:**
-    *   The entire database is effectively a mock implementation.
+*   **Broken:** None. The application is stable but in a mid-development state for a new feature set.
+*   **Mocked:** None. All placeholder logos have been replaced with real ones.
 
 **3rd Party Integrations**
-*   **Resend:** Planned for email integration, but not implemented. Will require a User API Key.
-*   **OpenAI:** Was previously integrated but has been completely removed at the user's request.
+*   : Used for PDF generation.
+*   : Used for PDF generation.
+*   : For icons.
+*   **Resend:** Planned for future email integration.
 
 **Testing status**
-*   **Testing agent used after significant changes:** YES. The agent ran the testing subagent twice, receiving perfect scores both times.
-*   **Troubleshoot agent used after agent stuck in loop:** NO.
-*   **Test files created:** None.
-*   **Known regressions:** While not a code regression, there's a clear regression in user trust. The perfect test results do not align with the user's qualitative experience, indicating the tests are not comprehensive enough to capture design and UX nuances.
+- **Testing agent used after significant changes:** YES. It has been used successfully multiple times to validate features and find bugs. The last full run was before the current large feature implementation began.
+- **Troubleshoot agent used after agent stuck in loop:** NO.
+- **Test files created:**  files exist.
+- **Known regressions:** None currently.
 
 **What agent forgot to execute**
-*   **MongoDB Migration:** The single most important and repeatedly missed task. The agent has ignored this critical requirement through two complete refactoring cycles.
-*   **PDF Download Functionality:** A basic, essential feature for an invoicing application was completely overlooked until the user pointed it out.</analysis>
+- In the last round of fixes, the agent did not explicitly address the user's report about text alignment in the PDF table header (text falling off the blue banner). This should be incorporated into the current task of updating .</analysis>

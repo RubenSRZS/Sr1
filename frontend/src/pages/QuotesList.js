@@ -30,9 +30,10 @@ const QuotesList = () => {
     catch { toast.error('Erreur suppression'); }
   };
 
-  const filtered = search
+  const filtered = (search
     ? quotes.filter(q => q.client_name.toLowerCase().includes(search.toLowerCase()) || q.quote_number.toLowerCase().includes(search.toLowerCase()))
-    : quotes;
+    : [...quotes]
+  ).sort((a, b) => (a.client_name || '').localeCompare(b.client_name || '', 'fr', { sensitivity: 'base' }));
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 border-3 border-[#3b82f6] border-t-transparent rounded-full animate-spin" /></div>;
 

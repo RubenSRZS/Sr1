@@ -16,6 +16,8 @@ import { PDFDocument, downloadPDF, BRAND_BLUE, BRAND_ORANGE } from '@/components
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // ─── ServicesSection MUST be defined OUTSIDE QuoteForm to prevent remount on every render ─────
+const UNITS = ['unité', 'm²', 'ML', 'm', 'h', 'forfait', 'kg'];
+
 const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, optionNum, totals, remiseType, remisePercent, remiseMontant, onRemiseTypeChange, onRemisePercentChange, onRemiseMontantChange }) => (
   <Card className="p-4 bg-white border-0 shadow-sm" data-testid={`services-section-${optionNum}`}>
     <div className="flex items-center justify-between mb-3">
@@ -43,22 +45,35 @@ const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, opti
             className="text-sm mb-2 resize-none"
             data-testid={`service-desc-${optionNum}-${i}`}
           />
-          <div className="grid grid-cols-4 gap-2 items-end">
+          <div className="grid grid-cols-5 gap-1.5 items-end">
             <div>
               <Label className="text-xs text-gray-500">Qté</Label>
               <Input type="number" step="0.01" value={s.quantity} onChange={e => updateSvc(i, 'quantity', e.target.value)} className="h-8 text-sm" />
             </div>
             <div>
-              <Label className="text-xs text-gray-500">Prix unit. €</Label>
+              <Label className="text-xs text-gray-500">Unité</Label>
+              <select value={s.unit || 'unité'} onChange={e => updateSvc(i, 'unit', e.target.value)}
+                className="h-8 text-sm w-full border border-input rounded-md px-1 bg-white focus:ring-1 focus:ring-ring">
+                {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+              </select>
+            </div>
+            <div>
+              <Label className="text-xs text-gray-500">Prix unitaire €</Label>
               <Input type="number" step="0.01" value={s.unit_price} onChange={e => updateSvc(i, 'unit_price', e.target.value)} className="h-8 text-sm" />
             </div>
             <div>
-              <Label className="text-xs text-gray-500">Total €</Label>
-              <Input value={(s.total || 0).toFixed(2)} readOnly className="h-8 text-sm bg-gray-100 font-medium" />
+              <Label className="text-xs text-gray-500">Remise %</Label>
+              <Input type="number" min="0" max="100" step="1" value={s.remise_percent || 0} onChange={e => updateSvc(i, 'remise_percent', parseFloat(e.target.value) || 0)} className="h-8 text-sm" />
             </div>
-            <Button type="button" variant="ghost" size="sm" onClick={() => removeSvc(i)} className="h-8 text-red-500 hover:bg-red-50">
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="flex gap-1">
+              <div className="flex-1">
+                <Label className="text-xs text-gray-500">Total €</Label>
+                <Input value={(s.total || 0).toFixed(2)} readOnly className="h-8 text-sm bg-gray-100 font-medium" />
+              </div>
+              <Button type="button" variant="ghost" size="sm" onClick={() => removeSvc(i)} className="h-8 mt-4 text-red-500 hover:bg-red-50">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       ))}
@@ -66,10 +81,10 @@ const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, opti
         <div className="text-center py-4 text-sm text-gray-400">Ajoutez des services</div>
       )}
     </div>
-    {/* Remise */}
+    {/* Remise globale */}
     <div className="mt-4 pt-3 border-t border-gray-100">
       <div className="flex items-center gap-2 mb-2">
-        <Label className="text-xs text-gray-500">Remise Option {optionNum}</Label>
+        <Label className="text-xs text-gray-500">Remise globale Option {optionNum}</Label>
         <div className="flex bg-gray-100 rounded-md p-0.5">
           <button type="button" onClick={() => onRemiseTypeChange('percent')}
             className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${remiseType === 'percent' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}>%</button>
@@ -118,7 +133,17 @@ const QuoteForm = () => {
     client_id: '',
     custom_quote_number: '',
     work_location: '',
-    diagnostic: { mousses: false, lichens: false, tuiles_cassees: false, faitage: false, gouttieres: false, facade: false },
+    diagnostic: {
+      // Structure
+      tuiles_cassees: false, tuile_ciment: false, tuile_terre_cuite: false, faitage: false, fissures: false,
+      // Végétation / taches
+      mousses: false, lichens: false, mousse_verte: false, trace_noire: false,
+      // Hydrologie
+      gouttieres: false, forte_humidite: false,
+      // Extérieur
+      facade: false,
+    },
+    payment_plan: 'acompte_solde',
     // Option 1
     services: [],
     remise_type: 'percent',
@@ -146,11 +171,12 @@ const QuoteForm = () => {
           client_id: q.client_id,
           custom_quote_number: q.quote_number || '',
           work_location: q.work_location,
-          diagnostic: q.diagnostic || { mousses: false, lichens: false, tuiles_cassees: false, faitage: false, gouttieres: false, facade: false },
+          diagnostic: q.diagnostic || { tuiles_cassees: false, tuile_ciment: false, tuile_terre_cuite: false, faitage: false, fissures: false, mousses: false, lichens: false, mousse_verte: false, trace_noire: false, gouttieres: false, forte_humidite: false, facade: false },
           services: q.services || [],
           remise_type: q.remise_percent > 0 ? 'percent' : (q.remise_montant > 0 ? 'amount' : 'percent'),
           remise_percent: q.remise_percent || 0,
           remise_montant: q.remise_montant || 0,
+          payment_plan: q.payment_plan || 'acompte_solde',
           option_2_services: q.option_2_services || [],
           option_2_remise_type: q.option_2_remise_percent > 0 ? 'percent' : (q.option_2_remise_montant > 0 ? 'amount' : 'percent'),
           option_2_remise_percent: q.option_2_remise_percent || 0,
@@ -164,24 +190,30 @@ const QuoteForm = () => {
   const updateField = (key, val) => setFormData(prev => ({ ...prev, [key]: val }));
 
   // Option 1 services
-  const addService = () => updateField('services', [...formData.services, { description: '', quantity: 1, unit_price: 0, total: 0 }]);
+  const addService = () => updateField('services', [...formData.services, { description: '', quantity: 1, unit: 'unité', unit_price: 0, remise_percent: 0, total: 0 }]);
   const updateService = (i, field, val) => {
     const s = [...formData.services];
     s[i] = { ...s[i], [field]: val };
-    if (field === 'quantity' || field === 'unit_price') {
-      s[i].total = parseFloat(s[i].quantity || 0) * parseFloat(s[i].unit_price || 0);
+    if (field === 'quantity' || field === 'unit_price' || field === 'remise_percent') {
+      const qty = parseFloat(s[i].quantity || 0);
+      const pu = parseFloat(s[i].unit_price || 0);
+      const remise = parseFloat(s[i].remise_percent || 0);
+      s[i].total = qty * pu * (1 - remise / 100);
     }
     updateField('services', s);
   };
   const removeService = (i) => updateField('services', formData.services.filter((_, idx) => idx !== i));
 
   // Option 2 services
-  const addService2 = () => updateField('option_2_services', [...formData.option_2_services, { description: '', quantity: 1, unit_price: 0, total: 0 }]);
+  const addService2 = () => updateField('option_2_services', [...formData.option_2_services, { description: '', quantity: 1, unit: 'unité', unit_price: 0, remise_percent: 0, total: 0 }]);
   const updateService2 = (i, field, val) => {
     const s = [...formData.option_2_services];
     s[i] = { ...s[i], [field]: val };
-    if (field === 'quantity' || field === 'unit_price') {
-      s[i].total = parseFloat(s[i].quantity || 0) * parseFloat(s[i].unit_price || 0);
+    if (field === 'quantity' || field === 'unit_price' || field === 'remise_percent') {
+      const qty = parseFloat(s[i].quantity || 0);
+      const pu = parseFloat(s[i].unit_price || 0);
+      const remise = parseFloat(s[i].remise_percent || 0);
+      s[i].total = qty * pu * (1 - remise / 100);
     }
     updateField('option_2_services', s);
   };
@@ -189,7 +221,7 @@ const QuoteForm = () => {
 
   // Catalog handler
   const addFromCatalog = (item) => {
-    const newService = { description: item.description, quantity: 1, unit_price: item.default_price || 0, total: item.default_price || 0 };
+    const newService = { description: item.description, quantity: 1, unit: 'unité', unit_price: item.default_price || 0, remise_percent: 0, total: item.default_price || 0 };
     if (catalogTarget === 'option2') {
       updateField('option_2_services', [...formData.option_2_services, newService]);
     } else {
@@ -239,6 +271,7 @@ const QuoteForm = () => {
       work_location: formData.work_location,
       diagnostic: formData.diagnostic,
       services: formData.services,
+      payment_plan: formData.payment_plan,
       ...totals1,
       remise_percent: formData.remise_type === 'percent' ? formData.remise_percent : 0,
       remise_montant: formData.remise_type === 'amount' ? formData.remise_montant : 0,
@@ -285,6 +318,7 @@ const QuoteForm = () => {
         services: formData.services,
         remise_percent: formData.remise_type === 'percent' ? formData.remise_percent : 0,
         remise_montant: formData.remise_type === 'amount' ? formData.remise_montant : 0,
+        payment_plan: formData.payment_plan || 'acompte_solde',
         notes: formData.notes,
         // Option 2
         option_2_services: hasOption2 ? formData.option_2_services : [],
@@ -307,10 +341,31 @@ const QuoteForm = () => {
     }
   };
 
-  const diagnosticItems = [
-    { key: 'mousses', label: 'Mousses' }, { key: 'lichens', label: 'Lichens' },
-    { key: 'tuiles_cassees', label: 'Tuiles cassées' }, { key: 'faitage', label: 'Faîtage' },
-    { key: 'gouttieres', label: 'Gouttières' }, { key: 'facade', label: 'Façade' },
+  const diagnosticGroups = [
+    { group: 'Structure', items: [
+      { key: 'tuiles_cassees', label: 'Tuiles cassées' },
+      { key: 'tuile_ciment', label: 'Tuile ciment' },
+      { key: 'tuile_terre_cuite', label: 'Tuile terre cuite' },
+      { key: 'faitage', label: 'Faîtage' },
+      { key: 'fissures', label: 'Fissures' },
+    ]},
+    { group: 'Végétation / Taches', items: [
+      { key: 'mousses', label: 'Mousses' },
+      { key: 'lichens', label: 'Lichens' },
+      { key: 'mousse_verte', label: 'Mousse verte' },
+      { key: 'trace_noire', label: 'Trace noire' },
+    ]},
+    { group: 'Hydrologie / Ext.', items: [
+      { key: 'gouttieres', label: 'Gouttières' },
+      { key: 'forte_humidite', label: 'Forte humidité' },
+      { key: 'facade', label: 'Façade' },
+    ]},
+  ];
+  const PAYMENT_PLANS = [
+    { value: 'acompte_solde', label: 'Acompte 30% + Solde 70%' },
+    { value: '2_fois', label: '2 fois égales (50% + 50%)' },
+    { value: '3_fois', label: '3 fois égales (33% + 33% + 34%)' },
+    { value: '4_fois', label: '4 fois égales (25% × 4)' },
   ];
 
 
@@ -375,12 +430,36 @@ const QuoteForm = () => {
 
             {/* Diagnostic */}
             <Card className="p-4 bg-white border-0 shadow-sm" data-testid="diagnostic-section">
-              <span className="font-semibold text-sm text-gray-800 mb-2 block">Diagnostic</span>
-              <div className="grid grid-cols-3 gap-2">
-                {diagnosticItems.map(d => (
-                  <label key={d.key} className="flex items-center gap-1.5 text-xs cursor-pointer">
-                    <Checkbox checked={formData.diagnostic[d.key]} onCheckedChange={v => updateField('diagnostic', { ...formData.diagnostic, [d.key]: v })} data-testid={`diag-${d.key}`} />
-                    {d.label}
+              <span className="font-semibold text-sm text-gray-800 mb-2 block">Diagnostic visuel</span>
+              <div className="space-y-2">
+                {diagnosticGroups.map(group => (
+                  <div key={group.group}>
+                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{group.group}</div>
+                    <div className="grid grid-cols-3 gap-x-2 gap-y-1.5">
+                      {group.items.map(d => (
+                        <label key={d.key} className="flex items-center gap-1.5 text-xs cursor-pointer">
+                          <Checkbox checked={formData.diagnostic[d.key] || false} onCheckedChange={v => updateField('diagnostic', { ...formData.diagnostic, [d.key]: v })} data-testid={`diag-${d.key}`} />
+                          {d.label}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            {/* Payment plan */}
+            <Card className="p-4 bg-white border-0 shadow-sm" data-testid="payment-plan-section">
+              <span className="font-semibold text-sm text-gray-800 mb-2 block">Modalités de paiement</span>
+              <div className="grid grid-cols-1 gap-1.5">
+                {PAYMENT_PLANS.map(plan => (
+                  <label key={plan.value} className="flex items-center gap-2 text-sm cursor-pointer p-2 rounded-lg hover:bg-gray-50 border transition-colors"
+                    style={{ borderColor: formData.payment_plan === plan.value ? BRAND_BLUE : 'transparent', background: formData.payment_plan === plan.value ? '#eff6ff' : '' }}>
+                    <input type="radio" name="payment_plan" value={plan.value}
+                      checked={formData.payment_plan === plan.value}
+                      onChange={() => updateField('payment_plan', plan.value)}
+                      className="text-blue-600" data-testid={`payment-plan-${plan.value}`} />
+                    <span style={{ color: formData.payment_plan === plan.value ? BRAND_BLUE : '#374151', fontWeight: formData.payment_plan === plan.value ? 600 : 400 }}>{plan.label}</span>
                   </label>
                 ))}
               </div>

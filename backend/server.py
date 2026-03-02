@@ -45,15 +45,27 @@ class Client(BaseModel):
 class Service(BaseModel):
     description: str
     quantity: float = 1.0
+    unit: str = "unité"
     unit_price: float
+    remise_percent: float = 0.0
     total: float
 
 class Diagnostic(BaseModel):
+    # Structure
+    tuiles_cassees: bool = False
+    tuile_ciment: bool = False
+    tuile_terre_cuite: bool = False
+    faitage: bool = False
+    fissures: bool = False
+    # Végétation / taches
     mousses: bool = False
     lichens: bool = False
-    tuiles_cassees: bool = False
-    faitage: bool = False
+    mousse_verte: bool = False
+    trace_noire: bool = False
+    # Hydrologie
     gouttieres: bool = False
+    forte_humidite: bool = False
+    # Extérieur
     facade: bool = False
 
 class QuoteCreate(BaseModel):
@@ -66,7 +78,8 @@ class QuoteCreate(BaseModel):
     services: List[Service]
     remise_percent: float = 0.0
     remise_montant: float = 0.0
-    # Option 2 fields
+    payment_plan: Optional[str] = "acompte_solde"
+    # Option 2
     option_2_services: Optional[List[Service]] = []
     option_2_remise_percent: float = 0.0
     option_2_remise_montant: float = 0.0
@@ -92,6 +105,7 @@ class Quote(BaseModel):
     remise: float = 0.0
     total_net: float
     acompte_30: float
+    payment_plan: Optional[str] = "acompte_solde"
     # Option 2 fields
     option_2_services: Optional[List[Service]] = []
     option_2_total_brut: float = 0.0
@@ -294,6 +308,7 @@ async def create_quote(input: QuoteCreate):
         remise=remise,
         total_net=total_net,
         acompte_30=acompte_30,
+        payment_plan=input.payment_plan or "acompte_solde",
         # Option 2
         option_2_services=opt2_services,
         option_2_total_brut=opt2_total_brut,
@@ -361,6 +376,7 @@ async def update_quote(quote_id: str, input: QuoteCreate):
         "remise": remise,
         "total_net": total_net,
         "acompte_30": acompte_30,
+        "payment_plan": input.payment_plan or "acompte_solde",
         # Option 2 fields
         "option_2_services": [s.model_dump() for s in opt2_services],
         "option_2_total_brut": opt2_total_brut,
