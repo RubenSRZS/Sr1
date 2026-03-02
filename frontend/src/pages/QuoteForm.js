@@ -12,7 +12,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { PDFDocument, downloadPDF, BRAND_BLUE, BRAND_ORANGE } from '@/components/PDFPreview';
-import { generatePDF } from '@/components/PDFGeneratorPro';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 

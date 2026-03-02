@@ -53,7 +53,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="dashboard-page">
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #f59e0b 100%)' }} className="text-white">
+      <div style={{ background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 60%, #f97316 100%)' }} className="text-white">
         <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Tableau de bord</h1>
           <p className="text-xs sm:text-sm text-white/60">Gestion devis & factures</p>
