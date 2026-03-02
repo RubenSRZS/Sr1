@@ -562,11 +562,25 @@ const QuotePDFDocument = ({ document, type = 'quote' }) => {
         
         {/* FOOTER AVEC LOGOS PARTENAIRES */}
         <View style={styles.footer}>
-          {/* Section pour les logos partenaires */}
+          {/* Section certifications */}
           <View style={styles.footerLogos}>
-            <Text style={{ fontSize: 7, color: '#999' }}>Certifications et partenaires:</Text>
-            <Text style={{ fontSize: 8, color: BRAND_BLUE, fontFamily: 'Helvetica-Bold' }}>Banque Populaire</Text>
-            <Text style={{ fontSize: 8, color: BRAND_BLUE, fontFamily: 'Helvetica-Bold' }}>Chambre des Métiers</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' }}>
+              <View style={{ alignItems: 'center', padding: 8, backgroundColor: 'white', borderRadius: 4, borderWidth: 1, borderColor: '#e5e7eb' }}>
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: BRAND_BLUE }}>BANQUE</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: BRAND_BLUE }}>POPULAIRE</Text>
+                <Text style={{ fontSize: 6, color: '#666', marginTop: 2 }}>Partenaire bancaire</Text>
+              </View>
+              <View style={{ alignItems: 'center', padding: 8, backgroundColor: 'white', borderRadius: 4, borderWidth: 1, borderColor: '#e5e7eb' }}>
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: BRAND_BLUE }}>CHAMBRE DES</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: BRAND_BLUE }}>MÉTIERS</Text>
+                <Text style={{ fontSize: 6, color: '#666', marginTop: 2 }}>Artisan certifié</Text>
+              </View>
+              <View style={{ alignItems: 'center', padding: 8, backgroundColor: 'white', borderRadius: 4, borderWidth: 1, borderColor: '#e5e7eb' }}>
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: BRAND_ORANGE }}>GARANTIE</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: BRAND_ORANGE }}>DÉCENNALE</Text>
+                <Text style={{ fontSize: 6, color: '#666', marginTop: 2 }}>Assurance RC Pro</Text>
+              </View>
+            </View>
           </View>
           
           <View style={styles.footerInfo}>
