@@ -1,11 +1,8 @@
 import React from 'react';
-import { Document, Page, Text, View, Image, StyleSheet, pdf } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
 
 const BRAND_BLUE = '#3b82f6';
 const BRAND_ORANGE = '#fb923c';
-
-// Logo SR en data URL (version simplifiée pour test)
-const LOGO_SR = 'https://customer-assets.emergentagent.com/job_538ea579-31dc-4f0d-9c02-673e8a0738ca/artifacts/srxb4k7u_Nouveau%20Logo%203.png';
 
 const styles = StyleSheet.create({
   page: {
