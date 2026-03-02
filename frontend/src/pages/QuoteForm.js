@@ -191,6 +191,7 @@ const QuoteForm = () => {
       const payload = {
         client_id: hasNewClient ? null : clientId,
         new_client: hasNewClient ? newClient : null,
+        custom_quote_number: formData.custom_quote_number || null,
         work_location: formData.work_location,
         work_surface: '',
         diagnostic: formData.diagnostic,
