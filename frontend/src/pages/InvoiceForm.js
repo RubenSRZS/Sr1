@@ -337,7 +337,7 @@ const InvoiceForm = () => {
                 </div>
                 <div className="p-2 bg-gray-100 max-h-[55vh] overflow-y-auto" data-testid="live-preview-desktop">
                   <div className="transform scale-[0.48] origin-top-left" style={{ width: '210mm' }}>
-                    <PDFDocument document={previewDoc} type="invoice" compact={false} pdfRef={pdfRef} />
+                    <PDFDocument document={previewDoc} type="invoice" compact={false} />
                   </div>
                 </div>
               </Card>
