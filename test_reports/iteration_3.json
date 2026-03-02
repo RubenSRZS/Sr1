@@ -1,0 +1,53 @@
+{
+  "summary": "Frontend testing of PDF refactoring (html2canvas+jsPDF) and related features. Fixed critical InvoiceForm crash caused by undefined pdfRef/mobilePdfRef variables. All 7 requested features verified, with 1 CORS warning on logo during PDF generation (PDF still generates successfully).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "InvoiceForm.js",
+        "issue": "CRITICAL BUG FIXED: Lines 340 and 370 referenced undefined variables `pdfRef` and `mobilePdfRef` as props to PDFDocument. This caused a ReferenceError at runtime, making the entire /invoices/new page render blank. Fixed by removing the undefined prop references (PDFDocument doesn't accept pdfRef prop).",
+        "selector": "[data-testid='invoice-form-page']",
+        "priority": "CRITICAL - FIXED"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "PDF Download (both Quote and Invoice)",
+        "issue": "CORS warning: Logo image at customer-assets.emergentagent.com blocks CORS fetch. The pre-fetch of logo as base64 fails. html2canvas captures the PDF without the logo. PDF still generates successfully (toast shows 'PDF téléchargé avec succès') but the SR Rénovation logo may be missing from downloaded PDF file. This is a known limitation - the logo URL needs CORS headers or should use a data URI.",
+        "affected_selectors": ["[data-testid='download-pdf-btn-desktop']", "[data-testid='download-pdf-btn-mobile']"]
+      }
+    ],
+    "design_issues": []
+  },
+  "features_verified": {
+    "1_pdf_download_quote": "✅ PDF downloaded with toast 'PDF téléchargé avec succès'. html2canvas+jsPDF working. CORS warning on logo (logo may be missing in actual PDF file).",
+    "2_dashboard_gradient": "✅ linear-gradient(135deg, #1e40af 0%, #3b82f6 60%, #f97316 100%) - blue→blue→orange confirmed. NOT yellow/amber.",
+    "3_quote_number_field": "✅ 'Numéro de devis (optionnel)' field present in QuoteForm with data-testid='quote-number-input'. TEST-001 shows in live preview.",
+    "4_email_client_field": "✅ Email (optionnel) field present in both QuoteForm and InvoiceForm new client sections.",
+    "5_partner_badges": "✅ All 3 partner badges visible in live preview: BANQUE POPULAIRE (green), CHAMBRE DES MÉTIERS (dark blue), GARANTIE DÉCENNALE (orange).",
+    "6_invoice_pdf": "✅ After fixing pdfRef bug: InvoiceForm loads correctly, PDF generates with toast 'PDF téléchargé avec succès'.",
+    "7_multi_options_preview": "✅ Option 2 button works, both OPTION 1 and OPTION 2 sections visible in live preview when enabled."
+  },
+  "test_report_links": ["/app/test_reports/iteration_3.json"],
+  "action_items": [
+    "IMPORTANT: Fix logo CORS issue in PDF generation. The logo URL (customer-assets.emergentagent.com) doesn't have Access-Control-Allow-Origin headers, so the logo pre-fetch fails and html2canvas cannot capture it. Solutions: (1) Use a data URI for the logo instead of external URL, (2) Add CORS headers to customer-assets.emergentagent.com, or (3) Use a proxy endpoint to serve the logo. Without this fix, generated PDFs will have a missing/broken logo despite the success toast."
+  ],
+  "critical_code_review_comments": [
+    "InvoiceForm.js lines 340 & 370: pdfRef and mobilePdfRef were used but never declared - ReferenceError crashed the page. FIXED.",
+    "PDFPreview.js generatePDFFromHTML: Logo CORS issue - the pre-fetch tries to use mode:'cors' but the asset server doesn't return CORS headers. The fallback (logoBase64=null) means the logo won't appear in PDF. Consider hosting the logo as a data URI embedded in the code.",
+    "Multiple PDF generator files exist (PDFGenerator.js, PDFGeneratorPro.js, PDFGenerator_simple.js) - these are now orphaned/unused since the new system uses PDFPreview.js. Should clean up."
+  ],
+  "updated_files": ["/app/frontend/src/pages/InvoiceForm.js"],
+  "success_rate": {
+    "backend": "N/A (frontend-only testing)",
+    "frontend": "85% (6/7 features fully working, 1 CORS warning on logo in PDF)"
+  },
+  "seed_data_creation": "No persistent data created (all tests used new forms without saving)",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "1) InvoiceForm pdfRef bug FIXED in this iteration. 2) PDF generation works (html2canvas+jsPDF) but logo has CORS issue - PDFs generate without logo. 3) All 7 features verified as working except logo in PDF. 4) Dashboard gradient is blue→blue→orange (correct). 5) Quote number field 'TEST-001' shows correctly in live preview. 6) Partner badges in footer are visible. 7) Option 2 multi-option preview works.",
+  "rca_of_issue": "InvoiceForm.js crash RCA: When agent refactored the PDF system to remove PDFGeneratorPro, leftover pdfRef/mobilePdfRef references from the old system were not cleaned up. These undefined variables caused ReferenceError at runtime when React tried to render the live preview panel (desktop) or mobile preview modal. Fix: Remove the pdfRef prop from PDFDocument calls since PDFDocument component signature doesn't include that prop."
+}
