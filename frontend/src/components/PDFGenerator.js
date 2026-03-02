@@ -58,57 +58,38 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 15,
   },
   infoBox: {
     width: '48%',
     padding: 10,
-    borderRadius: 3,
-  },
-  entrepriseBox: {
-    backgroundColor: '#eff6ff',
-    borderLeftWidth: 2,
-    borderLeftColor: BRAND_BLUE,
-  },
-  clientBox: {
-    backgroundColor: '#fff7ed',
-    borderLeftWidth: 2,
-    borderLeftColor: BRAND_ORANGE,
+    backgroundColor: '#f8fafc',
   },
   infoTitle: {
-    fontSize: 7,
+    fontSize: 8,
     fontFamily: 'Helvetica-Bold',
-    letterSpacing: 0.8,
-    marginBottom: 4,
-    color: '#666',
-  },
-  infoTitleBlue: {
+    marginBottom: 5,
     color: BRAND_BLUE,
   },
-  infoTitleOrange: {
-    color: BRAND_ORANGE,
-  },
   infoName: {
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: 'Helvetica-Bold',
     marginBottom: 3,
-    color: '#1a1a1a',
   },
   infoText: {
-    fontSize: 8,
-    color: '#555',
+    fontSize: 9,
+    color: '#333',
     lineHeight: 1.4,
   },
   
   // Work location
   workLocation: {
     backgroundColor: '#f8fafc',
-    padding: 8,
-    borderRadius: 3,
-    marginBottom: 10,
+    padding: 10,
+    marginBottom: 15,
   },
   workLocationText: {
-    fontSize: 8,
+    fontSize: 9,
   },
   workLocationLabel: {
     fontFamily: 'Helvetica-Bold',
@@ -118,43 +99,30 @@ const styles = StyleSheet.create({
   // Diagnostic
   diagnosticBox: {
     backgroundColor: '#f8fafc',
-    padding: 8,
-    borderRadius: 3,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+    padding: 10,
+    marginBottom: 15,
   },
   diagnosticTitle: {
-    fontSize: 7,
+    fontSize: 8,
     fontFamily: 'Helvetica-Bold',
     color: BRAND_BLUE,
-    letterSpacing: 0.8,
-    marginBottom: 4,
-  },
-  diagnosticItems: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    marginBottom: 5,
   },
   diagnosticItem: {
-    backgroundColor: '#dbeafe',
-    color: BRAND_BLUE,
-    fontSize: 7,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-    marginRight: 4,
-    marginBottom: 3,
+    fontSize: 8,
+    color: '#333',
+    marginBottom: 2,
   },
   
   // Option title
   optionTitle: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: 'Helvetica-Bold',
     color: BRAND_BLUE,
-    marginTop: 8,
-    marginBottom: 6,
-    paddingBottom: 3,
-    borderBottomWidth: 1.5,
+    marginTop: 15,
+    marginBottom: 10,
+    paddingBottom: 5,
+    borderBottomWidth: 2,
     borderBottomColor: BRAND_BLUE,
   },
   
