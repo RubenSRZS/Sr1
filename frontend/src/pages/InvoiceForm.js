@@ -37,9 +37,6 @@ const InvoiceForm = () => {
 
   const [newClient, setNewClient] = useState({ name: '', address: '', phone: '', email: '' });
 
-  // Add refs for PDF components
-  const pdfRef = useRef();
-  const mobilePdfRef = useRef();
 
   useEffect(() => {
     axios.get(`${API}/clients`).then(r => setClients(r.data)).catch(() => {});
