@@ -274,7 +274,7 @@ async def create_quote(input: QuoteCreate):
     opt2_total_net = round(opt2_total_brut - opt2_remise, 2)
     opt2_acompte_30 = round(opt2_total_net * 0.30, 2)
     
-    quote_number = await get_next_quote_number(client_id)
+    quote_number = input.custom_quote_number.strip() if input.custom_quote_number and input.custom_quote_number.strip() else await get_next_quote_number(client_id)
 
     quote = Quote(
         quote_number=quote_number,
