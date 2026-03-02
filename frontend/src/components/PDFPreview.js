@@ -242,19 +242,21 @@ const PDFDocument = ({ document, type, compact = false }) => {
           compact={compact}
         />
 
-        {/* Option 1 totals */}
-        <TotalsSection
-          remise={document.remise}
-          remisePercent={document.remise_percent}
-          totalNet={document.total_net}
-          acompte30={document.acompte_30}
-          isQuote={isQuote}
-          label={hasOption2 ? "Total Option 1" : null}
-          compact={compact}
-        />
+        {/* Option 1 totals — quotes only (invoices have their own block below) */}
+        {isQuote && (
+          <TotalsSection
+            remise={document.remise}
+            remisePercent={document.remise_percent}
+            totalNet={document.total_net}
+            acompte30={document.acompte_30}
+            isQuote={isQuote}
+            label={hasOption2 ? "Total Option 1" : null}
+            compact={compact}
+          />
+        )}
 
-        {/* Option 2 */}
-        {hasOption2 && (
+        {/* Option 2 — quotes only */}
+        {isQuote && hasOption2 && (
           <>
             <ServicesTable
               services={document.option_2_services}

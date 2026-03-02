@@ -34,37 +34,45 @@ Application web pour créer des devis et factures professionnels pour l'entrepri
 - Backend: FastAPI, Pydantic, Motor (MongoDB async)
 - Database: MongoDB
 
-## Fonctionnalités implémentées
+## Fonctionnalités implémentées (au 02/03/2026)
 
-### Génération PDF (Refactorisé - 02/03/2026)
-- **Approche**: html2canvas + jsPDF capture le composant HTML `PDFDocument` qui est déjà beau
-- **Logo**: Intégré en base64 WebP directement dans PDFPreview.js (évite les problèmes CORS)
+### Génération PDF
+- **Approche**: html2canvas + jsPDF capture le composant HTML `PDFDocument`
+- **Logos**: 5 logos intégrés en base64 WebP (évite les erreurs CORS): SR Rénovation, Drapeau Français, Banque Populaire, CMA, Gîtes de France
 - **Multi-page**: Gestion automatique si le contenu dépasse une page A4
-- **Qualité**: Scale 2.5x pour qualité haute résolution
+- **Qualité**: Scale 2.5x
 
 ### Aperçu HTML (PDFDocument component)
-- Header gradient bleu→orange avec logo SR Rénovation
-- Section entreprise (bleu) et client (orange)
-- Tableau des services avec prix
-- Section totaux avec acompte 30%
-- Badges partenaires: BANQUE POPULAIRE, CHAMBRE DES MÉTIERS, GARANTIE DÉCENNALE
-- Signatures (devis uniquement)
-- Compatible: devis standard, devis multi-options (Option 1 + Option 2), factures
+- Header: Gradient bleu→orange, logo SR (gauche), drapeau français + numéro + date (droite)
+- Section entreprise (bleu) et client (orange) avec email affiché
+- Tableau des services: colonnes Description, Qté, P.U., Total TTC
+- **Section totaux (format simplifié):**
+  - TOTAL NET (TTC) — bleu gradient
+  - RESTE À PAYER — rouge (devis: 70% restant; facture: après acompte versé)
+  - ACOMPTE 30% — orange (devis uniquement)
+- Mentions légales: TVA non applicable, art. 293 B du CGI
+- Zones de signature (devis uniquement)
+- **Footer partenaires**: Banque Populaire, Chambre des Métiers (CMA), Gîtes de France, badge Google 5★
+- Info contact (RC Pro, modes de paiement, téléphone)
 
 ### Gestion des devis
-- Numéro auto-généré OU personnalisé (NOUVEAU)
+- Numéro auto-généré OU personnalisé (champ optionnel dans formulaire)
 - Devis multi-options (Option 1 / Option 2 avec totaux séparés)
 - Diagnostic visuel (mousses, lichens, tuiles cassées, etc.)
 - Remise en % ou montant fixe
-- Acompte 30% calculé automatiquement
+- Totaux affichés: Total Option X (TTC) / Reste à payer / Acompte 30%
 
 ### Gestion des factures
-- Reste à payer automatique
-- Acompte versé
+- Total net (TTC), Acompte versé, Reste à payer
+
+### Dashboard
+- Boutons: "Nouveau Devis" (bleu) / "Nouvelle Facture" (orange — corrigé)
+- Stats: Clients, Devis, Factures, Chiffre d'affaires
+- Listes récentes
 
 ### Clients
-- CRUD complet avec email (optionnel)
-- Email affiché dans l'aperçu du document
+- CRUD avec email (optionnel)
+- Email affiché dans la section client du document
 
 ### Catalogue
 - Descriptions de services pré-remplies
@@ -73,7 +81,7 @@ Application web pour créer des devis et factures professionnels pour l'entrepri
 
 ### Quote
 ```
-client_id, quote_number, client_name, client_address, client_phone, client_email,
+client_id, quote_number (auto ou custom), client_name, client_address, client_phone, client_email,
 date, work_location, diagnostic, services: [Service], total_brut, remise_percent, 
 remise_montant, remise, total_net, acompte_30, option_2_services, option_2_total_net, notes
 ```
@@ -90,19 +98,20 @@ client_id, invoice_number, services, total_net, acompte_paid, reste_a_payer
 - Orange clair: #fb923c
 
 ## CHANGELOG
-- 02/03/2026: Refonte complète génération PDF (html2canvas+jsPDF), couleurs dashboard corrigées (orange pas jaune), numéro devis personnalisable, badges partenaires, email client affiché
+- 02/03/2026 (session 1): Refonte PDF (html2canvas+jsPDF), dashboard couleurs, numéro devis personnalisable, badges partenaires
+- 02/03/2026 (session 2): Vrais logos (BP, CMA, Gîtes, drapeau FR), suppression décennale, totaux simplifiés (sans Total brut), bouton Facture orange
 
 ## Backlog prioritaire
 
 ### P1 - Intégration email (Resend)
-- Envoyer PDF par email au client
+- Envoyer PDF par email au client directement depuis l'application
 
 ### P2 - Signature électronique
-- Signature pad pour le client
+- Pad de signature pour le client (acceptation du devis)
 
 ### P3 - Nettoyage code
 - Supprimer fichiers orphelins: PDFGenerator.js, PDFGeneratorPro.js, PDFGenerator_simple.js
 
-### P3 - Améliorations
-- Upload de logos partenaires réels (Banque Populaire, Chambre des Métiers)
+### P3 - Améliorations design
+- Upload de logos personnalisés par l'utilisateur (pour future mise à jour)
 - Expansion du catalogue de prestations
