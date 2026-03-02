@@ -80,7 +80,7 @@ Vous avez **3 options** pour utiliser votre application :
 
 ### **Option 1 : Utiliser la Preview Emergent (RECOMMANDÉ pour tester)**
 
-✅ **URL actuelle** : https://build-estimator-27.preview.emergentagent.com
+✅ **URL actuelle** : https://sr-facturation.preview.emergentagent.com
 
 **Avantages :**
 - ✅ Gratuit en preview
