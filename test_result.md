@@ -147,6 +147,7 @@ metadata:
 test_plan:
   current_focus:
     - "PDF Generation and Preview for Quotes"
+    - "PDF Generation and Preview for Invoices"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -158,3 +159,5 @@ agent_communication:
       message: "✅ TESTING COMPLETED SUCCESSFULLY - All PDF generation functionality working perfectly. Found and tested quote 'Client Test PDF' with two options. Live preview shows both Option 1 (3375.00€) and Option 2 (5700.00€) correctly. PDF downloads work on both desktop and mobile. Preview is clean, professional, and properly formatted. Only minor HTML validation warnings in console that don't affect functionality. Ready for production use."
     - agent: "testing"
       message: "✅ RETEST AFTER REFACTOR COMPLETED - PDF system with simplified @react-pdf/renderer structure is working perfectly. Successfully verified DEVIS-01 quote with 'Client Test PDF' showing both options (3375.00€ and 5700.00€) with clean formatting, proper alignment, readable tables, and correct totals. Live preview displays both options clearly separated. PDF download functionality confirmed working. The simplified structure has resolved any previous formatting issues and provides robust PDF generation."
+    - agent: "testing"
+      message: "✅ INVOICE PDF TESTING COMPLETED SUCCESSFULLY - Comprehensive test of invoice PDF generation completed. Fixed critical pdfRef missing references issue in InvoiceForm.js that was causing runtime errors. All invoice functionality verified: 1) Invoice form loads and functions correctly, 2) Client selection works with existing 'Client Test PDF', 3) Service calculations are accurate (Total: 3750€, Discount 5%: 187.50€, Net: 3562.50€, Advance: 1000€, Reste à payer: 2562.50€), 4) Live preview displays 'RESTE À PAYER' correctly, 5) PDF download generates valid 4925-byte PDF file saved as /tmp/facture_test_final.pdf. Invoice PDF system is fully functional and production-ready."
