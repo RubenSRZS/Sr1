@@ -60,10 +60,20 @@ Application web pour créer des devis et factures professionnels pour l'entrepri
 - Catalogue: descriptions pré-remplies
 - PDF: html2canvas+jsPDF (identique au live preview), tous logos base64 (sans CORS)
 
+## Fonctionnalités implémentées (toutes opérationnelles)
+- **ServicesSection:** Champs Qté, Unité (m², ML, m, h, forfait, kg, unité), Prix unitaire, Remise %, Total calculé automatiquement
+- **Remise globale:** Par option (% ou €), cumulative avec remise par article
+- **Modalités de paiement:** 4 options — Acompte 30%+Solde, 2×, 3×, 4× fois égales
+- **Multi-options:** Option 1 + Option 2 facultative
+- **Diagnostic visuel:** 12 cases à cocher groupées (Structure, Végétation, Hydrologie)
+- **Tri par client:** Liste devis triée alphabétiquement
+- **PDF:** Toutes données affichées, téléchargement identique au preview
+
 ## CHANGELOG
 - 02/03/2026 (S1): Refonte PDF html2canvas+jsPDF, dashboard couleurs, numéro devis custom
 - 02/03/2026 (S2): Vrais logos partenaires, sans décennale, totaux sans rouge
 - 02/03/2026 (S3): Google/signature logos, ServicesSection extrait (fix édition), totaux élégants, CORS résolu
+- 02/03/2026 (S4): Unités, remise par article, plans de paiement multiple, tri client, aperçu PDF amélioré. Correction bug syntaxe QuoteForm.js (doublon ServicesSection). Tests: 10/10 ✅
 
 ## Backlog
 
