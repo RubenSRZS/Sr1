@@ -57,6 +57,7 @@ const QuoteForm = () => {
         setHasOption2(has2);
         setFormData({
           client_id: q.client_id,
+          custom_quote_number: q.quote_number || '',
           work_location: q.work_location,
           diagnostic: q.diagnostic || { mousses: false, lichens: false, tuiles_cassees: false, faitage: false, gouttieres: false, facade: false },
           services: q.services || [],
