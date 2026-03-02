@@ -162,59 +162,54 @@ const styles = StyleSheet.create({
   
   // Totals
   totalsContainer: {
-    marginTop: 8,
-    alignItems: 'flex-end',
+    marginTop: 10,
+    marginBottom: 15,
   },
   totalsBox: {
-    width: 200,
+    marginLeft: 'auto',
+    width: 220,
+    border: '1px solid #e5e7eb',
+    padding: 10,
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 3,
-    paddingHorizontal: 8,
+    marginBottom: 5,
   },
   totalLabel: {
-    fontSize: 8,
+    fontSize: 9,
     color: '#666',
   },
   totalValue: {
-    fontSize: 8,
+    fontSize: 9,
     fontFamily: 'Helvetica-Bold',
-    color: '#333',
-  },
-  remiseRow: {
-    backgroundColor: '#fff7ed',
-    borderRadius: 2,
-    marginTop: 2,
-  },
-  remiseText: {
-    color: BRAND_ORANGE,
   },
   totalNetRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     backgroundColor: BRAND_BLUE,
-    borderRadius: 3,
-    marginTop: 3,
-    paddingVertical: 5,
+    padding: 8,
+    marginTop: 5,
   },
   totalNetLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: 'Helvetica-Bold',
     color: '#ffffff',
   },
   totalNetValue: {
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: 'Helvetica-Bold',
     color: '#ffffff',
   },
   acompteRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     backgroundColor: BRAND_ORANGE,
-    borderRadius: 3,
-    marginTop: 2,
-    paddingVertical: 4,
+    padding: 6,
+    marginTop: 5,
   },
-  acompteText: {
-    fontSize: 8,
+  acompteLabel: {
+    fontSize: 9,
     fontFamily: 'Helvetica-Bold',
     color: '#ffffff',
   },
