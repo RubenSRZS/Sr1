@@ -3,10 +3,9 @@ import { Document, Page, Text, View, Image, StyleSheet, pdf } from '@react-pdf/r
 
 // Brand colors
 const BRAND_BLUE = '#1e40af';
-const BRAND_BLUE_LIGHT = '#3b82f6';
 const BRAND_ORANGE = '#f97316';
 
-// Logos
+// Logo
 const LOGO_SR = "https://customer-assets.emergentagent.com/job_538ea579-31dc-4f0d-9c02-673e8a0738ca/artifacts/srxb4k7u_Nouveau%20Logo%203.png";
 
 const DiagnosticLabels = {
@@ -14,23 +13,22 @@ const DiagnosticLabels = {
   faitage: 'Faîtage', gouttieres: 'Gouttières', facade: 'Façade',
 };
 
-// PDF Styles - Optimized for clean output
+// PDF Styles - Simplifié pour éviter les bugs
 const styles = StyleSheet.create({
   page: {
     fontFamily: 'Helvetica',
-    fontSize: 9,
-    padding: 25,
+    fontSize: 10,
+    padding: 30,
     backgroundColor: '#ffffff',
-    lineHeight: 1.3,
   },
   // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 15,
-    paddingBottom: 10,
-    borderBottomWidth: 2,
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 3,
     borderBottomColor: BRAND_BLUE,
   },
   logo: {
@@ -41,20 +39,19 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   docType: {
-    fontSize: 8,
+    fontSize: 9,
     color: '#666',
-    letterSpacing: 1.5,
-    marginBottom: 3,
+    marginBottom: 2,
   },
   docNumber: {
-    fontSize: 24,
+    fontSize: 26,
     fontFamily: 'Helvetica-Bold',
     color: BRAND_BLUE,
   },
   docDate: {
     fontSize: 9,
     color: '#666',
-    marginTop: 3,
+    marginTop: 2,
   },
   
   // Info boxes
