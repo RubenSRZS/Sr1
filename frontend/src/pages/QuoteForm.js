@@ -29,6 +29,7 @@ const QuoteForm = () => {
 
   const [formData, setFormData] = useState({
     client_id: '',
+    custom_quote_number: '',
     work_location: '',
     diagnostic: { mousses: false, lichens: false, tuiles_cassees: false, faitage: false, gouttieres: false, facade: false },
     // Option 1
