@@ -302,13 +302,13 @@ const PDFDocument = ({ document, type, compact = false }) => {
           </div>
           {/* Info grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', textAlign: 'center', fontSize: compact ? '7px' : '8px', color: '#6b7280', marginBottom: '5px' }}>
-            <div><div style={{ fontWeight: 700, color: BRAND_BLUE }}>Assurance</div><div>RC Pro · Banque Populaire</div></div>
-            <div><div style={{ fontWeight: 700, color: BRAND_BLUE }}>Paiement</div><div>Chèque · Espèces · Virement</div></div>
-            <div><div style={{ fontWeight: 700, color: BRAND_BLUE }}>Contact</div><div>06 80 33 45 46</div><div style={{ color: BRAND_BLUE }}>sr-renovation.fr</div></div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontWeight: 700, color: BRAND_BLUE }}>Assurance</div><div>RC Pro · Banque Populaire</div></div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontWeight: 700, color: BRAND_BLUE }}>Paiement</div><div>Chèque · Espèces · Virement</div></div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontWeight: 700, color: BRAND_BLUE }}>Contact</div><div>06 80 33 45 46</div><div style={{ color: BRAND_BLUE }}>sr-renovation.fr</div></div>
           </div>
-          <div style={{ textAlign: 'center', borderTop: '1px solid #f3f4f6', paddingTop: '5px' }}>
-            <span style={{ fontWeight: 700, fontSize: '12px', color: BRAND_BLUE }}>Sr-Renovation.fr</span>
-            <span style={{ fontSize: '9px', color: '#9ca3af', marginLeft: '8px' }}>Nettoyage toitures, façades et terrasses</span>
+          <div style={{ textAlign: 'center', borderTop: '1px solid #f3f4f6', paddingTop: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <img src={LOGO_SR2_URL} alt="Sr-Renovation.fr" style={{ height: compact ? '24px' : '32px', objectFit: 'contain' }} />
+            <span style={{ fontSize: '9px', color: '#9ca3af' }}>Nettoyage toitures, façades et terrasses</span>
           </div>
         </div>
       </div>
