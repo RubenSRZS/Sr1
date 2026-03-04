@@ -12,7 +12,8 @@ const BRAND_ORANGE = '#f97316';
 const BRAND_ORANGE_LIGHT = '#fb923c';
 
 // URLs for live preview (browser img tags - no CORS needed)
-const LOGO_SR2_URL = "https://customer-assets.emergentagent.com/job_e13a9390-14cb-49fe-be67-55a440cc9e0f/artifacts/q00b2glb_gemini-3-pro-image-preview-2k_a_ce_logo_mais_en_Sr-R%20%282%29.png";
+const LOGO_SARL_URL = "https://customer-assets.emergentagent.com/job_538ea579-31dc-4f0d-9c02-673e8a0738ca/artifacts/srxb4k7u_Nouveau%20Logo%203.png"; // Logo SARL en haut
+const LOGO_SR2_URL = "https://customer-assets.emergentagent.com/job_e13a9390-14cb-49fe-be67-55a440cc9e0f/artifacts/q00b2glb_gemini-3-pro-image-preview-2k_a_ce_logo_mais_en_Sr-R%20%282%29.png"; // Logo site web en bas
 const LOGO_BP_URL = "https://customer-assets.emergentagent.com/job_intelinvoice/artifacts/2lbuw6zf_Bpbfc.png";
 const LOGO_CMA_URL = "https://customer-assets.emergentagent.com/job_intelinvoice/artifacts/uldr9xy9_CMA.png";
 const LOGO_GITES_URL = "https://customer-assets.emergentagent.com/job_e13a9390-14cb-49fe-be67-55a440cc9e0f/artifacts/etwdqybs_G%C3%AEtes_de_France_%28logo%29.png";
@@ -168,7 +169,7 @@ const PDFDocument = ({ document, type, compact = false }) => {
       {/* Header */}
       <div style={{ background: `linear-gradient(135deg, ${BRAND_BLUE} 0%, ${BRAND_BLUE_LIGHT} 40%, ${BRAND_ORANGE} 100%)` }}>
         <div style={{ padding: compact ? '10px 14px' : '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <img src={LOGO_SR2_URL} alt="SR Rénovation" style={{ height: compact ? '36px' : '52px', objectFit: 'contain', maxWidth: '220px' }} />
+          <img src={LOGO_SARL_URL} alt="SR Rénovation SARL" style={{ height: compact ? '36px' : '52px', objectFit: 'contain', maxWidth: '220px' }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img src={LOGO_DRAPEAU_URL} alt="France" style={{ height: compact ? '28px' : '42px', objectFit: 'contain' }} />
             <div style={{ textAlign: 'right', color: 'white' }}>
@@ -282,7 +283,7 @@ const PDFDocument = ({ document, type, compact = false }) => {
         <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '8px' }}>
           {/* Partner logos */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '22px', flexWrap: 'wrap', marginBottom: '7px' }}>
-            <img src={LOGO_BP_URL} alt="Banque Populaire" style={{ height: compact ? '32px' : '44px', objectFit: 'contain' }} />
+            <img src={LOGO_BP_URL} alt="Banque Populaire" style={{ height: compact ? '38px' : '58px', objectFit: 'contain' }} />
             <img src={LOGO_CMA_URL} alt="Chambre des Métiers" style={{ height: compact ? '32px' : '44px', objectFit: 'contain' }} />
             <img src={LOGO_GITES_URL} alt="Gîtes de France" style={{ height: compact ? '32px' : '44px', objectFit: 'contain' }} />
             <img src={LOGO_GOOGLE_URL} alt="Google Avis" style={{ height: compact ? '32px' : '44px', objectFit: 'contain' }} />
