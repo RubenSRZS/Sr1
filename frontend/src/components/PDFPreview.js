@@ -48,26 +48,32 @@ const DiagnosticLabels = {
 };
 
 // Compute payment installments based on payment_plan setting
+// Toujours 30% d'acompte, puis le reste divisé selon le nombre de fois
 const getPaymentInstallments = (totalNet, paymentPlan) => {
   const total = Number(totalNet || 0);
+  const acompte = total * 0.3; // Toujours 30% d'acompte
+  const reste = total - acompte;
+  
   switch (paymentPlan) {
     case '2_fois':
       return [
-        { label: '1er versement (50%)', amount: total * 0.5 },
-        { label: '2ème versement (50%)', amount: total * 0.5 },
+        { label: 'Acompte à la signature (30%)', amount: acompte },
+        { label: 'Solde (70%)', amount: reste },
       ];
     case '3_fois':
+      const reste3 = reste / 2;
       return [
-        { label: '1er versement (33%)', amount: Math.round(total * 0.33 * 100) / 100 },
-        { label: '2ème versement (33%)', amount: Math.round(total * 0.33 * 100) / 100 },
-        { label: '3ème versement (34%)', amount: Math.round(total * 0.34 * 100) / 100 },
+        { label: 'Acompte à la signature (30%)', amount: acompte },
+        { label: '2ème versement (35%)', amount: reste3 },
+        { label: 'Solde (35%)', amount: reste3 },
       ];
     case '4_fois':
+      const reste4 = reste / 3;
       return [
-        { label: '1er versement (25%)', amount: total * 0.25 },
-        { label: '2ème versement (25%)', amount: total * 0.25 },
-        { label: '3ème versement (25%)', amount: total * 0.25 },
-        { label: '4ème versement (25%)', amount: total * 0.25 },
+        { label: 'Acompte à la signature (30%)', amount: acompte },
+        { label: '2ème versement (~23%)', amount: reste4 },
+        { label: '3ème versement (~23%)', amount: reste4 },
+        { label: 'Solde (~24%)', amount: reste4 },
       ];
     default: // acompte_solde
       return null;
