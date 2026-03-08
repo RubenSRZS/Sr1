@@ -104,6 +104,7 @@ class Quote(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     quote_number: str
+    quote_title: Optional[str] = ""
     client_id: str
     client_name: str
     client_address: str
@@ -114,6 +115,7 @@ class Quote(BaseModel):
     work_surface: Optional[str] = ""
     diagnostic: Optional[Diagnostic] = None
     services: List[Service]
+    option_1_title: Optional[str] = ""
     total_brut: float
     remise_percent: float = 0.0
     remise_montant: float = 0.0
@@ -123,15 +125,26 @@ class Quote(BaseModel):
     payment_plan: Optional[str] = "acompte_solde"
     # Option 2 fields
     option_2_services: Optional[List[Service]] = []
+    option_2_title: Optional[str] = ""
     option_2_total_brut: float = 0.0
     option_2_remise_percent: float = 0.0
     option_2_remise_montant: float = 0.0
     option_2_remise: float = 0.0
     option_2_total_net: float = 0.0
     option_2_acompte_30: float = 0.0
+    # Option 3 fields
+    option_3_services: Optional[List[Service]] = []
+    option_3_title: Optional[str] = ""
+    option_3_total_brut: float = 0.0
+    option_3_remise_percent: float = 0.0
+    option_3_remise_montant: float = 0.0
+    option_3_remise: float = 0.0
+    option_3_total_net: float = 0.0
+    option_3_acompte_30: float = 0.0
     notes: Optional[str] = ""
     status: str = "draft"
     signature_data: Optional[str] = None
+    selected_option: Optional[int] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class InvoiceCreate(BaseModel):
