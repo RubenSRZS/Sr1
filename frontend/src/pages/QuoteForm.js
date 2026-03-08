@@ -301,11 +301,13 @@ const QuoteForm = () => {
     
     const doc = {
       quote_number: formData.custom_quote_number || (id ? undefined : 'XX'),
+      quote_title: formData.quote_title,
       client_name: cName, client_address: cAddr, client_phone: cPhone, client_email: cEmail,
       date: new Date().toLocaleDateString('fr-FR'),
       work_location: formData.work_location,
       diagnostic: formData.diagnostic,
       services: formData.services,
+      option_1_title: formData.option_1_title,
       payment_plan: formData.payment_plan,
       show_line_numbers: formData.show_line_numbers,
       ...totals1,
@@ -317,6 +319,7 @@ const QuoteForm = () => {
     // Add option 2 if enabled
     if (hasOption2 && formData.option_2_services.length > 0) {
       doc.option_2_services = formData.option_2_services;
+      doc.option_2_title = formData.option_2_title;
       doc.option_2_total_brut = totals2.total_brut;
       doc.option_2_remise = totals2.remise;
       doc.option_2_remise_percent = formData.option_2_remise_type === 'percent' ? formData.option_2_remise_percent : 0;
@@ -324,8 +327,19 @@ const QuoteForm = () => {
       doc.option_2_acompte_30 = totals2.acompte_30;
     }
     
+    // Add option 3 if enabled
+    if (hasOption3 && formData.option_3_services.length > 0) {
+      doc.option_3_services = formData.option_3_services;
+      doc.option_3_title = formData.option_3_title;
+      doc.option_3_total_brut = totals3.total_brut;
+      doc.option_3_remise = totals3.remise;
+      doc.option_3_remise_percent = formData.option_3_remise_type === 'percent' ? formData.option_3_remise_percent : 0;
+      doc.option_3_total_net = totals3.total_net;
+      doc.option_3_acompte_30 = totals3.acompte_30;
+    }
+    
     return doc;
-  }, [formData, newClient, showNewClient, clients, id, totals1, totals2, hasOption2]);
+  }, [formData, newClient, showNewClient, clients, id, totals1, totals2, totals3, hasOption2, hasOption3]);
 
   const handleDownloadPDF = useCallback(async () => {
     await downloadPDF(previewDoc, 'quote');
