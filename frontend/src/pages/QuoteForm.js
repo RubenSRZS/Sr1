@@ -178,16 +178,36 @@ const QuoteForm = () => {
   };
 
   const [formData, setFormData] = useState(initialFormState);
-    // Option 3
-    option_3_title: '',
-    option_3_services: [],
-    option_3_remise_type: 'percent',
-    option_3_remise_percent: 0,
-    option_3_remise_montant: 0,
-    notes: '',
-  });
 
   const [newClient, setNewClient] = useState({ name: '', address: '', phone: '', email: '' });
+
+  // Restore draft on mount (only for new quotes)
+  useEffect(() => {
+    if (!id && quoteFormData && !draftRestored) {
+      const restored = quoteFormData.data;
+      if (restored && restored.services && restored.services.length > 0) {
+        setFormData(restored);
+        if (quoteFormData.options?.hasOption2) setHasOption2(true);
+        if (quoteFormData.options?.hasOption3) setHasOption3(true);
+        if (quoteFormData.options?.newClient) setNewClient(quoteFormData.options.newClient);
+        if (quoteFormData.options?.showNewClient) setShowNewClient(true);
+        setDraftRestored(true);
+        toast.info('Brouillon restauré', { description: 'Votre travail en cours a été récupéré' });
+      }
+    }
+  }, [id, quoteFormData, draftRestored]);
+
+  // Auto-save draft every 3 seconds (only for new quotes)
+  useEffect(() => {
+    if (id) return; // Don't auto-save when editing existing quote
+    const hasContent = formData.services.length > 0 || formData.work_location || formData.quote_title;
+    if (hasContent) {
+      const timer = setTimeout(() => {
+        saveQuoteForm(formData, { hasOption2, hasOption3, newClient, showNewClient });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [formData, hasOption2, hasOption3, newClient, showNewClient, id, saveQuoteForm]);
 
   useEffect(() => {
     axios.get(`${API}/clients`).then(r => setClients(r.data)).catch(() => {});
@@ -196,21 +216,32 @@ const QuoteForm = () => {
       axios.get(`${API}/quotes/${id}`).then(r => {
         const q = r.data;
         const has2 = q.option_2_services && q.option_2_services.length > 0;
+        const has3 = q.option_3_services && q.option_3_services.length > 0;
         setHasOption2(has2);
+        setHasOption3(has3);
         setFormData({
           client_id: q.client_id,
           custom_quote_number: q.quote_number || '',
+          quote_title: q.quote_title || '',
           work_location: q.work_location,
-          diagnostic: q.diagnostic || { tuiles_cassees: false, tuile_ciment: false, tuile_terre_cuite: false, faitage: false, fissures: false, mousses: false, lichens: false, mousse_verte: false, trace_noire: false, gouttieres: false, forte_humidite: false, facade: false },
+          diagnostic: q.diagnostic || initialFormState.diagnostic,
           services: q.services || [],
+          option_1_title: q.option_1_title || '',
           remise_type: q.remise_percent > 0 ? 'percent' : (q.remise_montant > 0 ? 'amount' : 'percent'),
           remise_percent: q.remise_percent || 0,
           remise_montant: q.remise_montant || 0,
           payment_plan: q.payment_plan || 'acompte_solde',
+          show_line_numbers: q.show_line_numbers !== false,
+          option_2_title: q.option_2_title || '',
           option_2_services: q.option_2_services || [],
-          option_2_remise_type: q.option_2_remise_percent > 0 ? 'percent' : (q.option_2_remise_montant > 0 ? 'amount' : 'percent'),
+          option_2_remise_type: q.option_2_remise_percent > 0 ? 'percent' : 'percent',
           option_2_remise_percent: q.option_2_remise_percent || 0,
           option_2_remise_montant: q.option_2_remise_montant || 0,
+          option_3_title: q.option_3_title || '',
+          option_3_services: q.option_3_services || [],
+          option_3_remise_type: q.option_3_remise_percent > 0 ? 'percent' : 'percent',
+          option_3_remise_percent: q.option_3_remise_percent || 0,
+          option_3_remise_montant: q.option_3_remise_montant || 0,
           notes: q.notes || '',
         });
       }).catch(() => toast.error('Erreur chargement devis'));
