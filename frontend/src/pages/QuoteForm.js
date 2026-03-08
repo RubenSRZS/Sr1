@@ -390,6 +390,7 @@ const QuoteForm = () => {
     if (!clientId && !hasNewClient) { toast.error('Sélectionnez ou créez un client'); return; }
     if (formData.services.length === 0) { toast.error('Ajoutez au moins un service à l\'option 1'); return; }
     if (hasOption2 && formData.option_2_services.length === 0) { toast.error('Ajoutez au moins un service à l\'option 2 ou désactivez-la'); return; }
+    if (hasOption3 && formData.option_3_services.length === 0) { toast.error('Ajoutez au moins un service à l\'option 3 ou désactivez-la'); return; }
     if (showNewClient && (!newClient.name || !newClient.phone || !newClient.address)) {
       toast.error('Nom, téléphone et adresse sont obligatoires'); return;
     }
@@ -400,18 +401,26 @@ const QuoteForm = () => {
         client_id: hasNewClient ? null : clientId,
         new_client: hasNewClient ? newClient : null,
         custom_quote_number: formData.custom_quote_number || null,
+        quote_title: formData.quote_title || '',
         work_location: formData.work_location,
         work_surface: '',
         diagnostic: formData.diagnostic,
         services: formData.services,
+        option_1_title: formData.option_1_title || '',
         remise_percent: formData.remise_type === 'percent' ? formData.remise_percent : 0,
         remise_montant: formData.remise_type === 'amount' ? formData.remise_montant : 0,
         payment_plan: formData.payment_plan || 'acompte_solde',
         notes: formData.notes,
         // Option 2
         option_2_services: hasOption2 ? formData.option_2_services : [],
+        option_2_title: hasOption2 ? formData.option_2_title : '',
         option_2_remise_percent: hasOption2 && formData.option_2_remise_type === 'percent' ? formData.option_2_remise_percent : 0,
         option_2_remise_montant: hasOption2 && formData.option_2_remise_type === 'amount' ? formData.option_2_remise_montant : 0,
+        // Option 3
+        option_3_services: hasOption3 ? formData.option_3_services : [],
+        option_3_title: hasOption3 ? formData.option_3_title : '',
+        option_3_remise_percent: hasOption3 && formData.option_3_remise_type === 'percent' ? formData.option_3_remise_percent : 0,
+        option_3_remise_montant: hasOption3 && formData.option_3_remise_type === 'amount' ? formData.option_3_remise_montant : 0,
       };
       if (id) {
         payload.client_id = payload.client_id || formData.client_id;
@@ -419,6 +428,7 @@ const QuoteForm = () => {
         toast.success('Devis modifié');
       } else {
         await axios.post(`${API}/quotes`, payload);
+        clearQuoteForm(); // Clear draft after successful save
         toast.success('Devis créé');
       }
       navigate('/quotes');
