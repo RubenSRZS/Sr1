@@ -23,52 +23,154 @@ The user, representing the renovation company Sr-Renovation.fr, requires a web a
 **User's preferred language**: French
 
 **what currently exists?**
-A full-stack application (React, FastAPI, MongoDB) for creating quotes. The previous agent attempted to implement a large batch of new features (units, per-item discounts, payment plans, new logo in footer) but failed. While a syntax error in  was fixed, the core implementation in the  component was never completed. As a result, the user has reported that the new features are not functional, the downloaded PDF is missing details, and a logo is misplaced. The application is currently in a broken state from the user's perspective.
+A full-stack application (React, FastAPI, MongoDB). The frontend is currently broken and will not compile due to a critical syntax error in . This was caused by a previous agent embedding an extremely large base64 string directly into the component. The current agent has started the fix by adding an import statement for a new constants file, but has not yet created that file or removed the broken code.
 
 **Last working item**:
-- **Last item agent was working:** Diagnosing three critical bugs reported by the user after a failed feature implementation attempt. The agent was viewing  and inspecting related assets to understand why the implemented features were not rendering correctly.
-- **Status:** BLOCKED
-- **Agent Testing Done:** N (Previous agent's testing was flawed and did not validate the specific feature requirements).
-- **Which testing method agent to use?** both. After fixing the bugs, a full end-to-end test using the testing agent is required to validate that data flows correctly from the backend to the form, the live preview, and the final downloaded PDF. A visual confirmation via screenshot is also mandatory.
-- **User Testing Done:** Y (User discovered and reported the current bugs).
+- **Last item agent was working:** The agent is in the middle of resolving the critical frontend compilation error in . It has successfully added  to the file, but still needs to remove the malformed multi-line  declaration and create the  file with the correct base64 content.
+- **Status:** IN PROGRESS
+- **Agent Testing Done:** N
+- **Which testing method agent to use?** both. After the fix, use the screenshot tool to confirm the application loads. Then, use the frontend testing agent to verify all visual changes and PDF download functionality.
+- **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-- **Issue 1: Critical PDF Rendering and Feature Bugs (P0)**
-- **Issue 2: Minor PDF Text Alignment Bug (P1)**
+-   **Issue 1:** (P0) Critical: Frontend Compilation Failure due to Syntax Error.
+-   **Issue 2:** (P1) Logo missing from downloaded PDF.
+-   **Issue 3:** (P2) Incorrect logo in the footer.
+-   **Issue 4:** (P2) Text is not vertically centered in tables.
+-   **Issue 5:** (P3) Minor: Banque Populaire logo is too small.
+-   **Issue 6:** (P3) Payment plan logic needs verification.
 
 **Issues Detail:**
-- **Issue 1: Critical PDF Rendering and Feature Bugs (P0)**
-    - **Attempted fixes:** The previous agent fixed a syntax error but did not implement the features in the UI, leading to these bugs. The current agent has started diagnosis by viewing the code.
-    - **Next debug checklist:**
-        1.  Open .
-        2.  **Fix Units:** Find the service items table/loop and add the code to render the  for each service.
-        3.  **Fix Logo Placement:** Locate where the logos are rendered. Move the Sr-Renovation.fr logo from the header to the footer as requested by the user. Ensure the main company logo is correctly displayed in the header.
-        4.  **Fix Missing PDF Details:** Implement the rendering for all other new fields in , including per-item  and the  details. Ensure the logic that generates the PDF via  is capturing the complete and updated preview element.
-        5.  Test the full flow: Create a quote with units, discounts, and a payment plan. Verify they appear on the live preview AND in the downloaded PDF.
-    - **Why fix this issue and what will be achieved with the fix?** This is a critical failure. Fixing this will deliver the features the user requested and restore the application's core functionality.
-    - **Status:** IN PROGRESS
-    - **Is recurring issue?** N
-    - **Should Test frontend/backend/both after fix?** Both
-    - **Blocked on other issue:** None. This is the primary blocker.
+-   **Issue 1: Critical: Frontend Compilation Failure due to Syntax Error (P0)**
+    -   **Attempted fixes:** The agent correctly identified the malformed base64 string and added an import statement for a new constants file in . The broken code itself has not yet been removed.
+    -   **Next debug checklist:**
+        1.  In , use  to remove the entire  block, which is causing the unterminated string error.
+        2.  Read the base64 content from the existing file .
+        3.  Create a new file: .
+        4.  Write the content into the new file, exporting it as a JavaScript constant: .
+        5.  Check frontend logs (==> /var/log/supervisor/frontend.err.log <==
+(node:223) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:223) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(node:73) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:73) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
 
-- **Issue 2: Minor PDF Text Alignment Bug (P1)**
-    - **Attempted fixes:** None. This was missed by the previous agent.
-    - **Next debug checklist:**
-        1.  In , inspect the CSS for the services table header (the blue banner with Description, Quantité, etc.).
-        2.  Adjust  or  to vertically center the text within the banner to prevent it from falling off the bottom, as reported by the user.
-    - **Why fix this issue and what will be achieved with the fix?** Addresses a specific user complaint and improves the professionalism of the final document.
-    - **Status:** NOT STARTED
-    - **Is recurring issue?** Y (Relates to the user's high sensitivity to design details).
-    - **Should Test frontend/backend/both after fix?** Frontend
-    - **Blocked on other issue:** Can be fixed alongside Issue 1.
+==> /var/log/supervisor/frontend.out.log <==
+    at normalizeFile (/app/frontend/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+    at normalizeFile.next (<anonymous>)
+    at run (/app/frontend/node_modules/@babel/core/lib/transformation/index.js:22:50)
+    at run.next (<anonymous>)
+    at transform (/app/frontend/node_modules/@babel/core/lib/transform.js:22:33)
+    at transform.next (<anonymous>)
+    at step (/app/frontend/node_modules/gensync/index.js:261:32)
+    at /app/frontend/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (/app/frontend/node_modules/gensync/index.js:223:11)
+    at /app/frontend/node_modules/gensync/index.js:189:28
+    at /app/frontend/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+    at /app/frontend/node_modules/gensync/index.js:113:33
+    at step (/app/frontend/node_modules/gensync/index.js:287:14)
+    at /app/frontend/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (/app/frontend/node_modules/gensync/index.js:223:11)
+
+ERROR in [eslint] 
+src/components/PDFPreview.js
+  Line 34:22:  Parsing error: Unterminated string constant. (34:22)
+
+webpack compiled with 2 errors
+Compiling...
+Failed to compile.
+
+[eslint] 
+src/components/PDFPreview.js
+Syntax error: Invalid regular expression flag. (36:4165) (36:4165)
+ERROR in ./src/components/PDFPreview.js
+Module build failed (from ./node_modules/babel-loader/lib/index.js):
+SyntaxError: /app/frontend/src/components/PDFPreview.js: Invalid regular expression flag. (36:4165)
+
+  34 | import { LOGO_SARL_B64 } from '../lib/logoConstants';SuYKmlz
+  35 |
+> 36 | c3ZMvHMsbhgL3hhcC8xLjAvbW0vIiB4bWxuczpzdEV2dD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlRXZlbnQjIiB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgV2ViICgyMDI2LjEuMC4wIGFhMDg5NmQxMzIxKSAoR29vZ2xlIENocm9tZSkiIHhtcDpDcmVhdGVEYXRlPSIyMDI2LTAxLTE4VDIxOjEzOjMxKzAxOjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyNi0wMS0xOVQwMDo0MDoxOCswMTowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyNi0wMS0xOVQwMDo0MDoxOCswMTowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OTg3MDMyNzAtOTAzMi00MGRmLThmZDQtYTdkMWU2N2E1NGNhIiB4bXBNTTpEb2N1bWVudElEPSJhZG9iZTpkb2NpZDpwaG90b3Nob3A6MGY5YzJmYmUtMTAzMi0yMDQ1LTliMDAtZDQ2ZWQ0OGQ4ZmEwIiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6NDQyMGY5ZWMtMTk3Yi00NzBiLTgwYTEtODU5YTJlOTc5YjFmIj4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDo0NDIwZjllYy0xOTdiLTQ3MGItODBhMS04NTlhMmU5NzliMWYiIHN0RXZ0OndoZW49IjIwMjYtMDEtMThUMjE6MTM6MzErMDE6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBXZWIgKDIwMjYuMS4wLjAgYWEwODk2ZDEzMjEpIChHb29nbGUgQ2hyb21lKSIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6MDEwZWQ3ODctMzdjZS00ZTE5LWIxNjMtNzdiYjFjMDY3ZWZmIiBzdEV2dDp3aGVuPSIyMDI2LTAxLTE4VDIxOjE5OjAxKzAxOjAwIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgV2ViICgyMDI2LjEuMC4wIGFhMDg5NmQxMzIxKSAoR29vZ2xlIENocm9tZSkiIHN0RXZ0OmNoYW5nZWQ9Ii8iLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249InNhdmVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjI0M2YxOTQ3LWE1ZGMtNGE5Mi1iYjhlLWE2ZWVlODI1OTE0ZCIgc3RFdnQ6d2hlbj0iMjAyNi0wMS0xOFQyMToyODo1NCswMTowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIFdlYiAoMjAyNi4xLjAuMCBhYTA4OTZkMTMyMSkgKEdvb2dsZSBDaHJvbWUpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjb252ZXJ0ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImZyb20gZG9jdW1lbnQvdm5kLmFkb2JlLmNwc2QrZGN4IHRvIGltYWdlL3BuZyIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iZGVyaXZlZCIgc3RFdnQ6cGFyYW1ldGVycz0iY29udmVydGVkIGZyb20gZG9jdW1lbnQvdm5kLmFkb2JlLmNwc2QrZGN4IHRvIGltYWdlL3BuZyIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6Y2UyYzIxMDktNzNiNC00YTcyLWE3YjEtYmQ1MzY2MzdjYTYyIiBzdEV2dDp3aGVuPSIyMDI2LTAxLTE4VDIxOjI4OjU0KzAxOjAwIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgV2ViICgyMDI2LjEuMC4wIGFhMDg5NmQxMzIxKSAoR29vZ2xlIENocm9tZSkiIHN0RXZ0OmNoYW5nZWQ9Ii8iLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249ImRlcml2ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImNvbnZlcnRlZCBmcm9tIGltYWdlL3BuZyB0byBkb2N1bWVudC92bmQuYWRvYmUuY3BzZCtkY3giLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249InNhdmVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmQ2YTJkYTY1LWZlMDMtNDZhMS1hZGI1LTZmYWNhYTFhNWY0OSIgc3RFdnQ6d2hlbj0iMjAyNi0wMS0xOVQwMDo0MDoxNyswMTowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIFdlYiAoMjAyNi4xLjAuMCBhYTA4OTZkMTMyMSkgKEdvb2dsZSBDaHJvbWUpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJzYXZlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDo5MjA4ZjNlZC03YzgxLTQ0Y2EtOWFkYy1lNDljOTljZDI4OTkiIHN0RXZ0OndoZW49IjIwMjYtMDEtMTlUMDA6NDA6MTgrMDE6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBXZWIgKDIwMjYuMS4wLjAgYWEwODk2ZDEzMjEpIChHb29nbGUgQ2hyb21lKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY29udmVydGVkIiBzdEV2dDpwYXJhbWV0ZXJzPSJmcm9tIGRvY3VtZW50L3ZuZC5hZG9iZS5jcHNkK2RjeCB0byBpbWFnZS9wbmciLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249ImRlcml2ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImNvbnZlcnRlZCBmcm9tIGRvY3VtZW50L3ZuZC5hZG9iZS5jcHNkK2RjeCB0byBpbWFnZS9wbmciLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249InNhdmVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjk4NzAzMjcwLTkwMzItNDBkZi04ZmQ0LWE3ZDFlNjdhNTRjYSIgc3RFdnQ6d2hlbj0iMjAyNi0wMS0xOVQwMDo0MDoxOCswMTowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIFdlYiAoMjAyNi4xLjAuMCBhYTA4OTZkMTMyMSkgKEdvb2dsZSBDaHJvbWUpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDwvcmRmOlNlcT4gPC94bXBNTTpIaXN0b3J5PiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo5MjA4ZjNlZC03YzgxLTQ0Y2EtOWFkYy1lNDljOTljZDI4OTkiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6ZDZhMmRhNjUtZmUwMy00NmExLWFkYjUtNmZhY2FhMWE1ZjQ5IiBzdFJlZjpvcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6NDQyMGY5ZWMtMTk3Yi00NzBiLTgwYTEtODU5YTJlOTc5YjFmIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+/fCK1QAF6i9JREFUeJzs/WeULdl53wn+ztt7h7MzvG+83Cv..." (tronqué pour brièveté)
+     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ^
+  37 |
+  38 | const LOGO_B64_MAP = {
+  39 |   [LOGO_SARL_URL]: LOGO_SARL_B64,
+    at constructor (/app/frontend/node_modules/@babel/parser/lib/index.js:367:19)
+    at FlowParserMixin.raise (/app/frontend/node_modules/@babel/parser/lib/index.js:6624:19)
+    at FlowParserMixin.readRegexp (/app/frontend/node_modules/@babel/parser/lib/index.js:6389:14)
+    at FlowParserMixin.parseExprAtom (/app/frontend/node_modules/@babel/parser/lib/index.js:11377:16)
+    at FlowParserMixin.parseExprAtom (/app/frontend/node_modules/@babel/parser/lib/index.js:4793:20)
+    at FlowParserMixin.parseExprSubscripts (/app/frontend/node_modules/@babel/parser/lib/index.js:11145:23)
+    at FlowParserMixin.parseUpdate (/app/frontend/node_modules/@babel/parser/lib/index.js:11130:21)
+    at FlowParserMixin.parseMaybeUnary (/app/frontend/node_modules/@babel/parser/lib/index.js:11110:23)
+    at FlowParserMixin.parseMaybeUnaryOrPrivate (/app/frontend/node_modules/@babel/parser/lib/index.js:10963:61)
+    at FlowParserMixin.parseExprOpBaseRightExpr (/app/frontend/node_modules/@babel/parser/lib/index.js:11050:34)
+    at FlowParserMixin.parseExprOpRightExpr (/app/frontend/node_modules/@babel/parser/lib/index.js:11045:21)
+    at FlowParserMixin.parseExprOp (/app/frontend/node_modules/@babel/parser/lib/index.js:11011:27)
+    at FlowParserMixin.parseExprOp (/app/frontend/node_modules/@babel/parser/lib/index.js:11017:21)
+    at FlowParserMixin.parseExprOp (/app/frontend/node_modules/@babel/parser/lib/index.js:11017:21)
+    at FlowParserMixin.parseExprOp (/app/frontend/node_modules/@babel/parser/lib/index.js:11017:21)
+    at FlowParserMixin.parseExprOp (/app/frontend/node_modules/@babel/parser/lib/index.js:11017:21)
+    at FlowParserMixin.parseExprOp (/app/frontend/node_modules/@babel/parser/lib/index.js:11017:21)
+    at FlowParserMixin.parseExprOp (/app/frontend/node_modules/@babel/parser/lib/index.js:11017:21)
+    at FlowParserMixin.parseExprOps (/app/frontend/node_modules/@babel/parser/lib/index.js:10972:17)
+    at FlowParserMixin.parseMaybeConditional (/app/frontend/node_modules/@babel/parser/lib/index.js:10945:23)
+    at FlowParserMixin.parseMaybeAssign (/app/frontend/node_modules/@babel/parser/lib/index.js:10895:21)
+    at FlowParserMixin.parseMaybeAssign (/app/frontend/node_modules/@babel/parser/lib/index.js:3578:18)
+    at FlowParserMixin.parseExpressionBase (/app/frontend/node_modules/@babel/parser/lib/index.js:10848:23)
+    at /app/frontend/node_modules/@babel/parser/lib/index.js:10844:39
+    at FlowParserMixin.allowInAnd (/app/frontend/node_modules/@babel/parser/lib/index.js:12495:16)
+    at FlowParserMixin.parseExpression (/app/frontend/node_modules/@babel/parser/lib/index.js:10844:17)
+    at FlowParserMixin.parseStatementContent (/app/frontend/node_modules/@babel/parser/lib/index.js:12971:23)
+    at FlowParserMixin.parseStatementLike (/app/frontend/node_modules/@babel/parser/lib/index.js:12843:17)
+    at FlowParserMixin.parseStatementLike (/app/frontend/node_modules/@babel/parser/lib/index.js:2945:24)
+    at FlowParserMixin.parseModuleItem (/app/frontend/node_modules/@babel/parser/lib/index.js:12820:17)
+    at FlowParserMixin.parseBlockOrModuleBlockBody (/app/frontend/node_modules/@babel/parser/lib/index.js:13392:36)
+    at FlowParserMixin.parseBlockBody (/app/frontend/node_modules/@babel/parser/lib/index.js:13385:10)
+    at FlowParserMixin.parseProgram (/app/frontend/node_modules/@babel/parser/lib/index.js:12698:10)
+    at FlowParserMixin.parseTopLevel (/app/frontend/node_modules/@babel/parser/lib/index.js:12688:25)
+    at FlowParserMixin.parseTopLevel (/app/frontend/node_modules/@babel/parser/lib/index.js:3714:28)
+    at FlowParserMixin.parse (/app/frontend/node_modules/@babel/parser/lib/index.js:14568:25)
+    at parse (/app/frontend/node_modules/@babel/parser/lib/index.js:14602:38)
+    at parser (/app/frontend/node_modules/@babel/core/lib/parser/index.js:41:34)
+    at parser.next (<anonymous>)
+    at normalizeFile (/app/frontend/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+    at normalizeFile.next (<anonymous>)
+    at run (/app/frontend/node_modules/@babel/core/lib/transformation/index.js:22:50)
+    at run.next (<anonymous>)
+    at transform (/app/frontend/node_modules/@babel/core/lib/transform.js:22:33)
+    at transform.next (<anonymous>)
+    at step (/app/frontend/node_modules/gensync/index.js:261:32)
+    at /app/frontend/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (/app/frontend/node_modules/gensync/index.js:223:11)
+
+ERROR in [eslint] 
+src/components/PDFPreview.js
+  Line 36:4165:  Parsing error: Invalid regular expression flag. (36:4165)
+
+webpack compiled with 2 errors
+yarn run v1.22.22
+$ craco start
+Attempting to bind to HOST environment variable: 0.0.0.0
+If this was unintentional, check that you haven't mistakenly set it in your shell.
+Learn more here: https://cra.link/advanced-config
+
+Starting the development server...) to confirm the compilation is successful.
+    -   **Why fix this issue and what will be achieved with the fix?** The application is currently non-functional. Fixing this will unblock all other frontend work.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** Frontend
+    -   **Blocked on other issue:** None. This is the primary blocker for all other issues.
+
+-   **Issue 2-6:** All other visual and functional bugs related to the PDF (, , , , ) are ready for verification once Issue 1 is resolved and the application loads. They are all blocked by Issue 1.
 
 **In progress Task List**:
-- **Task 1: Complete and Fix Multi-Feature Update**
-    - **Where to resume:** Open  and begin implementing the UI changes to correctly display units, discounts, payment plans, and fix the logo placement, as detailed in Issue 1.
-    - **What will be achieved with this?** A functional and correct implementation of the user's requested features, resulting in a professional and accurate PDF output.
-    - **Status:** IN PROGRESS
-    - **Should Test frontend/backend/both after fix?** Both
-    - **Blocked on something:** None.
+-   **Task 1: Fix All Pending PDF Visual and Functional Bugs**
+    -   **Where to resume:** Immediately continue with the fix for **Issue 1**. The next step is to remove the broken constant declaration from .
+    -   **What will be achieved with this?** A working application where all recent user-requested PDF corrections can be verified.
+    -   **Status:** IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?** Both
+    -   **Blocked on something:** Blocked until the syntax error in  is fully resolved.
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks (User-interested):**
@@ -81,14 +183,14 @@ A full-stack application (React, FastAPI, MongoDB) for creating quotes. The prev
     *   Automatic follow-up reminders for unaccepted quotes.
 
 **Completed work in this session**
-- Fixed a syntax error in  caused by duplicated code.
+-   Added  to .
 
 **Earlier issues found/mentioned but not fixed**
-- The text alignment bug in the PDF table header (now tracked as Issue 2).
+- All known issues are captured in the **All Pending/In progress Issue list**.
 
 **Known issue recurrence from previous fork**
-- **User's High Sensitivity to Design Details:** The user consistently provides feedback on minor visual details. The agent must be meticulous.
-- **Flawed Testing Declaration:** The previous agent ran a test suite that passed but failed to manually verify if the user's specific requirements were met, leading to declaring a broken feature done. The next agent must not repeat this.
+-   **User's High Sensitivity to Design Details:** The user provides specific, minor visual feedback. All changes must be visually verified with the screenshot tool.
+-   **Flawed Testing Declaration:** Previous agents declared success without proper visual validation of the downloaded PDF. This must be avoided.
 
 **Code Architecture**
 
@@ -97,58 +199,57 @@ A full-stack application (React, FastAPI, MongoDB) for creating quotes. The prev
 *   **Frontend:** React, Tailwind CSS.
 *   **Backend:** FastAPI, Pydantic.
 *   **Database:** MongoDB.
-*   **PDF Generation:**  captures a specified HTML element () as a canvas, which is then converted to a PDF using . The issue is not the method, but the HTML content being captured.
+*   **PDF Generation:**  + . The agent must work within the limitations of this stack.
 
 **key DB schema**
-- **quotes collection:** Documents contain , , , and .
-- **items array (within a quote):** Each item object has , , , , and .
+-   **quotes collection:** , , ,  array.
+-   **items array:** , , , , .
 
 **changes in tech stack**
-- None. The  +  stack is correct.
+-   None. The user rejected the proposed change from  to .
 
 **All files of reference**
-- : **Primary file to fix.** Contains the layout for the PDF and is the source of all current bugs.
-- : The main form for creating quotes.
-- : The backend endpoints; logic should be correct but worth verifying if data is passed correctly.
+-   : **Primary file being edited. Currently contains a syntax error.**
+-   : Contains the generated base64 string for the SARL logo, which must be used to create the constants file.
+-   : The file that needs to be created.
 
 **Areas that need refactoring**:
--  and  are large. Breaking them down into smaller components would improve maintainability after the current bugs are fixed.
+-   The handling of large asset strings (like base64 images) must be refactored by moving them out of component files and into separate, imported modules. This is currently in progress.
 
 **key api endpoints**
-- : Retrieves all quotes, sorted by .
-- : Creates a new quote with the new fields.
+-   
+-   
 
 **Critical Info for New Agent**
-- **Your immediate priority is to fix the bugs in .** The user's features are not working.
-- **Do not trust automated tests alone.** The previous agent's  run returned 100% success but missed the entire feature implementation failure. You MUST visually verify that the requested features work in the UI and the downloaded PDF.
-- **Pay close attention to user's visual feedback.** Address the logo placement and text alignment issues precisely.
-- **Do not change the PDF generation method.** The  +  approach is correct. The problem is the HTML content being fed into it.
+-   **Your immediate priority is to fix the JavaScript syntax error** in . The app is completely broken until this is done.
+-   **Follow the plan:** Remove the broken  definition, then create  using the data from .
+-   **Do not refactor to .** The user has explicitly rejected this. Fix the existing  implementation.
+-   Once the app loads, systematically verify all other pending visual issues (logos, text alignment, etc.).
+-   The user is highly sensitive to visual details and speaks French.
 
 **documents and test reports created in this job**
-- 
--  (Note: This report is misleading and should not be trusted for feature completeness).
+-   : A temporary file containing the base64-encoded SARL logo (from a previous job).
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Critically reports 3 bugs: downloaded PDF doesn't match the preview, the Sr-Renovation.fr logo is in the wrong place, and measurement units don't work. **Status: PENDING - THIS IS THE HIGHEST PRIORITY TASK.**
-2.  **Agent:** Declared the task finished after updating the PRD. **Status: INCORRECT, led to user frustration.**
-3.  **Agent:** Ran testing agent and reported 100% success. **Status: MISLEADING, tests were insufficient.**
-4.  **User:** Pointed out a compilation error in the preview. **Status: RESOLVED.**
+-   **User (latest):** There have been several reforks and things done, I dont know where its at anymore but here is what I see: There is a problem because the other forks use a lot of credit and dont fix anything. Im counting on you.
+    -   **Status:** The agent has started to act on this by beginning the fix for the compilation error.
 
 **Project Health Check:**
-*   **Broken:** Yes. The core feature of generating an accurate, detailed PDF is broken due to the failed feature implementation.
+*   **Broken:** Yes. The frontend is non-functional and will not compile.
 
 **3rd Party Integrations**
-*   : Used for PDF generation.
-*   : Used for PDF generation.
+*   : Used for rendering HTML to a canvas for PDF generation.
+*   : Used to create the PDF document from the canvas.
 *   : For icons.
-*   **Resend:** Planned for future email integration.
 
 **Testing status**
-- **Testing agent used after significant changes:** YES, but it was used improperly and gave a false positive. It needs to be run again after the fixes.
-- **Troubleshoot agent used after agent stuck in loop:** NO.
-- **Test files created:**  exists.
-- **Known regressions:** The entire feature set from the last work cycle has regressed into a non-functional state.
+-   **Testing agent used after significant changes:** NO
+-   **Troubleshoot agent used after agent stuck in loop:** NO
+-   **Test files created:** None
+-   **Known regressions:** The entire frontend is down due to a syntax error introduced in a previous job.
+
+**Credentials to test flow:**
+N/A
 
 **What agent forgot to execute**
-- The previous agent completely forgot to implement the feature requirements inside . It only fixed a tangential syntax error.
-- The agent also forgot to fix the minor text alignment bug from the previous handoff.</analysis>
+- The agent executed steps out of order: it added an  for a file () before creating the file itself. The most critical next step is to remove the code causing the error before proceeding.</analysis>

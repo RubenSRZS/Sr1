@@ -80,7 +80,7 @@ Vous avez **3 options** pour utiliser votre application :
 
 ### **Option 1 : Utiliser la Preview Emergent (RECOMMANDÉ pour tester)**
 
-✅ **URL actuelle** : https://renovation-docs.preview.emergentagent.com
+✅ **URL actuelle** : https://reno-invoice-pro.preview.emergentagent.com
 
 **Avantages :**
 - ✅ Gratuit en preview
