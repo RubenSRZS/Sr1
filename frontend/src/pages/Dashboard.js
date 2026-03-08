@@ -70,7 +70,7 @@ const Dashboard = () => {
             <p className="text-xs sm:text-sm text-white/60">Gestion devis & factures</p>
           </div>
           <button
-            onClick={() => setDarkMode(!darkMode)}
+            onClick={toggleDarkMode}
             className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
             data-testid="dark-mode-toggle"
           >
