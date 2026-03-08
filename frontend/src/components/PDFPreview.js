@@ -84,12 +84,13 @@ const getPaymentInstallments = (totalNet, paymentPlan) => {
   }
 };
 
-const ServicesTable = ({ services, title, compact }) => (
+const ServicesTable = ({ services, title, compact, showLineNumbers = true }) => (
   <div style={{ marginBottom: '12px' }}>
     {title && <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: BRAND_BLUE, borderBottom: `2px solid ${BRAND_BLUE}`, paddingBottom: '4px', marginBottom: '6px' }}>{title}</div>}
     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: compact ? '9px' : '11px' }}>
       <thead>
         <tr style={{ background: BRAND_BLUE }}>
+          {showLineNumbers && <th style={{ textAlign: 'center', padding: '7px 4px', color: 'white', fontWeight: 600, width: '28px', verticalAlign: 'middle' }}>N°</th>}
           <th style={{ textAlign: 'left', padding: '7px 8px', color: 'white', fontWeight: 600, verticalAlign: 'middle' }}>Description</th>
           <th style={{ textAlign: 'center', padding: '7px 6px', color: 'white', fontWeight: 600, width: '38px', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>Qté</th>
           <th style={{ textAlign: 'center', padding: '7px 6px', color: 'white', fontWeight: 600, width: '38px', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>Unité</th>
@@ -99,18 +100,23 @@ const ServicesTable = ({ services, title, compact }) => (
       </thead>
       <tbody>
         {services && services.length > 0 ? services.map((s, i) => (
-          <tr key={i} style={{ background: i % 2 === 0 ? 'white' : '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
+          <tr key={i} style={{ background: i % 2 === 0 ? 'white' : '#f8fafc', borderBottom: `1px solid ${i === services.length - 1 ? '#e2e8f0' : '#f1f5f9'}` }}>
+            {showLineNumbers && (
+              <td style={{ padding: '6px 4px', textAlign: 'center', color: BRAND_BLUE, fontWeight: 700, fontSize: compact ? '10px' : '12px', verticalAlign: 'middle', borderRight: '1px solid #e2e8f0' }}>
+                {i + 1}
+              </td>
+            )}
             <td style={{ padding: '6px 8px', color: '#374151', verticalAlign: 'middle' }}>
               {s.description || '—'}
               {Number(s.remise_percent || 0) > 0 && <span style={{ marginLeft: '4px', fontSize: '9px', color: BRAND_ORANGE }}>(-{s.remise_percent}%)</span>}
             </td>
-            <td style={{ padding: '6px 6px', textAlign: 'center', color: '#6b7280', verticalAlign: 'middle' }}>{s.quantity}</td>
-            <td style={{ padding: '6px 6px', textAlign: 'center', color: '#6b7280', fontStyle: 'italic', verticalAlign: 'middle' }}>{s.unit || 'unité'}</td>
-            <td style={{ padding: '6px 6px', textAlign: 'right', color: '#6b7280', verticalAlign: 'middle' }}>{Number(s.unit_price || 0).toFixed(2)} €</td>
-            <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 600, verticalAlign: 'middle' }}>{Number(s.total || 0).toFixed(2)} €</td>
+            <td style={{ padding: '6px 6px', textAlign: 'center', color: '#6b7280', verticalAlign: 'middle', borderLeft: '1px solid #f1f5f9' }}>{s.quantity}</td>
+            <td style={{ padding: '6px 6px', textAlign: 'center', color: '#6b7280', fontStyle: 'italic', verticalAlign: 'middle', borderLeft: '1px solid #f1f5f9' }}>{s.unit || 'unité'}</td>
+            <td style={{ padding: '6px 6px', textAlign: 'right', color: '#6b7280', verticalAlign: 'middle', borderLeft: '1px solid #f1f5f9' }}>{Number(s.unit_price || 0).toFixed(2)} €</td>
+            <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 600, verticalAlign: 'middle', borderLeft: '1px solid #f1f5f9' }}>{Number(s.total || 0).toFixed(2)} €</td>
           </tr>
         )) : (
-          <tr><td colSpan={5} style={{ padding: '12px', textAlign: 'center', color: '#9ca3af', fontStyle: 'italic' }}>Aucun service</td></tr>
+          <tr><td colSpan={showLineNumbers ? 6 : 5} style={{ padding: '12px', textAlign: 'center', color: '#9ca3af', fontStyle: 'italic' }}>Aucun service</td></tr>
         )}
       </tbody>
     </table>
