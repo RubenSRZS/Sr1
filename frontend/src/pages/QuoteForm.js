@@ -362,6 +362,13 @@ const QuoteForm = () => {
       { key: 'faitage', label: 'Faîtage' },
       { key: 'fissures', label: 'Fissures' },
     ]},
+    { group: 'Type de toiture', items: [
+      { key: 'fibro_ciment', label: 'Fibro-ciment' },
+      { key: 'amiante', label: 'Amiante' },
+      { key: 'ardoise', label: 'Ardoise' },
+      { key: 'zinc', label: 'Zinc' },
+      { key: 'bac_acier', label: 'Bac acier' },
+    ]},
     { group: 'Végétation / Taches', items: [
       { key: 'mousses', label: 'Mousses' },
       { key: 'lichens', label: 'Lichens' },
