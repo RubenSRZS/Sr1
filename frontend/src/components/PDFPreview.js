@@ -241,13 +241,13 @@ const PDFDocument = ({ document, type, compact = false }) => {
         )}
 
         {/* Services */}
-        <ServicesTable services={document.services} title={hasOption2 ? "OPTION 1" : null} compact={compact} />
+        <ServicesTable services={document.services} title={hasOption2 ? "OPTION 1" : null} compact={compact} showLineNumbers={showLineNumbers} />
         {isQuote && (
           <TotalsSection remise={document.remise} remisePercent={document.remise_percent} totalNet={document.total_net} acompte30={document.acompte_30} isQuote={isQuote} label={hasOption2 ? "Total Option 1" : null} compact={compact} paymentPlan={paymentPlan} />
         )}
         {isQuote && hasOption2 && (
           <>
-            <ServicesTable services={document.option_2_services} title="OPTION 2" compact={compact} />
+            <ServicesTable services={document.option_2_services} title="OPTION 2" compact={compact} showLineNumbers={showLineNumbers} />
             <TotalsSection remise={document.option_2_remise} remisePercent={document.option_2_remise_percent} totalNet={document.option_2_total_net} acompte30={document.option_2_acompte_30} isQuote={isQuote} label="Total Option 2" compact={compact} paymentPlan={paymentPlan} />
           </>
         )}
