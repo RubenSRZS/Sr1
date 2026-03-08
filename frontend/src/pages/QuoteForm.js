@@ -535,6 +535,8 @@ const QuoteForm = () => {
               onRemiseTypeChange={(t) => { updateField('remise_type', t); if(t === 'percent') updateField('remise_montant', 0); else updateField('remise_percent', 0); }}
               onRemisePercentChange={(v) => updateField('remise_percent', v)}
               onRemiseMontantChange={(v) => updateField('remise_montant', v)}
+              optionTitle={formData.option_1_title}
+              onTitleChange={(v) => updateField('option_1_title', v)}
             />
 
             {/* Toggle Option 2 */}
@@ -567,16 +569,60 @@ const QuoteForm = () => {
                   onRemiseTypeChange={(t) => { updateField('option_2_remise_type', t); if(t === 'percent') updateField('option_2_remise_montant', 0); else updateField('option_2_remise_percent', 0); }}
                   onRemisePercentChange={(v) => updateField('option_2_remise_percent', v)}
                   onRemiseMontantChange={(v) => updateField('option_2_remise_montant', v)}
+                  optionTitle={formData.option_2_title}
+                  onTitleChange={(v) => updateField('option_2_title', v)}
                 />
+                
+                {/* Toggle Option 3 */}
+                {!hasOption3 ? (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="w-full h-10 border-dashed border-2"
+                    style={{ borderColor: '#d97706', color: '#d97706' }}
+                    onClick={() => setHasOption3(true)}
+                    data-testid="add-option-3-btn"
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Ajouter une Option 3
+                  </Button>
+                ) : (
+                  <ServicesSection
+                    services={formData.option_3_services}
+                    updateSvc={(i, f, v) => {
+                      const newServices = [...formData.option_3_services];
+                      newServices[i] = { ...newServices[i], [f]: f === 'quantity' || f === 'unit_price' || f === 'remise_percent' ? parseFloat(v) || 0 : v };
+                      const qty = parseFloat(newServices[i].quantity) || 0;
+                      const price = parseFloat(newServices[i].unit_price) || 0;
+                      const rem = parseFloat(newServices[i].remise_percent) || 0;
+                      newServices[i].total = qty * price * (1 - rem / 100);
+                      updateField('option_3_services', newServices);
+                    }}
+                    removeSvc={(i) => updateField('option_3_services', formData.option_3_services.filter((_, idx) => idx !== i))}
+                    addSvc={() => updateField('option_3_services', [...formData.option_3_services, { description: '', quantity: 1, unit: 'unité', unit_price: 0, remise_percent: 0, total: 0 }])}
+                    openCat={() => openCatalog('option3')}
+                    optionNum={3}
+                    totals={totals3}
+                    remiseType={formData.option_3_remise_type}
+                    remisePercent={formData.option_3_remise_percent}
+                    remiseMontant={formData.option_3_remise_montant}
+                    onRemiseTypeChange={(t) => { updateField('option_3_remise_type', t); if(t === 'percent') updateField('option_3_remise_montant', 0); else updateField('option_3_remise_percent', 0); }}
+                    onRemisePercentChange={(v) => updateField('option_3_remise_percent', v)}
+                    onRemiseMontantChange={(v) => updateField('option_3_remise_montant', v)}
+                    optionTitle={formData.option_3_title}
+                    onTitleChange={(v) => updateField('option_3_title', v)}
+                  />
+                )}
+                
                 <Button 
                   type="button" 
                   variant="ghost" 
                   className="w-full text-red-500 hover:bg-red-50"
-                  onClick={() => { setHasOption2(false); updateField('option_2_services', []); }}
+                  onClick={() => { setHasOption2(false); setHasOption3(false); updateField('option_2_services', []); updateField('option_3_services', []); }}
                   data-testid="remove-option-2-btn"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Supprimer l'Option 2
+                  Supprimer les options supplémentaires
                 </Button>
               </>
             )}
