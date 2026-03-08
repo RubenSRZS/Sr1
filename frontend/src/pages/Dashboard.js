@@ -6,29 +6,21 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { initializeDefaultCatalog } from '@/utils/defaultCatalog';
+import { useTheme } from '@/context/ThemeContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const Dashboard = () => {
+  const { darkMode, toggleDarkMode } = useTheme();
   const [stats, setStats] = useState(null);
   const [recentQuotes, setRecentQuotes] = useState([]);
   const [recentInvoices, setRecentInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('sr-dark-mode') === 'true');
 
   useEffect(() => {
     fetchData();
     initializeDefaultCatalog();
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem('sr-dark-mode', darkMode);
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
 
   const fetchData = async () => {
     try {
