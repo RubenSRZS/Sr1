@@ -144,6 +144,7 @@ const QuoteForm = () => {
       facade: false,
     },
     payment_plan: 'acompte_solde',
+    show_line_numbers: true, // Numérotation des lignes par défaut
     // Option 1
     services: [],
     remise_type: 'percent',
