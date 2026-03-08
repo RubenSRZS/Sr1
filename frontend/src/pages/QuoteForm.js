@@ -465,6 +465,20 @@ const QuoteForm = () => {
                   </label>
                 ))}
               </div>
+              {/* Toggle numérotation des lignes */}
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <span className="text-sm text-gray-700">Numéroter les prestations</span>
+                  <button
+                    type="button"
+                    onClick={() => updateField('show_line_numbers', !formData.show_line_numbers)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData.show_line_numbers ? 'bg-blue-600' : 'bg-gray-300'}`}
+                    data-testid="toggle-line-numbers"
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.show_line_numbers ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
+                </label>
+              </div>
             </Card>
 
             {/* Option 1 Services */}
