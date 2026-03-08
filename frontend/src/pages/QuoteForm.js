@@ -273,6 +273,7 @@ const QuoteForm = () => {
       diagnostic: formData.diagnostic,
       services: formData.services,
       payment_plan: formData.payment_plan,
+      show_line_numbers: formData.show_line_numbers,
       ...totals1,
       remise_percent: formData.remise_type === 'percent' ? formData.remise_percent : 0,
       remise_montant: formData.remise_type === 'amount' ? formData.remise_montant : 0,
