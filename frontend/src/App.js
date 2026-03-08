@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import '@/App.css';
 import { Toaster } from '@/components/ui/sonner';
+import { ThemeProvider } from '@/context/ThemeContext';
+import { FormPersistProvider } from '@/context/FormPersistContext';
 import Dashboard from '@/pages/Dashboard';
 import QuotesList from '@/pages/QuotesList';
 import QuoteForm from '@/pages/QuoteForm';
@@ -14,7 +16,17 @@ import DesktopNav from '@/components/DesktopNav';
 
 function App() {
   return (
-    <div className="App min-h-screen bg-[var(--sr-cream)]">
+    <ThemeProvider>
+      <FormPersistProvider>
+        <AppContent />
+      </FormPersistProvider>
+    </ThemeProvider>
+  );
+}
+
+function AppContent() {
+  return (
+    <div className="App min-h-screen transition-colors duration-300">
       <BrowserRouter>
         <DesktopNav />
         <div className="pb-16 lg:pb-0">
