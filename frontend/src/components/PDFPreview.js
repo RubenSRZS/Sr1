@@ -46,7 +46,9 @@ const LOGO_B64_MAP = {
 
 const DiagnosticLabels = {
   tuiles_cassees: 'Tuiles cassées', tuile_ciment: 'Tuile ciment', tuile_terre_cuite: 'Tuile terre cuite',
-  faitage: 'Faîtage', fissures: 'Fissures', mousses: 'Mousses', lichens: 'Lichens',
+  faitage: 'Faîtage', fissures: 'Fissures', 
+  fibro_ciment: 'Fibro-ciment', amiante: 'Amiante', ardoise: 'Ardoise', zinc: 'Zinc', bac_acier: 'Bac acier',
+  mousses: 'Mousses', lichens: 'Lichens',
   mousse_verte: 'Mousse verte', trace_noire: 'Trace noire', gouttieres: 'Gouttières',
   forte_humidite: 'Forte humidité', facade: 'Façade',
 };
