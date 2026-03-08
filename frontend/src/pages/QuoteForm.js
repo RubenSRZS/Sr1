@@ -18,18 +18,18 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 // ─── ServicesSection MUST be defined OUTSIDE QuoteForm to prevent remount on every render ─────
 const UNITS = ['unité', 'm²', 'ML', 'm', 'h', 'forfait', 'kg'];
 
-const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, optionNum, totals, remiseType, remisePercent, remiseMontant, onRemiseTypeChange, onRemisePercentChange, onRemiseMontantChange }) => (
+const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, optionNum, totals, remiseType, remisePercent, remiseMontant, onRemiseTypeChange, onRemisePercentChange, onRemiseMontantChange, optionTitle, onTitleChange }) => (
   <Card className="p-4 bg-white border-0 shadow-sm" data-testid={`services-section-${optionNum}`}>
-    <div className="flex items-center justify-between mb-3">
+    <div className="flex items-center justify-between mb-2">
       <span className="font-bold text-sm px-2 py-0.5 rounded"
-        style={{ background: optionNum === 1 ? '#eff6ff' : '#fff7ed', color: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE }}>
+        style={{ background: optionNum === 1 ? '#eff6ff' : optionNum === 2 ? '#fff7ed' : '#fef3c7', color: optionNum === 1 ? BRAND_BLUE : optionNum === 2 ? BRAND_ORANGE : '#d97706' }}>
         OPTION {optionNum}
       </span>
       <div className="flex gap-2">
         <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={openCat} data-testid={`catalog-btn-${optionNum}`}>
           <BookOpen className="h-3.5 w-3.5 mr-1" /> Catalogue
         </Button>
-        <Button type="button" size="sm" className="h-7 text-xs text-white" style={{ background: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE }} onClick={addSvc} data-testid={`add-service-btn-${optionNum}`}>
+        <Button type="button" size="sm" className="h-7 text-xs text-white" style={{ background: optionNum === 1 ? BRAND_BLUE : optionNum === 2 ? BRAND_ORANGE : '#d97706' }} onClick={addSvc} data-testid={`add-service-btn-${optionNum}`}>
           <Plus className="h-3.5 w-3.5 mr-1" /> Ajouter
         </Button>
       </div>
