@@ -124,10 +124,11 @@ const QuoteForm = () => {
   const [clients, setClients] = useState([]);
   const [catalog, setCatalog] = useState([]);
   const [showCatalog, setShowCatalog] = useState(false);
-  const [catalogTarget, setCatalogTarget] = useState('option1'); // 'option1' or 'option2'
+  const [catalogTarget, setCatalogTarget] = useState('option1'); // 'option1', 'option2', 'option3'
   const [showPreviewMobile, setShowPreviewMobile] = useState(false);
   const [showNewClient, setShowNewClient] = useState(false);
   const [hasOption2, setHasOption2] = useState(false);
+  const [hasOption3, setHasOption3] = useState(false);
 
   const [formData, setFormData] = useState({
     client_id: '',
