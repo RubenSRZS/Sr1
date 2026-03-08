@@ -57,6 +57,12 @@ class Diagnostic(BaseModel):
     tuile_terre_cuite: bool = False
     faitage: bool = False
     fissures: bool = False
+    # Types de toiture spéciaux
+    fibro_ciment: bool = False
+    amiante: bool = False
+    ardoise: bool = False
+    zinc: bool = False
+    bac_acier: bool = False
     # Végétation / taches
     mousses: bool = False
     lichens: bool = False
@@ -72,18 +78,27 @@ class QuoteCreate(BaseModel):
     client_id: Optional[str] = None
     new_client: Optional[ClientCreate] = None
     custom_quote_number: Optional[str] = None
+    quote_title: Optional[str] = ""  # Titre du devis
     work_location: str
     work_surface: Optional[str] = ""
     diagnostic: Optional[Diagnostic] = None
     services: List[Service]
+    option_1_title: Optional[str] = ""  # Titre Option 1
     remise_percent: float = 0.0
     remise_montant: float = 0.0
     payment_plan: Optional[str] = "acompte_solde"
     # Option 2
     option_2_services: Optional[List[Service]] = []
+    option_2_title: Optional[str] = ""  # Titre Option 2
     option_2_remise_percent: float = 0.0
     option_2_remise_montant: float = 0.0
+    # Option 3
+    option_3_services: Optional[List[Service]] = []
+    option_3_title: Optional[str] = ""
+    option_3_remise_percent: float = 0.0
+    option_3_remise_montant: float = 0.0
     notes: Optional[str] = ""
+    selected_option: Optional[int] = None  # Option choisie par le client (1, 2, 3...)
 
 class Quote(BaseModel):
     model_config = ConfigDict(extra="ignore")
