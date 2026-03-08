@@ -475,28 +475,36 @@ const QuoteForm = () => {
 
 
   return (
-    <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="quote-form-page">
+    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-slate-900' : 'bg-[var(--sr-cream)]'}`} data-testid="quote-form-page">
       {/* Header */}
-      <div style={{ background: `linear-gradient(135deg, ${BRAND_BLUE} 0%, #3b82f6 100%)` }} className="text-white lg:hidden">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/quotes')} className="text-white hover:bg-white/10 h-8 w-8 p-0" data-testid="back-button">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-lg font-bold">{id ? 'Modifier le devis' : 'Nouveau devis'}</h1>
+      <div style={{ background: darkMode ? 'linear-gradient(135deg, #1e293b 0%, #334155 100%)' : `linear-gradient(135deg, ${BRAND_BLUE} 0%, #3b82f6 100%)` }} className="text-white lg:hidden">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/quotes')} className="text-white hover:bg-white/10 h-8 w-8 p-0" data-testid="back-button">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-lg font-bold">{id ? 'Modifier le devis' : 'Nouveau devis'}</h1>
+          </div>
+          <button onClick={toggleDarkMode} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" data-testid="dark-mode-toggle-form">
+            {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="hidden lg:block mb-4">
-          <h1 className="text-xl font-bold text-gray-900">{id ? 'Modifier le devis' : 'Nouveau devis'}</h1>
+        <div className="hidden lg:flex lg:items-center lg:justify-between mb-4">
+          <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{id ? 'Modifier le devis' : 'Nouveau devis'}</h1>
+          <button onClick={toggleDarkMode} className={`p-2 rounded-full transition-colors ${darkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+            {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </button>
         </div>
         <form onSubmit={handleSubmit} className="flex gap-5">
           {/* LEFT - Form */}
           <div className="flex-1 min-w-0 space-y-4">
             {/* Client */}
-            <Card className="p-4 bg-white border-0 shadow-sm" data-testid="client-section">
+            <Card className={`p-4 border-0 shadow-sm ${darkMode ? 'bg-slate-800' : 'bg-white'}`} data-testid="client-section">
               <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold text-sm text-gray-800">Client</span>
+                <span className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-gray-800'}`}>Client</span>
                 <button type="button" onClick={() => setShowNewClient(!showNewClient)}
                   className="text-xs font-medium hover:underline" style={{ color: BRAND_BLUE }} data-testid="toggle-new-client">
                   {showNewClient ? 'Client existant' : '+ Nouveau client'}
@@ -504,17 +512,17 @@ const QuoteForm = () => {
               </div>
               {!showNewClient ? (
                 <Select value={formData.client_id} onValueChange={(v) => updateField('client_id', v)}>
-                  <SelectTrigger data-testid="client-select" className="h-9"><SelectValue placeholder="Choisir un client" /></SelectTrigger>
-                  <SelectContent>
-                    {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name} {c.phone ? `- ${c.phone}` : ''}</SelectItem>)}
+                  <SelectTrigger data-testid="client-select" className={`h-9 ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}><SelectValue placeholder="Choisir un client" /></SelectTrigger>
+                  <SelectContent className={darkMode ? 'bg-slate-700 border-slate-600' : ''}>
+                    {clients.map(c => <SelectItem key={c.id} value={c.id} className={darkMode ? 'text-white hover:bg-slate-600' : ''}>{c.name} {c.phone ? `- ${c.phone}` : ''}</SelectItem>)}
                   </SelectContent>
                 </Select>
               ) : (
-                <div className="space-y-2 bg-blue-50/50 p-3 rounded-lg border border-blue-200/50">
-                  <Input placeholder="Nom complet *" value={newClient.name} onChange={e => setNewClient({ ...newClient, name: e.target.value })} className="h-9 text-sm" data-testid="new-client-name" />
-                  <Input placeholder="Téléphone *" value={newClient.phone} onChange={e => setNewClient({ ...newClient, phone: e.target.value })} className="h-9 text-sm" data-testid="new-client-phone" />
-                  <Input placeholder="Adresse *" value={newClient.address} onChange={e => setNewClient({ ...newClient, address: e.target.value })} className="h-9 text-sm" data-testid="new-client-address" />
-                  <Input placeholder="Email (optionnel)" value={newClient.email} onChange={e => setNewClient({ ...newClient, email: e.target.value })} className="h-9 text-sm" data-testid="new-client-email" />
+                <div className={`space-y-2 p-3 rounded-lg border ${darkMode ? 'bg-slate-700/50 border-slate-600' : 'bg-blue-50/50 border-blue-200/50'}`}>
+                  <Input placeholder="Nom complet *" value={newClient.name} onChange={e => setNewClient({ ...newClient, name: e.target.value })} className={`h-9 text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} data-testid="new-client-name" />
+                  <Input placeholder="Téléphone *" value={newClient.phone} onChange={e => setNewClient({ ...newClient, phone: e.target.value })} className={`h-9 text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} data-testid="new-client-phone" />
+                  <Input placeholder="Adresse *" value={newClient.address} onChange={e => setNewClient({ ...newClient, address: e.target.value })} className={`h-9 text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} data-testid="new-client-address" />
+                  <Input placeholder="Email (optionnel)" value={newClient.email} onChange={e => setNewClient({ ...newClient, email: e.target.value })} className={`h-9 text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} data-testid="new-client-email" />
                 </div>
               )}
               <div className="mt-3">
