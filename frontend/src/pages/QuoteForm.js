@@ -132,6 +132,8 @@ const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, opti
 const QuoteForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { darkMode, toggleDarkMode } = useTheme();
+  const { quoteFormData, saveQuoteForm, clearQuoteForm } = useFormPersist();
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState([]);
   const [catalog, setCatalog] = useState([]);
@@ -141,38 +143,41 @@ const QuoteForm = () => {
   const [showNewClient, setShowNewClient] = useState(false);
   const [hasOption2, setHasOption2] = useState(false);
   const [hasOption3, setHasOption3] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
 
-  const [formData, setFormData] = useState({
+  const initialFormState = {
     client_id: '',
     custom_quote_number: '',
-    quote_title: '',  // Titre du devis
+    quote_title: '',
     work_location: '',
     diagnostic: {
-      // Structure
       tuiles_cassees: false, tuile_ciment: false, tuile_terre_cuite: false, faitage: false, fissures: false,
-      // Types de toiture
       fibro_ciment: false, amiante: false, ardoise: false, zinc: false, bac_acier: false,
-      // Végétation / taches
       mousses: false, lichens: false, mousse_verte: false, trace_noire: false,
-      // Hydrologie
       gouttieres: false, forte_humidite: false,
-      // Extérieur
       facade: false,
     },
     payment_plan: 'acompte_solde',
     show_line_numbers: true,
-    // Option 1
     option_1_title: '',
     services: [],
     remise_type: 'percent',
     remise_percent: 0,
     remise_montant: 0,
-    // Option 2
     option_2_title: '',
     option_2_services: [],
     option_2_remise_type: 'percent',
     option_2_remise_percent: 0,
     option_2_remise_montant: 0,
+    option_3_title: '',
+    option_3_services: [],
+    option_3_remise_type: 'percent',
+    option_3_remise_percent: 0,
+    option_3_remise_montant: 0,
+    notes: '',
+  };
+
+  const [formData, setFormData] = useState(initialFormState);
     // Option 3
     option_3_title: '',
     option_3_services: [],
