@@ -247,6 +247,8 @@ const QuoteForm = () => {
     const newService = { description: item.description, quantity: 1, unit: 'unité', unit_price: item.default_price || 0, remise_percent: 0, total: item.default_price || 0 };
     if (catalogTarget === 'option2') {
       updateField('option_2_services', [...formData.option_2_services, newService]);
+    } else if (catalogTarget === 'option3') {
+      updateField('option_3_services', [...formData.option_3_services, newService]);
     } else {
       updateField('services', [...formData.services, newService]);
     }
@@ -278,6 +280,16 @@ const QuoteForm = () => {
     const net = Math.round((brut - remise) * 100) / 100;
     return { total_brut: brut, remise, total_net: Math.max(net, 0), acompte_30: Math.round(Math.max(net, 0) * 0.3 * 100) / 100 };
   }, [formData.option_2_services, formData.option_2_remise_type, formData.option_2_remise_percent, formData.option_2_remise_montant]);
+
+  // Option 3 totals
+  const totals3 = useMemo(() => {
+    const brut = formData.option_3_services.reduce((sum, s) => sum + (s.total || 0), 0);
+    const remise = formData.option_3_remise_type === 'percent'
+      ? Math.round(brut * (formData.option_3_remise_percent || 0) / 100 * 100) / 100
+      : Math.round((formData.option_3_remise_montant || 0) * 100) / 100;
+    const net = Math.round((brut - remise) * 100) / 100;
+    return { total_brut: brut, remise, total_net: Math.max(net, 0), acompte_30: Math.round(Math.max(net, 0) * 0.3 * 100) / 100 };
+  }, [formData.option_3_services, formData.option_3_remise_type, formData.option_3_remise_percent, formData.option_3_remise_montant]);
 
   // Live preview document
   const previewDoc = useMemo(() => {
