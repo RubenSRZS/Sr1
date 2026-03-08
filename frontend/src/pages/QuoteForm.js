@@ -34,6 +34,16 @@ const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, opti
         </Button>
       </div>
     </div>
+    {/* Titre de l'option */}
+    <div className="mb-3">
+      <Input 
+        value={optionTitle || ''} 
+        onChange={e => onTitleChange(e.target.value)}
+        placeholder={`Titre Option ${optionNum} (ex: Solution économique, Premium...)`}
+        className="h-8 text-sm border-dashed"
+        data-testid={`option-title-${optionNum}`}
+      />
+    </div>
     <div className="space-y-3">
       {services.map((s, i) => (
         <div key={i} className="bg-gray-50 rounded-lg p-3 border border-gray-100" data-testid={`service-row-${optionNum}-${i}`}>
