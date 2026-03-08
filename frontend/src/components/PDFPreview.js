@@ -242,15 +242,80 @@ const PDFDocument = ({ document, type, compact = false }) => {
           </div>
         )}
 
-        {/* Services */}
-        <ServicesTable services={document.services} title={hasOption2 ? "OPTION 1" : null} compact={compact} showLineNumbers={showLineNumbers} />
-        {isQuote && (
-          <TotalsSection remise={document.remise} remisePercent={document.remise_percent} totalNet={document.total_net} acompte30={document.acompte_30} isQuote={isQuote} label={hasOption2 ? "Total Option 1" : null} compact={compact} paymentPlan={paymentPlan} />
+        {/* Quote Title */}
+        {isQuote && document.quote_title && (
+          <div style={{ textAlign: 'center', marginBottom: '10px', padding: '8px', background: '#f8fafc', borderRadius: '6px', borderLeft: `3px solid ${BRAND_BLUE}` }}>
+            <div style={{ fontWeight: 700, fontSize: compact ? '12px' : '14px', color: BRAND_BLUE }}>{document.quote_title}</div>
+          </div>
         )}
+
+        {/* Option selection instruction for multi-option quotes */}
+        {isQuote && multipleOptions && (
+          <div style={{ marginBottom: '10px', padding: '8px 12px', background: '#fef3c7', borderRadius: '6px', fontSize: '10px', color: '#92400e', borderLeft: '3px solid #f59e0b' }}>
+            <strong>Plusieurs options disponibles</strong> — Veuillez cocher l'option choisie lors de la signature
+          </div>
+        )}
+
+        {/* Services - Option 1 */}
+        <ServicesTable 
+          services={document.services} 
+          title={multipleOptions ? (document.option_1_title ? `OPTION 1 : ${document.option_1_title}` : "OPTION 1") : null} 
+          compact={compact} 
+          showLineNumbers={showLineNumbers} 
+        />
+        {isQuote && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {multipleOptions && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', border: '1.5px solid #d1d5db', borderRadius: '4px', background: 'white' }}>
+                <div style={{ width: '14px', height: '14px', border: '2px solid #9ca3af', borderRadius: '3px' }} />
+                <span style={{ fontSize: '9px', color: '#6b7280' }}>Option 1</span>
+              </div>
+            )}
+            <div style={{ flex: 1 }}>
+              <TotalsSection remise={document.remise} remisePercent={document.remise_percent} totalNet={document.total_net} acompte30={document.acompte_30} isQuote={isQuote} label={multipleOptions ? "Total Option 1" : null} compact={compact} paymentPlan={paymentPlan} />
+            </div>
+          </div>
+        )}
+
+        {/* Services - Option 2 */}
         {isQuote && hasOption2 && (
           <>
-            <ServicesTable services={document.option_2_services} title="OPTION 2" compact={compact} showLineNumbers={showLineNumbers} />
-            <TotalsSection remise={document.option_2_remise} remisePercent={document.option_2_remise_percent} totalNet={document.option_2_total_net} acompte30={document.option_2_acompte_30} isQuote={isQuote} label="Total Option 2" compact={compact} paymentPlan={paymentPlan} />
+            <ServicesTable 
+              services={document.option_2_services} 
+              title={document.option_2_title ? `OPTION 2 : ${document.option_2_title}` : "OPTION 2"} 
+              compact={compact} 
+              showLineNumbers={showLineNumbers} 
+            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', border: '1.5px solid #d1d5db', borderRadius: '4px', background: 'white' }}>
+                <div style={{ width: '14px', height: '14px', border: '2px solid #9ca3af', borderRadius: '3px' }} />
+                <span style={{ fontSize: '9px', color: '#6b7280' }}>Option 2</span>
+              </div>
+              <div style={{ flex: 1 }}>
+                <TotalsSection remise={document.option_2_remise} remisePercent={document.option_2_remise_percent} totalNet={document.option_2_total_net} acompte30={document.option_2_acompte_30} isQuote={isQuote} label="Total Option 2" compact={compact} paymentPlan={paymentPlan} />
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Services - Option 3 */}
+        {isQuote && hasOption3 && (
+          <>
+            <ServicesTable 
+              services={document.option_3_services} 
+              title={document.option_3_title ? `OPTION 3 : ${document.option_3_title}` : "OPTION 3"} 
+              compact={compact} 
+              showLineNumbers={showLineNumbers} 
+            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', border: '1.5px solid #d1d5db', borderRadius: '4px', background: 'white' }}>
+                <div style={{ width: '14px', height: '14px', border: '2px solid #9ca3af', borderRadius: '3px' }} />
+                <span style={{ fontSize: '9px', color: '#6b7280' }}>Option 3</span>
+              </div>
+              <div style={{ flex: 1 }}>
+                <TotalsSection remise={document.option_3_remise} remisePercent={document.option_3_remise_percent} totalNet={document.option_3_total_net} acompte30={document.option_3_acompte_30} isQuote={isQuote} label="Total Option 3" compact={compact} paymentPlan={paymentPlan} />
+              </div>
+            </div>
           </>
         )}
 
