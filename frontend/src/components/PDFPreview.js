@@ -179,6 +179,7 @@ const PDFDocument = ({ document, type, compact = false }) => {
   const diagItems = document.diagnostic ? Object.entries(document.diagnostic).filter(([, v]) => v === true) : [];
   const hasOption2 = isQuote && document.option_2_services && document.option_2_services.length > 0;
   const paymentPlan = document.payment_plan || 'acompte_solde';
+  const showLineNumbers = document.show_line_numbers !== false; // true par défaut
 
   return (
     <div className="bg-white" style={{ width: compact ? '100%' : '210mm', minHeight: compact ? 'auto' : '297mm', fontFamily: "'Manrope', 'Inter', sans-serif", fontSize: fs, lineHeight: 1.4 }} data-testid="pdf-document">
