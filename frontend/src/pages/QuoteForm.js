@@ -132,10 +132,13 @@ const QuoteForm = () => {
   const [formData, setFormData] = useState({
     client_id: '',
     custom_quote_number: '',
+    quote_title: '',  // Titre du devis
     work_location: '',
     diagnostic: {
       // Structure
       tuiles_cassees: false, tuile_ciment: false, tuile_terre_cuite: false, faitage: false, fissures: false,
+      // Types de toiture
+      fibro_ciment: false, amiante: false, ardoise: false, zinc: false, bac_acier: false,
       // Végétation / taches
       mousses: false, lichens: false, mousse_verte: false, trace_noire: false,
       // Hydrologie
@@ -144,17 +147,25 @@ const QuoteForm = () => {
       facade: false,
     },
     payment_plan: 'acompte_solde',
-    show_line_numbers: true, // Numérotation des lignes par défaut
+    show_line_numbers: true,
     // Option 1
+    option_1_title: '',
     services: [],
     remise_type: 'percent',
     remise_percent: 0,
     remise_montant: 0,
     // Option 2
+    option_2_title: '',
     option_2_services: [],
     option_2_remise_type: 'percent',
     option_2_remise_percent: 0,
     option_2_remise_montant: 0,
+    // Option 3
+    option_3_title: '',
+    option_3_services: [],
+    option_3_remise_type: 'percent',
+    option_3_remise_percent: 0,
+    option_3_remise_montant: 0,
     notes: '',
   });
 
