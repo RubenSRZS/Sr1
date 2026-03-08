@@ -462,15 +462,27 @@ async def get_invoice(invoice_id: str):
         raise HTTPException(status_code=404, detail="Facture non trouvée")
     return fix_datetime(inv)
 
+class ConvertQuoteToInvoice(BaseModel):
+    mark_as_paid: bool = False
+
 @api_router.post("/invoices/from-quote/{quote_id}", response_model=Invoice)
-async def create_invoice_from_quote(quote_id: str):
+async def create_invoice_from_quote(quote_id: str, options: Optional[ConvertQuoteToInvoice] = None):
     q = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
     if not q:
         raise HTTPException(status_code=404, detail="Devis non trouvé")
 
     invoice_number = await get_next_invoice_number(q["client_id"])
-    acompte_paid = q.get("acompte_30", 0)
-    reste = round(q["total_net"] - acompte_paid, 2)
+    
+    # Si marqué comme payé, acompte = total
+    mark_paid = options.mark_as_paid if options else False
+    if mark_paid:
+        acompte_paid = q["total_net"]
+        reste = 0.0
+        payment_status = "paid"
+    else:
+        acompte_paid = q.get("acompte_30", 0)
+        reste = round(q["total_net"] - acompte_paid, 2)
+        payment_status = "paid" if reste <= 0 else ("partial" if acompte_paid > 0 else "pending")
 
     invoice = Invoice(
         invoice_number=invoice_number,
@@ -486,16 +498,21 @@ async def create_invoice_from_quote(quote_id: str):
         services=[Service(**s) for s in q["services"]],
         total_brut=q["total_brut"],
         remise_percent=q.get("remise_percent", 0),
+        remise_montant=q.get("remise_montant", 0),
         remise=q.get("remise", 0),
         total_net=q["total_net"],
         acompte_paid=acompte_paid,
         reste_a_payer=reste,
-        payment_status="partial",
+        payment_status=payment_status,
         notes=q.get("notes", ""),
     )
     doc = invoice.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     await db.invoices.insert_one(doc)
+    
+    # Mettre à jour le statut du devis en "facturé"
+    await db.quotes.update_one({"id": quote_id}, {"$set": {"status": "invoiced"}})
+    
     return invoice
 
 @api_router.delete("/invoices/{invoice_id}")
