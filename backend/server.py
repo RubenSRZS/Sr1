@@ -450,7 +450,12 @@ async def create_invoice(input: InvoiceCreate):
     remise = remise_from_pct if input.remise_percent > 0 else round(input.remise_montant, 2)
     total_net = round(total_brut - remise, 2)
     reste_a_payer = round(total_net - input.acompte_paid, 2)
-    invoice_number = await get_next_invoice_number(client_id)
+    
+    # Utiliser le numéro personnalisé ou générer automatiquement
+    if input.custom_invoice_number:
+        invoice_number = input.custom_invoice_number
+    else:
+        invoice_number = await get_next_invoice_number(client_id)
 
     invoice = Invoice(
         invoice_number=invoice_number,
