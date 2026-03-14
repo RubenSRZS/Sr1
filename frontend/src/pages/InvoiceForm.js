@@ -98,7 +98,7 @@ const InvoiceForm = () => {
     const cPhone = showNewClient ? newClient.phone : client?.phone || '';
     const cEmail = showNewClient ? newClient.email : client?.email || '';
     return {
-      invoice_number: id ? undefined : 'XX',
+      invoice_number: formData.custom_invoice_number || (id ? undefined : 'XX'),
       client_name: cName, client_address: cAddr, client_phone: cPhone, client_email: cEmail,
       date: new Date().toLocaleDateString('fr-FR'),
       work_location: formData.work_location,
@@ -130,6 +130,7 @@ const InvoiceForm = () => {
       const payload = {
         client_id: hasNewClient ? null : clientId,
         new_client: hasNewClient ? newClient : null,
+        custom_invoice_number: formData.custom_invoice_number || null,
         work_location: formData.work_location,
         work_surface: '',
         services: formData.services,
