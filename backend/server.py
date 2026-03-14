@@ -151,6 +151,7 @@ class InvoiceCreate(BaseModel):
     quote_id: Optional[str] = None
     client_id: Optional[str] = None
     new_client: Optional[ClientCreate] = None
+    custom_invoice_number: Optional[str] = None
     work_location: str
     work_surface: Optional[str] = ""
     services: List[Service]
