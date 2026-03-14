@@ -26,6 +26,7 @@ const InvoiceForm = () => {
 
   const [formData, setFormData] = useState({
     client_id: '',
+    custom_invoice_number: '',
     work_location: '',
     services: [],
     remise_type: 'percent',
@@ -46,6 +47,7 @@ const InvoiceForm = () => {
         const inv = r.data;
         setFormData({
           client_id: inv.client_id,
+          custom_invoice_number: inv.invoice_number || '',
           work_location: inv.work_location,
           services: inv.services,
           remise_type: inv.remise_percent > 0 ? 'percent' : (inv.remise_montant > 0 ? 'amount' : 'percent'),
