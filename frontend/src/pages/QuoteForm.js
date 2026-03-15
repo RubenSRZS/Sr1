@@ -785,36 +785,77 @@ const QuoteForm = () => {
 
       {/* Catalog Dialog */}
       <Dialog open={showCatalog} onOpenChange={setShowCatalog}>
-        <DialogContent className="sm:max-w-[600px] max-h-[80vh]" data-testid="catalog-dialog">
+        <DialogContent className="sm:max-w-[700px] max-h-[80vh]" data-testid="catalog-dialog">
           <DialogHeader>
             <DialogTitle>
               Catalogue de services 
               <span className="ml-2 text-sm font-normal" style={{ color: catalogTarget === 'option1' ? BRAND_BLUE : BRAND_ORANGE }}>
-                (pour {catalogTarget === 'option1' ? 'Option 1' : 'Option 2'})
+                (pour {catalogTarget === 'option1' ? 'Option 1' : catalogTarget === 'option2' ? 'Option 2' : 'Option 3'})
               </span>
             </DialogTitle>
           </DialogHeader>
-          <div className="overflow-y-auto space-y-2 max-h-[60vh]">
-            {catalog.map(item => (
-              <div key={item.id} onClick={() => addFromCatalog(item)}
-                className="p-3 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 cursor-pointer transition-colors"
-                data-testid={`catalog-item-${item.id}`}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  {item.color && (
-                    <div 
-                      className="w-4 h-4 rounded-full border border-gray-300" 
-                      style={{ backgroundColor: item.color }}
-                      title={`Couleur: ${item.color}`}
-                    />
-                  )}
-                  <span className="text-xs font-medium px-1.5 py-0.5 rounded" style={{ background: '#eff6ff', color: BRAND_BLUE }}>{item.category}</span>
-                  <span className="font-medium text-sm">{item.service_name}</span>
-                </div>
-                <p className="text-xs text-gray-500">{item.description}</p>
-                {item.default_price && <p className="text-xs font-medium mt-1" style={{ color: BRAND_BLUE }}>{item.default_price.toFixed(2)} €</p>}
+          <div className="overflow-y-auto space-y-3 max-h-[60vh] px-1">
+            {catalog.length === 0 ? (
+              <div className="text-center py-8 text-gray-400">
+                <p className="text-sm">Aucun service dans le catalogue</p>
+                <p className="text-xs mt-2">Ajoutez des services depuis la page Catalogue</p>
               </div>
-            ))}
+            ) : (
+              (() => {
+                // Grouper par catégorie
+                const grouped = catalog.reduce((acc, item) => {
+                  const cat = item.category || 'Autres';
+                  if (!acc[cat]) acc[cat] = [];
+                  acc[cat].push(item);
+                  return acc;
+                }, {});
+                
+                return Object.entries(grouped).map(([category, items]) => (
+                  <div key={category} className="space-y-2">
+                    <div className="text-xs font-bold uppercase text-gray-500 px-2 py-1 bg-gray-50 rounded sticky top-0">
+                      {category}
+                    </div>
+                    <div className="space-y-1.5">
+                      {items.map(item => (
+                        <div 
+                          key={item.id} 
+                          onClick={() => addFromCatalog(item)}
+                          className="p-3 rounded-lg border hover:shadow-sm cursor-pointer transition-all"
+                          style={{ 
+                            borderColor: item.color || '#e5e7eb',
+                            borderLeftWidth: '4px',
+                            backgroundColor: item.color ? `${item.color}08` : 'white'
+                          }}
+                          data-testid={`catalog-item-${item.id}`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            {item.color && (
+                              <div 
+                                className="w-5 h-5 rounded-md border-2 shadow-sm flex-shrink-0" 
+                                style={{ 
+                                  backgroundColor: item.color,
+                                  borderColor: item.color
+                                }}
+                                title={`Couleur: ${item.color}`}
+                              />
+                            )}
+                            <span className="font-semibold text-sm flex-1">{item.service_name}</span>
+                            {item.default_price && (
+                              <span className="text-sm font-bold px-2 py-0.5 rounded" style={{ color: item.color || BRAND_BLUE }}>
+                                {item.default_price.toFixed(2)} €
+                              </span>
+                            )}
+                          </div>
+                          {item.description && (
+                            <p className="text-xs text-gray-600 ml-7">{item.description}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ));
+              })()
+            )}
           </div>
         </DialogContent>
       </Dialog>

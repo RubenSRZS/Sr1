@@ -3,37 +3,39 @@ import { Card } from '@/components/ui/card';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
 // Configuration des groupes de diagnostic avec leurs sous-options
+// IMPORTANT: Les sous-options utilisent des labels COURTS sans répéter le groupe
+// Ex: "Obstruée" et non "Gouttières obstruées"
 const DIAGNOSTIC_GROUPS = [
   {
     id: 'structure',
     label: 'Structure',
     options: [
-      { id: 'tuiles_cassees', label: 'Tuiles cassées' },
-      { id: 'faitage_defaillant', label: 'Faîtage défaillant' },
-      { id: 'fissures', label: 'Fissures' },
+      { id: 'structure_tuiles_cassees', label: 'Tuiles cassées' },
+      { id: 'structure_faitage_defaillant', label: 'Faîtage défaillant' },
+      { id: 'structure_fissures', label: 'Fissures' },
     ],
   },
   {
     id: 'type_toiture',
     label: 'Type de toiture',
     options: [
-      { id: 'tuile_ciment', label: 'Tuile ciment' },
-      { id: 'tuile_terre_cuite', label: 'Tuile terre cuite' },
-      { id: 'ardoise', label: 'Ardoise' },
-      { id: 'zinc', label: 'Zinc' },
-      { id: 'bac_acier', label: 'Bac acier' },
-      { id: 'pc_tole', label: 'PC tôle' },
-      { id: 'fibro_ciment', label: 'Fibro-ciment' },
-      { id: 'amiante', label: 'Amiante' },
+      { id: 'toiture_tuile_ciment', label: 'Tuile ciment' },
+      { id: 'toiture_tuile_terre_cuite', label: 'Tuile terre cuite' },
+      { id: 'toiture_ardoise', label: 'Ardoise' },
+      { id: 'toiture_zinc', label: 'Zinc' },
+      { id: 'toiture_bac_acier', label: 'Bac acier' },
+      { id: 'toiture_pc_tole', label: 'PC tôle' },
+      { id: 'toiture_fibro_ciment', label: 'Fibro-ciment' },
+      { id: 'toiture_amiante', label: 'Amiante' },
     ],
   },
   {
     id: 'vegetation',
     label: 'Végétation / Taches',
     options: [
-      { id: 'mousses', label: 'Mousses' },
-      { id: 'lichens', label: 'Lichens' },
-      { id: 'trace_noire', label: 'Trace noire' },
+      { id: 'vegetation_mousses', label: 'Mousses' },
+      { id: 'vegetation_lichens', label: 'Lichens' },
+      { id: 'vegetation_trace_noire', label: 'Trace noire' },
     ],
   },
   {
@@ -45,7 +47,7 @@ const DIAGNOSTIC_GROUPS = [
       { id: 'gouttieres_corrosion', label: 'Corrosion/Rouille' },
       { id: 'gouttieres_deformee', label: 'Déformée' },
       { id: 'gouttieres_decollee', label: 'Décollée' },
-      { id: 'descente_ep', label: 'Descente EP défectueuse' },
+      { id: 'gouttieres_descente_ep', label: 'Descente EP défectueuse' },
     ],
   },
   {
@@ -63,8 +65,8 @@ const DIAGNOSTIC_GROUPS = [
     id: 'humidite',
     label: 'Humidité',
     options: [
-      { id: 'forte_humidite', label: 'Forte humidité' },
-      { id: 'infiltrations', label: 'Infiltrations' },
+      { id: 'humidite_forte', label: 'Forte humidité' },
+      { id: 'humidite_infiltrations', label: 'Infiltrations' },
     ],
   },
 ];
