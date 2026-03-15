@@ -282,7 +282,14 @@ const QuoteForm = () => {
 
   // Catalog handler
   const addFromCatalog = (item) => {
-    const newService = { description: item.description, quantity: 1, unit: 'unité', unit_price: item.default_price || 0, remise_percent: 0, total: item.default_price || 0 };
+    const newService = { 
+      description: item.description, 
+      quantity: 1, 
+      unit: item.default_unit || 'unité', 
+      unit_price: item.default_price || 0, 
+      remise_percent: 0, 
+      total: item.default_price || 0 
+    };
     if (catalogTarget === 'option2') {
       updateField('option_2_services', [...formData.option_2_services, newService]);
     } else if (catalogTarget === 'option3') {
