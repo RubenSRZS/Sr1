@@ -2,140 +2,50 @@ import axios from 'axios';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-const defaultCatalogItems = [
-  // TOITURE
-  {
-    category: 'TOITURE',
-    service_name: 'Nettoyage Toiture',
-    description: 'Nettoyage professionnel sur la totalité des tuiles de l\'entièreté de la surface par traitement basse pression ou manuel selon l\'état de la toiture',
-    default_price: 15.0,
-  },
-  {
-    category: 'TOITURE',
-    service_name: 'Traitement Antimousse',
-    description: 'Application de traitement antimousse curatif et préventif à action rapide sur l\'ensemble de la couverture pour éliminer mousses et lichens',
-    default_price: 8.0,
-  },
-  {
-    category: 'TOITURE',
-    service_name: 'Hydrofuge Incolore',
-    description: 'Application d\'hydrofuge incolore haute qualité pour imperméabilisation et protection durable de la toiture contre les intempéries',
-    default_price: 12.0,
-  },
-  {
-    category: 'TOITURE',
-    service_name: 'Révision Faîtage',
-    description: 'Contrôle et réfection complète du faîtage avec vérification de l\'étanchéité et rénovation de la cimenterie si nécessaire',
-    default_price: 45.0,
-  },
-  {
-    category: 'TOITURE',
-    service_name: 'Nettoyage Panneaux Solaires',
-    description: 'Nettoyage délicat des panneaux photovoltaïques à l\'eau pure avec brossage doux pour optimiser le rendement énergétique',
-    default_price: 150.0,
-  },
+const DEFAULT_CATALOG = [
+  // ───────────── TOITURE ─────────────
+  { category: 'TOITURE', service_name: 'Nettoyage haute pression', description: 'Nettoyage complet de la toiture au nettoyeur haute pression professionnel\n- Élimination mousses, lichens et débris\n- Travail soigné avec protection des végétaux', default_price: 15, default_unit: 'm²' },
+  { category: 'TOITURE', service_name: 'Traitement anti-mousse', description: 'Application d\'un traitement anti-mousse préventif longue durée\n- Produit professionnel biodégradable\n- Garantie efficacité 3 ans', default_price: 8, default_unit: 'm²' },
+  { category: 'TOITURE', service_name: 'Traitement hydrofuge', description: 'Application d\'un hydrofuge coloré ou incolore\n- Protection contre l\'humidité et le gel\n- Améliore l\'esthétique de la toiture', default_price: 12, default_unit: 'm²' },
+  { category: 'TOITURE', service_name: 'Démoussage manuel', description: 'Démoussage manuel à la brosse\n- Idéal pour tuiles fragiles\n- Travail minutieux', default_price: 18, default_unit: 'm²' },
+  { category: 'TOITURE', service_name: 'Remplacement tuiles cassées', description: 'Fourniture et pose de tuiles de remplacement\n- Tuiles identiques ou approchantes\n- Vérification étanchéité', default_price: 45, default_unit: 'unité' },
+  { category: 'TOITURE', service_name: 'Réfection faîtage', description: 'Réfection complète du faîtage\n- Dépose ancien faîtage\n- Pose nouveaux faîtiers au mortier', default_price: 65, default_unit: 'ML' },
+  { category: 'TOITURE', service_name: 'Réparation fuite', description: 'Recherche et réparation de fuite\n- Diagnostic complet\n- Intervention ciblée', default_price: 150, default_unit: 'forfait' },
   
-  // FAÇADE
-  {
-    category: 'FAÇADE',
-    service_name: 'Nettoyage Façade',
-    description: 'Nettoyage haute pression professionnel de la façade pour élimination complète des salissures, traces noires et rouges',
-    default_price: 10.0,
-  },
-  {
-    category: 'FAÇADE',
-    service_name: 'Nettoyage Bardage',
-    description: 'Nettoyage spécialisé du bardage PVC, bois ou composite avec produits adaptés pour une remise à neuf sans détérioration',
-    default_price: 12.0,
-  },
-  {
-    category: 'FAÇADE',
-    service_name: 'Traitement Hydrofuge Façade',
-    description: 'Application de traitement hydrofuge incolore pour protection longue durée des murs contre l\'humidité et les infiltrations',
-    default_price: 15.0,
-  },
-  {
-    category: 'FAÇADE',
-    service_name: 'Réparation Fissures',
-    description: 'Rebouchage professionnel et localisé des fissures avec enduit de qualité supérieure et finition soignée',
-    default_price: 80.0,
-  },
-  {
-    category: 'FAÇADE',
-    service_name: 'Rénovation Appuis de Fenêtre',
-    description: 'Nettoyage approfondi et peinture de rénovation des appuis de fenêtre avec peinture spéciale extérieur haute résistance',
-    default_price: 25.0,
-  },
+  // ───────────── FAÇADE ─────────────
+  { category: 'FAÇADE', service_name: 'Nettoyage façade', description: 'Nettoyage complet de la façade\n- Haute pression adaptée au support\n- Élimination salissures et traces noires', default_price: 12, default_unit: 'm²' },
+  { category: 'FAÇADE', service_name: 'Traitement anti-mousse façade', description: 'Application d\'un traitement anti-mousse sur façade\n- Action préventive longue durée\n- Produit professionnel', default_price: 6, default_unit: 'm²' },
+  { category: 'FAÇADE', service_name: 'Hydrofuge façade', description: 'Application d\'un hydrofuge de façade\n- Protection contre les infiltrations\n- Effet perlant visible', default_price: 10, default_unit: 'm²' },
+  { category: 'FAÇADE', service_name: 'Peinture façade', description: 'Peinture complète de la façade\n- 2 couches de peinture façade\n- Large choix de coloris', default_price: 25, default_unit: 'm²' },
+  { category: 'FAÇADE', service_name: 'Rebouchage fissures', description: 'Rebouchage de fissures sur façade\n- Préparation du support\n- Enduit de réparation', default_price: 35, default_unit: 'ML' },
   
-  // ZINGUERIE & HABILLAGE
-  {
-    category: 'ZINGUERIE & HABILLAGE',
-    service_name: 'Entretien Gouttières',
-    description: 'Nettoyage complet et vidage des gouttières avec vérification des coudes et évacuation des déchets pour un écoulement optimal',
-    default_price: 80.0,
-  },
-  {
-    category: 'ZINGUERIE & HABILLAGE',
-    service_name: 'Remplacement Gouttières',
-    description: 'Dépose de l\'ancienne installation et pose de gouttières neuves en zinc, aluminium ou PVC selon choix avec garantie décennale',
-    default_price: 65.0,
-  },
-  {
-    category: 'ZINGUERIE & HABILLAGE',
-    service_name: 'Habillage Rives',
-    description: 'Installation d\'habillage des rives en planches aluminium ou tôle thermolaquée pour protection et finition esthétique',
-    default_price: 55.0,
-  },
-  {
-    category: 'ZINGUERIE & HABILLAGE',
-    service_name: 'Sous-face Toiture',
-    description: 'Pose d\'habillage de sous-face en PVC blanc ou couleur pour protection et isolation des débords de toiture',
-    default_price: 45.0,
-  },
+  // ───────────── ZINGUERIE & HABILLAGE ─────────────
+  { category: 'ZINGUERIE & HABILLAGE', service_name: 'Nettoyage gouttières', description: 'Nettoyage complet des gouttières\n- Évacuation débris et feuilles\n- Vérification écoulement', default_price: 8, default_unit: 'ML' },
+  { category: 'ZINGUERIE & HABILLAGE', service_name: 'Remplacement gouttière', description: 'Fourniture et pose de gouttière neuve\n- Gouttière PVC ou alu\n- Accessoires de fixation inclus', default_price: 45, default_unit: 'ML' },
+  { category: 'ZINGUERIE & HABILLAGE', service_name: 'Remplacement descente EP', description: 'Fourniture et pose de descente d\'eau pluviale\n- PVC ou alu au choix\n- Colliers de fixation inclus', default_price: 55, default_unit: 'ML' },
+  { category: 'ZINGUERIE & HABILLAGE', service_name: 'Habillage planche de rive', description: 'Habillage des planches de rive en PVC ou alu\n- Protection définitive du bois\n- Large choix de coloris', default_price: 35, default_unit: 'ML' },
+  { category: 'ZINGUERIE & HABILLAGE', service_name: 'Habillage dessous de toit', description: 'Pose de lambris PVC sous débord de toit\n- Finition soignée\n- Ventilation intégrée', default_price: 55, default_unit: 'm²' },
   
-  // SOLS & EXTÉRIEURS
-  {
-    category: 'SOLS & EXTÉRIEURS',
-    service_name: 'Nettoyage Terrasse',
-    description: 'Nettoyage haute pression professionnel de la terrasse en dalles, pavés ou bois avec traitement anti-verdissement',
-    default_price: 8.0,
-  },
-  {
-    category: 'SOLS & EXTÉRIEURS',
-    service_name: 'Protection Sol',
-    description: 'Application de traitement hydrofuge et oléofuge pour protection durable contre l\'eau, les taches et les salissures',
-    default_price: 12.0,
-  },
-  {
-    category: 'SOLS & EXTÉRIEURS',
-    service_name: 'Rénovation Murets',
-    description: 'Remise en état complète des murets et clôtures avec rejointoiement, rebouchage et finition soignée',
-    default_price: 120.0,
-  },
-  {
-    category: 'SOLS & EXTÉRIEURS',
-    service_name: 'Traitement Boiseries',
-    description: 'Application de lasure ou peinture de protection sur volets, portails et barrières en bois pour résistance aux intempéries',
-    default_price: 35.0,
-  },
+  // ───────────── SOLS & EXTÉRIEURS ─────────────
+  { category: 'SOLS & EXTÉRIEURS', service_name: 'Nettoyage terrasse', description: 'Nettoyage haute pression de terrasse\n- Tous types de dalles\n- Élimination mousses et taches', default_price: 10, default_unit: 'm²' },
+  { category: 'SOLS & EXTÉRIEURS', service_name: 'Nettoyage allée', description: 'Nettoyage haute pression d\'allée\n- Béton, pavés, enrobé\n- Résultat impeccable', default_price: 8, default_unit: 'm²' },
+  { category: 'SOLS & EXTÉRIEURS', service_name: 'Traitement anti-mousse sol', description: 'Traitement préventif anti-mousse pour sols extérieurs\n- Efficacité longue durée\n- Sans danger pour l\'environnement', default_price: 5, default_unit: 'm²' },
+  { category: 'SOLS & EXTÉRIEURS', service_name: 'Nettoyage muret/clôture', description: 'Nettoyage de murets et clôtures\n- Parpaings, pierre, bois\n- Élimination verdissures', default_price: 12, default_unit: 'm²' },
 ];
 
 export const initializeDefaultCatalog = async () => {
   try {
-    // Check if catalog is empty
-    const res = await axios.get(`${API}/catalog`);
-    if (res.data.length === 0) {
-      // Add all default items
-      for (const item of defaultCatalogItems) {
+    const response = await axios.get(`${API}/catalog`);
+    if (response.data.length === 0) {
+      // Catalogue vide, on initialise avec les valeurs par défaut
+      for (const item of DEFAULT_CATALOG) {
         await axios.post(`${API}/catalog`, item);
       }
-      return true;
+      console.log('Catalogue initialisé avec les valeurs par défaut');
     }
-    return false;
   } catch (error) {
-    console.error('Error initializing catalog:', error);
-    return false;
+    console.error('Erreur initialisation catalogue:', error);
   }
 };
 
-export default defaultCatalogItems;
+export default DEFAULT_CATALOG;
