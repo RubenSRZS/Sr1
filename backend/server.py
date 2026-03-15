@@ -542,7 +542,7 @@ async def create_invoice(input: InvoiceCreate):
         total_net=total_net,
         acompte_paid=input.acompte_paid,
         reste_a_payer=reste_a_payer,
-        payment_status="paid" if reste_a_payer <= 0 else ("partial" if input.acompte_paid > 0 else "pending"),
+        payment_status=input.payment_status if input.payment_status else ("paid" if reste_a_payer <= 0 else ("partial" if input.acompte_paid > 0 else "pending")),
         notes=input.notes or "",
     )
     doc = invoice.model_dump()
