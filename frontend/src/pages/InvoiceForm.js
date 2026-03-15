@@ -38,6 +38,7 @@ const InvoiceForm = () => {
     remise_percent: 0,
     remise_montant: 0,
     acompte_paid: 0,
+    payment_status: 'pending', // 'pending', 'paid', 'partial'
     notes: '',
   });
 
