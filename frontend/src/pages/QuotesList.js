@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Search, FileText, Trash2, Eye, Receipt, ChevronRight, Send, CheckCircle, Clock, FileCheck, SortAsc } from 'lucide-react';
+import { Plus, Search, FileText, Trash2, Eye, Receipt, ChevronRight, Send, CheckCircle, Clock, FileCheck, SortAsc, Mail, EyeIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
+import SendQuoteModal from '@/components/SendQuoteModal';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -28,6 +29,7 @@ const QuotesList = () => {
   const [markAsPaid, setMarkAsPaid] = useState(true);
   const [converting, setConverting] = useState(false);
   const [sortMode, setSortMode] = useState('recent'); // 'recent' | 'alpha'
+  const [sendQuote, setSendQuote] = useState(null);
 
   useEffect(() => { fetchQuotes(); }, []);
   const fetchQuotes = async () => {
@@ -157,15 +159,32 @@ const QuotesList = () => {
                 </div>
                 <span className="font-bold text-lg">{q.total_net.toFixed(0)} €</span>
               </div>
-              <div className="text-xs text-gray-500 mb-3">
+              <div className="text-xs text-gray-500 mb-1">
                 {q.client_name} &middot; {q.date} &middot; {q.work_location}
               </div>
+              {/* Tracking info */}
+              {(q.sent_at || q.opened_at || q.signed_at) && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {q.sent_at && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded flex items-center gap-1"><Mail className="w-2.5 h-2.5" /> Envoyé</span>}
+                  {q.opened_at && <span className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded flex items-center gap-1"><EyeIcon className="w-2.5 h-2.5" /> Ouvert</span>}
+                  {q.signed_at && <span className="text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded flex items-center gap-1"><CheckCircle className="w-2.5 h-2.5" /> Signé</span>}
+                </div>
+              )}
               <div className="flex gap-2">
                 <Link to={`/quotes/edit/${q.id}`} className="flex-1">
                   <Button variant="outline" size="sm" className="w-full h-8 text-xs" data-testid={`view-quote-${q.id}`}>
                     <Eye className="h-3.5 w-3.5 mr-1" /> Voir / Éditer
                   </Button>
                 </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSendQuote(q)}
+                  className="h-8 text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
+                  data-testid={`send-quote-${q.id}`}
+                >
+                  <Send className="h-3.5 w-3.5 mr-1" /> Envoyer
+                </Button>
                 {q.status !== 'invoiced' && (
                   <Button 
                     variant="outline" 
@@ -239,6 +258,15 @@ const QuotesList = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Modal envoi email */}
+      {sendQuote && (
+        <SendQuoteModal
+          quote={sendQuote}
+          onClose={() => setSendQuote(null)}
+          onSent={fetchQuotes}
+        />
+      )}
     </div>
   );
 };

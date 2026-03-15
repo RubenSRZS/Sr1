@@ -1,9 +1,12 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Body
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
+import asyncio
+import secrets
+import resend
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
@@ -16,6 +19,11 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+# Resend config
+resend.api_key = os.environ.get('RESEND_API_KEY', '')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', '')
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -121,6 +129,11 @@ class Quote(BaseModel):
     status: str = "draft"
     signature_data: Optional[str] = None
     selected_option: Optional[int] = None
+    public_token: str = Field(default_factory=lambda: secrets.token_urlsafe(32))
+    sent_at: Optional[str] = None
+    sent_to_email: Optional[str] = None
+    opened_at: Optional[str] = None
+    signed_at: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class InvoiceCreate(BaseModel):
@@ -601,6 +614,248 @@ async def update_invoice_payment(invoice_id: str, payment_status: str):
     await db.invoices.update_one({"id": invoice_id}, {"$set": update_data})
     return {"status": "success", "payment_status": payment_status}
 
+# ==================== PIN AUTH ====================
+
+class PinVerify(BaseModel):
+    pin: str
+
+class PinChange(BaseModel):
+    current_pin: str
+    new_pin: str
+
+async def get_settings():
+    settings = await db.settings.find_one({"id": "app_settings"}, {"_id": 0})
+    if not settings:
+        settings = {
+            "id": "app_settings",
+            "pin": os.environ.get("DEFAULT_PIN", "0330"),
+            "admin_email": ADMIN_EMAIL,
+        }
+        await db.settings.insert_one(settings)
+    return settings
+
+@api_router.post("/auth/verify-pin")
+async def verify_pin(body: PinVerify):
+    settings = await get_settings()
+    if body.pin == settings["pin"]:
+        return {"status": "success", "authenticated": True}
+    raise HTTPException(status_code=401, detail="Code incorrect")
+
+@api_router.post("/auth/change-pin")
+async def change_pin(body: PinChange):
+    settings = await get_settings()
+    if body.current_pin != settings["pin"]:
+        raise HTTPException(status_code=401, detail="Code actuel incorrect")
+    await db.settings.update_one({"id": "app_settings"}, {"$set": {"pin": body.new_pin}})
+    return {"status": "success", "message": "Code modifié"}
+
+@api_router.post("/auth/recover-pin")
+async def recover_pin():
+    settings = await get_settings()
+    admin_email = settings.get("admin_email", ADMIN_EMAIL)
+    if not admin_email:
+        raise HTTPException(status_code=400, detail="Aucun email administrateur configuré")
+    try:
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [admin_email],
+            "subject": "SR Rénovation - Votre code d'accès",
+            "html": f"""
+            <div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;padding:30px;background:#f8fafc;border-radius:12px;">
+                <div style="text-align:center;margin-bottom:20px;">
+                    <h2 style="color:#1e3a5f;margin:0;">SR Rénovation</h2>
+                    <p style="color:#64748b;font-size:14px;">Récupération du code d'accès</p>
+                </div>
+                <div style="background:white;padding:20px;border-radius:8px;text-align:center;border:1px solid #e2e8f0;">
+                    <p style="color:#475569;margin:0 0 10px;">Votre code d'accès est :</p>
+                    <div style="font-size:36px;font-weight:bold;color:#1e3a5f;letter-spacing:8px;">{settings['pin']}</div>
+                </div>
+            </div>"""
+        }
+        await asyncio.to_thread(resend.Emails.send, params)
+        return {"status": "success", "message": f"Code envoyé à {admin_email[:3]}***"}
+    except Exception as e:
+        logger.error(f"Erreur envoi email: {e}")
+        raise HTTPException(status_code=500, detail="Erreur d'envoi de l'email")
+
+# ==================== PUBLIC QUOTE ====================
+
+@api_router.get("/public/quote/{token}")
+async def get_public_quote(token: str):
+    q = await db.quotes.find_one({"public_token": token}, {"_id": 0})
+    if not q:
+        raise HTTPException(status_code=404, detail="Devis non trouvé")
+    # Return only necessary fields for client view
+    return {
+        "id": q["id"],
+        "quote_number": q["quote_number"],
+        "quote_title": q.get("quote_title", ""),
+        "client_name": q["client_name"],
+        "client_address": q["client_address"],
+        "date": q["date"],
+        "work_location": q["work_location"],
+        "work_surface": q.get("work_surface", ""),
+        "services": q["services"],
+        "option_1_title": q.get("option_1_title", ""),
+        "total_brut": q["total_brut"],
+        "remise": q.get("remise", 0),
+        "total_net": q["total_net"],
+        "payment_plan": q.get("payment_plan", "acompte_solde"),
+        "acompte_30": q.get("acompte_30", 0),
+        "option_2_services": q.get("option_2_services", []),
+        "option_2_title": q.get("option_2_title", ""),
+        "option_2_total_net": q.get("option_2_total_net", 0),
+        "option_3_services": q.get("option_3_services", []),
+        "option_3_title": q.get("option_3_title", ""),
+        "option_3_total_net": q.get("option_3_total_net", 0),
+        "notes": q.get("notes", ""),
+        "status": q["status"],
+        "diagnostic": q.get("diagnostic"),
+        "signed_at": q.get("signed_at"),
+        "signature_data": q.get("signature_data"),
+    }
+
+@api_router.post("/public/quote/{token}/opened")
+async def track_quote_opened(token: str):
+    q = await db.quotes.find_one({"public_token": token}, {"_id": 0})
+    if not q:
+        raise HTTPException(status_code=404, detail="Devis non trouvé")
+    if not q.get("opened_at"):
+        await db.quotes.update_one(
+            {"public_token": token},
+            {"$set": {"opened_at": datetime.now(timezone.utc).isoformat()}}
+        )
+    return {"status": "success"}
+
+class SignQuote(BaseModel):
+    signature_data: str
+    signer_name: Optional[str] = ""
+
+@api_router.post("/public/quote/{token}/sign")
+async def sign_quote_public(token: str, body: SignQuote):
+    q = await db.quotes.find_one({"public_token": token}, {"_id": 0})
+    if not q:
+        raise HTTPException(status_code=404, detail="Devis non trouvé")
+    if q.get("signed_at"):
+        raise HTTPException(status_code=400, detail="Ce devis a déjà été signé")
+    now = datetime.now(timezone.utc).isoformat()
+    await db.quotes.update_one(
+        {"public_token": token},
+        {"$set": {
+            "signature_data": body.signature_data,
+            "signed_at": now,
+            "status": "accepted",
+            "signer_name": body.signer_name or "",
+        }}
+    )
+    # Notify admin by email
+    try:
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [ADMIN_EMAIL],
+            "subject": f"Devis {q['quote_number']} signé par {q['client_name']}",
+            "html": f"""
+            <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:30px;background:#f0fdf4;border-radius:12px;border:1px solid #bbf7d0;">
+                <h2 style="color:#166534;margin:0 0 15px;">Devis signé !</h2>
+                <p style="color:#475569;"><strong>{q['client_name']}</strong> a accepté et signé le devis <strong>{q['quote_number']}</strong></p>
+                <p style="color:#475569;">Montant : <strong>{q['total_net']:.2f} €</strong></p>
+                <p style="color:#64748b;font-size:13px;">Signé le {datetime.now().strftime('%d/%m/%Y à %H:%M')}</p>
+            </div>"""
+        }
+        await asyncio.to_thread(resend.Emails.send, params)
+    except Exception as e:
+        logger.error(f"Erreur notification signature: {e}")
+    return {"status": "success", "signed_at": now}
+
+# ==================== SEND QUOTE EMAIL ====================
+
+class SendQuoteEmail(BaseModel):
+    subject: str
+    message: str
+    recipient_email: str
+
+@api_router.post("/quotes/{quote_id}/send-email")
+async def send_quote_email(quote_id: str, body: SendQuoteEmail):
+    q = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
+    if not q:
+        raise HTTPException(status_code=404, detail="Devis non trouvé")
+    
+    public_token = q.get("public_token")
+    if not public_token:
+        public_token = secrets.token_urlsafe(32)
+        await db.quotes.update_one({"id": quote_id}, {"$set": {"public_token": public_token}})
+
+    # Build the public URL for the quote
+    # This will be the frontend URL with /devis/public/{token}
+    base_url = os.environ.get("PUBLIC_APP_URL", "")
+    public_link = f"{base_url}/devis/public/{public_token}" if base_url else f"/devis/public/{public_token}"
+
+    # Convert newlines in message to <br>
+    message_html = body.message.replace('\n', '<br>')
+
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+    <body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:20px 0;">
+        <tr><td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" style="background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+            <!-- Header -->
+            <tr><td style="background:linear-gradient(135deg,#1e3a5f 0%,#2d5a8e 100%);padding:30px 40px;text-align:center;">
+              <h1 style="color:white;margin:0;font-size:22px;font-weight:700;">SR RÉNOVATION</h1>
+              <p style="color:#93c5fd;margin:5px 0 0;font-size:13px;">Rénovation de toiture et façade</p>
+            </td></tr>
+            <!-- Body -->
+            <tr><td style="padding:35px 40px;">
+              <p style="color:#1e293b;font-size:15px;line-height:1.7;margin:0 0 20px;">{message_html}</p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin:20px 0;">
+                <tr><td style="padding:20px;">
+                  <p style="color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;">Devis</p>
+                  <p style="color:#1e3a5f;font-size:18px;font-weight:700;margin:0;">{q['quote_number']}</p>
+                  <p style="color:#475569;font-size:14px;margin:8px 0 0;">Montant : <strong>{q['total_net']:.2f} € TTC</strong></p>
+                </td></tr>
+              </table>
+              <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:10px 0 25px;">
+                <a href="{public_link}" style="display:inline-block;background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);color:white;text-decoration:none;padding:14px 40px;border-radius:8px;font-weight:700;font-size:15px;letter-spacing:0.5px;">
+                  Consulter et signer le devis
+                </a>
+              </td></tr></table>
+              <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">Ce lien est unique et sécurisé. Il vous permet de consulter le détail du devis et de le signer directement en ligne.</p>
+            </td></tr>
+            <!-- Footer -->
+            <tr><td style="background:#f8fafc;padding:20px 40px;border-top:1px solid #e2e8f0;">
+              <p style="color:#94a3b8;font-size:11px;text-align:center;margin:0;">SR Rénovation — Ce message a été envoyé automatiquement.</p>
+            </td></tr>
+          </table>
+        </td></tr>
+      </table>
+    </body>
+    </html>"""
+
+    try:
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [body.recipient_email],
+            "subject": body.subject,
+            "html": html_content,
+        }
+        email_result = await asyncio.to_thread(resend.Emails.send, params)
+        now = datetime.now(timezone.utc).isoformat()
+        await db.quotes.update_one(
+            {"id": quote_id},
+            {"$set": {
+                "sent_at": now,
+                "sent_to_email": body.recipient_email,
+                "status": "sent",
+                "public_token": public_token,
+            }}
+        )
+        return {"status": "success", "email_id": email_result.get("id"), "public_token": public_token}
+    except Exception as e:
+        logger.error(f"Erreur envoi devis: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur d'envoi: {str(e)}")
+
 # ==================== STATS ====================
 
 @api_router.get("/stats")
@@ -637,6 +892,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.on_event("startup")
+async def startup_migrate():
+    """Assign public_token to quotes that don't have one."""
+    async for q in db.quotes.find({"public_token": {"$exists": False}}, {"_id": 0, "id": 1}):
+        token = secrets.token_urlsafe(32)
+        await db.quotes.update_one({"id": q["id"]}, {"$set": {"public_token": token}})
+        logger.info(f"Assigned public_token to quote {q['id']}")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
