@@ -320,6 +320,46 @@ async def delete_catalog_item(item_id: str):
         raise HTTPException(status_code=404, detail="Service non trouvé")
     return {"status": "success"}
 
+# ==================== UTILITY ROUTES ====================
+
+@api_router.delete("/cleanup/test-data")
+async def cleanup_test_data():
+    """Supprime tous les clients, devis et factures préfixés TEST_"""
+    try:
+        # Supprimer les clients de test
+        clients_result = await db.clients.delete_many({"name": {"$regex": "^TEST_"}})
+        
+        # Supprimer les devis de test
+        quotes_result = await db.quotes.delete_many({"client_name": {"$regex": "^TEST_"}})
+        
+        # Supprimer les factures de test
+        invoices_result = await db.invoices.delete_many({"client_name": {"$regex": "^TEST_"}})
+        
+        return {
+            "status": "success",
+            "deleted": {
+                "clients": clients_result.deleted_count,
+                "quotes": quotes_result.deleted_count,
+                "invoices": invoices_result.deleted_count
+            }
+        }
+    except Exception as e:
+        logger.error(f"Erreur lors du nettoyage: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/catalog/clear-all")
+async def clear_all_catalog():
+    """Vide complètement le catalogue de services"""
+    try:
+        result = await db.catalog.delete_many({})
+        return {
+            "status": "success",
+            "deleted": result.deleted_count
+        }
+    except Exception as e:
+        logger.error(f"Erreur lors de la suppression du catalogue: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # ==================== QUOTES ====================
 
 @api_router.post("/quotes", response_model=Quote)
