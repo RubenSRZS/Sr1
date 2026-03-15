@@ -1,113 +1,45 @@
-# PRD — Sr-Renovation.fr
+# Sr-Renovation.fr — Devis & Factures Pro
 
 ## Problème original
-Application web pour créer des devis et factures professionnels pour une entreprise de rénovation (Sr-Renovation.fr). Design unique aux couleurs bleu/orange de la marque.
-
-## Stack Technique
-- Frontend: React + Tailwind CSS + Shadcn/UI
-- Backend: FastAPI + MongoDB (Motor)
-- PDF: html2canvas + jsPDF
-- Icons: lucide-react
+Application web pour créer des devis et factures professionnels et personnalisés pour Sr-Renovation.fr, avec un design aligné à la marque et une approche mobile-first.
 
 ## Architecture
-```
-/app/
-├── backend/server.py         # API FastAPI
-└── frontend/src/
-    ├── App.js                # Routes + Providers
-    ├── context/
-    │   ├── ThemeContext.js   # Dark mode global
-    │   └── FormPersistContext.js  # Persistance formulaires
-    ├── pages/
-    │   ├── Dashboard.js
-    │   ├── QuoteForm.js      # Formulaire devis (multi-options)
-    │   ├── QuotesList.js
-    │   ├── InvoiceForm.js
-    │   ├── InvoicesList.js
-    │   ├── ClientsManager.js
-    │   └── CatalogManager.js
-    ├── components/
-    │   ├── PDFPreview.js     # Aperçu et génération PDF
-    │   ├── PDFGeneratorPro.js
-    │   ├── BottomNav.js
-    │   └── DesktopNav.js
-    ├── utils/defaultCatalog.js
-    └── index.css             # Styles + dark mode global
-```
+- **Frontend:** React + Tailwind CSS + Shadcn UI
+- **Backend:** FastAPI + Pydantic
+- **Database:** MongoDB
+- **PDF:** html2canvas + jspdf
 
 ## Fonctionnalités implémentées
+- Dashboard avec statistiques (clients, devis, factures, CA)
+- Gestion complète des clients (CRUD, tri alphabétique/récent)
+- Création/édition de devis avec aperçu PDF en temps réel
+- Création/édition de factures avec statut de paiement
+- Catalogue de services avec catégories et couleurs
+- Diagnostic visuel hiérarchique (groupes/sous-options)
+- Conversion devis → facture
+- Mode sombre global
+- Numérotation personnalisée des documents
+- Options multiples par devis (jusqu'à 3)
+- Remises et unités personnalisées
 
-### ✅ Core (MVP)
-- Création/modification/suppression de devis et factures
-- Gestion clients (CRUD)
-- Catalogue de services avec couleurs et unités par défaut
-- Aperçu PDF en direct lors de la saisie
-- Téléchargement PDF
+## Corrections 15 Mars 2026
+- **Diagnostic visuel** : Rendu PDF corrigé — les sous-options sont groupées sous leur catégorie (ex: "Gouttières : Obstruée, Encrassée")
+- **Couleurs catalogue** : Tous les items ont maintenant leur couleur de catégorie (TOITURE=bleu, FAÇADE=orange, ZINGUERIE=vert, SOLS=violet)
+- **Backend diagnostic** : Champ `diagnostic` changé de modèle Pydantic rigide vers `Optional[dict]`
+- **Doublons catalogue** : Nettoyés, couleurs assignées automatiquement par catégorie
+- **Tests** : 100% backend (7/7), 100% frontend (6/6)
 
-### ✅ Devis
-- Multi-options (jusqu'à 3 options avec titres)
-- Titre global du devis
-- Numéro de devis personnalisable
-- Diagnostic visuel enrichi (gouttières obstruées/encrassées/rouille/déformées/décollées, PC tôle rouille/perforé/joint, façade fissures/mousses)
-- Numérotation des lignes (toggle on/off)
-- Remise par ligne et remise globale (% ou €)
-- Modalités de paiement (4 options)
-- Conversion devis → facture (1 clic)
+## Backlog priorisé
 
-### ✅ Factures
-- Numéro personnalisable
-- Acompte versé / Reste à payer
-- Statut paiement: En attente / Partiel / Payée
-- Bouton "Marquer comme payée" dans la liste
-- "Payée intégralement" affiché quand payé
+### P1 — À venir
+- Guide de déploiement (auto-hébergement gratuit et sécurisé)
+- Acceptation de devis en ligne (lien unique + signature)
+- Envoi de documents par email
 
-### ✅ Clients
-- Tri alphabétique A→Z
-- Tri par date (plus récents)
-- Recherche par nom/téléphone/email
-- Client existant ou nouveau client depuis le formulaire
+### P2 — Vérification
+- PDF preview fond blanc en mode sombre (à vérifier)
 
-### ✅ Catalogue
-- Catégories colorées
-- Unités par défaut par service
-- Descriptions vides (à remplir par l'utilisateur)
-- Initialisation idempotente (pas de doublons)
-
-### ✅ UX
-- Dark mode global (persiste sur toutes les pages via ThemeContext)
-- Persistance formulaire (localStorage, restauration au retour)
-- Responsive mobile-first
-- Navigation bottom (mobile) + desktop nav
-
-### ✅ Listes
-- Tri A→Z / Récents sur devis, factures, clients
-
-## Backlog (Non implémenté)
-
-### P1
-- Acceptation en ligne du devis via lien unique + signature
-- Envoi par email (Resend) avec PDF en pièce jointe
-
-### P2  
-- Tableaux de bord avec graphiques de revenus
-- Drag & drop pour réordonner les services
-- Modèles de devis prédéfinis
-
-### P3
-- Synchronisation Google Calendar
-- Export comptable CSV/Excel
-
-## Schéma DB clé
-- **quotes**: title, option1-3 (services+title+remise), diagnostic (30+ champs), show_line_numbers, status
-- **invoices**: payment_status (pending/partial/paid), acompte_paid, reste_a_payer
-- **catalog**: category, service_name, description, default_price, default_unit, color
-- **clients**: name, address, phone, email, notes, created_at
-
-## Endpoints clés
-- POST/GET/PUT/DELETE /api/quotes
-- POST/GET/PUT/DELETE /api/invoices
-- PATCH /api/invoices/{id}/payment?payment_status=paid
-- POST /api/invoices/from-quote/{quote_id}
-- PATCH /api/quotes/{id}/status
-- POST/GET/PUT/DELETE /api/catalog
-- POST/GET/PUT/DELETE /api/clients
+### P3 — Futur
+- Dashboard : graphiques de revenus et indicateurs visuels
+- Drag & drop pour réorganiser les services
+- Templates de devis prédéfinis
