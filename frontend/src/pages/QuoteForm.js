@@ -153,9 +153,11 @@ const QuoteForm = () => {
     diagnostic: {
       tuiles_cassees: false, tuile_ciment: false, tuile_terre_cuite: false, faitage: false, fissures: false,
       fibro_ciment: false, amiante: false, ardoise: false, zinc: false, bac_acier: false,
+      pc_tole: false, pc_tole_rouille: false, pc_tole_perfore: false, pc_tole_joint: false,
       mousses: false, lichens: false, mousse_verte: false, trace_noire: false,
-      gouttieres: false, forte_humidite: false,
-      facade: false,
+      gouttieres: false, gouttieres_obstruees: false, gouttieres_encrassees: false,
+      gouttieres_rouille: false, gouttieres_deformees: false, gouttieres_decollees: false, descente_ep: false,
+      forte_humidite: false, facade: false, facade_fissures: false, facade_mousse: false,
     },
     payment_plan: 'acompte_solde',
     show_line_numbers: true,
@@ -185,27 +187,27 @@ const QuoteForm = () => {
   useEffect(() => {
     if (!id && quoteFormData && !draftRestored) {
       const restored = quoteFormData.data;
-      if (restored && restored.services && restored.services.length > 0) {
-        setFormData(restored);
+      if (restored) {
+        setFormData(prev => ({ ...prev, ...restored }));
         if (quoteFormData.options?.hasOption2) setHasOption2(true);
         if (quoteFormData.options?.hasOption3) setHasOption3(true);
         if (quoteFormData.options?.newClient) setNewClient(quoteFormData.options.newClient);
         if (quoteFormData.options?.showNewClient) setShowNewClient(true);
         setDraftRestored(true);
-        toast.info('Brouillon restauré', { description: 'Votre travail en cours a été récupéré' });
+        if (restored.services && restored.services.length > 0) {
+          toast.info('Brouillon restauré', { description: 'Votre travail en cours a été récupéré' });
+        }
       }
     }
-  }, [id, quoteFormData, draftRestored]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Auto-save draft every 3 seconds (only for new quotes)
+  // Auto-save draft immediately on every change (only for new quotes)
   useEffect(() => {
     if (id) return; // Don't auto-save when editing existing quote
-    const hasContent = formData.services.length > 0 || formData.work_location || formData.quote_title;
+    const hasContent = formData.services.length > 0 || formData.work_location || formData.quote_title || formData.client_id;
     if (hasContent) {
-      const timer = setTimeout(() => {
-        saveQuoteForm(formData, { hasOption2, hasOption3, newClient, showNewClient });
-      }, 3000);
-      return () => clearTimeout(timer);
+      saveQuoteForm(formData, { hasOption2, hasOption3, newClient, showNewClient });
     }
   }, [formData, hasOption2, hasOption3, newClient, showNewClient, id, saveQuoteForm]);
 
@@ -460,6 +462,10 @@ const QuoteForm = () => {
       { key: 'ardoise', label: 'Ardoise' },
       { key: 'zinc', label: 'Zinc' },
       { key: 'bac_acier', label: 'Bac acier' },
+      { key: 'pc_tole', label: 'PC tôle' },
+      { key: 'pc_tole_rouille', label: 'PC tôle — Rouille' },
+      { key: 'pc_tole_perfore', label: 'PC tôle — Perforé' },
+      { key: 'pc_tole_joint', label: 'PC tôle — Joint défaillant' },
     ]},
     { group: 'Végétation / Taches', items: [
       { key: 'mousses', label: 'Mousses' },
@@ -467,10 +473,20 @@ const QuoteForm = () => {
       { key: 'mousse_verte', label: 'Mousse verte' },
       { key: 'trace_noire', label: 'Trace noire' },
     ]},
-    { group: 'Hydrologie / Ext.', items: [
-      { key: 'gouttieres', label: 'Gouttières' },
+    { group: 'Gouttières', items: [
+      { key: 'gouttieres', label: 'Gouttières (général)' },
+      { key: 'gouttieres_obstruees', label: 'Obstruées' },
+      { key: 'gouttieres_encrassees', label: 'Encrassées' },
+      { key: 'gouttieres_rouille', label: 'Corrosion / Rouille' },
+      { key: 'gouttieres_deformees', label: 'Déformées' },
+      { key: 'gouttieres_decollees', label: 'Décollées' },
+      { key: 'descente_ep', label: 'Descente EP défectueuse' },
+    ]},
+    { group: 'Hydrologie / Extérieur', items: [
       { key: 'forte_humidite', label: 'Forte humidité' },
       { key: 'facade', label: 'Façade' },
+      { key: 'facade_fissures', label: 'Façade — Fissures' },
+      { key: 'facade_mousse', label: 'Façade — Mousses/traces' },
     ]},
   ];
   const PAYMENT_PLANS = [

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,18 +11,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { PDFDocument, downloadPDF, BRAND_BLUE, BRAND_ORANGE } from '@/components/PDFPreview';
+import { useTheme } from '@/context/ThemeContext';
+import { useFormPersist } from '@/context/FormPersistContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const InvoiceForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { darkMode, toggleDarkMode } = useTheme();
+  const { invoiceFormData, saveInvoiceForm, clearInvoiceForm } = useFormPersist();
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState([]);
   const [catalog, setCatalog] = useState([]);
   const [showCatalog, setShowCatalog] = useState(false);
   const [showPreviewMobile, setShowPreviewMobile] = useState(false);
   const [showNewClient, setShowNewClient] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
 
   const [formData, setFormData] = useState({
     client_id: '',
@@ -42,6 +47,19 @@ const InvoiceForm = () => {
   useEffect(() => {
     axios.get(`${API}/clients`).then(r => setClients(r.data)).catch(() => {});
     axios.get(`${API}/catalog`).then(r => setCatalog(r.data)).catch(() => {});
+    // Restore draft on mount (only for new invoices)
+    if (!id && invoiceFormData && !draftRestored) {
+      const restored = invoiceFormData.data;
+      if (restored) {
+        setFormData(prev => ({ ...prev, ...restored }));
+        if (invoiceFormData.options?.newClient) setNewClient(invoiceFormData.options.newClient);
+        if (invoiceFormData.options?.showNewClient) setShowNewClient(true);
+        setDraftRestored(true);
+        if (restored.services && restored.services.length > 0) {
+          toast.info('Brouillon restauré', { description: 'Votre travail en cours a été récupéré' });
+        }
+      }
+    }
     if (id) {
       axios.get(`${API}/invoices/${id}`).then(r => {
         const inv = r.data;
@@ -58,7 +76,17 @@ const InvoiceForm = () => {
         });
       }).catch(() => toast.error('Erreur chargement facture'));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // Auto-save draft immediately on every change (only for new invoices)
+  useEffect(() => {
+    if (id) return;
+    const hasContent = formData.services.length > 0 || formData.work_location || formData.client_id;
+    if (hasContent) {
+      saveInvoiceForm(formData, { newClient, showNewClient });
+    }
+  }, [formData, newClient, showNewClient, id, saveInvoiceForm]);
 
   const updateField = (key, val) => setFormData(prev => ({ ...prev, [key]: val }));
 
@@ -140,6 +168,7 @@ const InvoiceForm = () => {
         notes: formData.notes,
       };
       await axios.post(`${API}/invoices`, payload);
+      clearInvoiceForm();
       toast.success('Facture créée');
       navigate('/invoices');
     } catch (err) {
@@ -150,28 +179,36 @@ const InvoiceForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="invoice-form-page">
+    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-slate-900' : 'bg-[var(--sr-cream)]'}`} data-testid="invoice-form-page">
       {/* Header */}
-      <div style={{ background: `linear-gradient(135deg, ${BRAND_BLUE} 0%, #3b82f6 100%)` }} className="text-white lg:hidden">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/invoices')} className="text-white hover:bg-white/10 h-8 w-8 p-0" data-testid="back-button">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-lg font-bold">{id ? 'Voir la facture' : 'Nouvelle facture'}</h1>
+      <div style={{ background: darkMode ? 'linear-gradient(135deg, #1e293b 0%, #334155 100%)' : `linear-gradient(135deg, ${BRAND_BLUE} 0%, #3b82f6 100%)` }} className="text-white lg:hidden">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/invoices')} className="text-white hover:bg-white/10 h-8 w-8 p-0" data-testid="back-button">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-lg font-bold">{id ? 'Voir la facture' : 'Nouvelle facture'}</h1>
+          </div>
+          <button onClick={toggleDarkMode} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" data-testid="dark-mode-toggle-invoice">
+            {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="hidden lg:block mb-4">
-          <h1 className="text-xl font-bold text-gray-900">{id ? 'Voir la facture' : 'Nouvelle facture'}</h1>
+        <div className="hidden lg:flex lg:items-center lg:justify-between mb-4">
+          <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{id ? 'Voir la facture' : 'Nouvelle facture'}</h1>
+          <button onClick={toggleDarkMode} className={`p-2 rounded-full transition-colors ${darkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+            {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </button>
         </div>
         <form onSubmit={handleSubmit} className="flex gap-5">
           {/* LEFT - Form */}
           <div className="flex-1 min-w-0 space-y-4">
             {/* Client */}
-            <Card className="p-4 bg-white border-0 shadow-sm" data-testid="client-section">
+            <Card className={`p-4 border-0 shadow-sm ${darkMode ? 'bg-slate-800' : 'bg-white'}`} data-testid="client-section">
               <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold text-sm text-gray-800">Client</span>
+                <span className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-gray-800'}`}>Client</span>
                 <button type="button" onClick={() => setShowNewClient(!showNewClient)}
                   className="text-xs font-medium hover:underline" style={{ color: BRAND_BLUE }} data-testid="toggle-new-client">
                   {showNewClient ? 'Client existant' : '+ Nouveau client'}
@@ -179,17 +216,17 @@ const InvoiceForm = () => {
               </div>
               {!showNewClient ? (
                 <Select value={formData.client_id} onValueChange={(v) => updateField('client_id', v)}>
-                  <SelectTrigger data-testid="client-select" className="h-9"><SelectValue placeholder="Choisir un client" /></SelectTrigger>
-                  <SelectContent>
-                    {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name} {c.phone ? `- ${c.phone}` : ''}</SelectItem>)}
+                  <SelectTrigger data-testid="client-select" className={`h-9 ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}><SelectValue placeholder="Choisir un client" /></SelectTrigger>
+                  <SelectContent className={darkMode ? 'bg-slate-700 border-slate-600' : ''}>
+                    {[...clients].sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })).map(c => <SelectItem key={c.id} value={c.id} className={darkMode ? 'text-white' : ''}>{c.name} {c.phone ? `- ${c.phone}` : ''}</SelectItem>)}
                   </SelectContent>
                 </Select>
               ) : (
-                <div className="space-y-2 bg-blue-50/50 p-3 rounded-lg border border-blue-200/50">
-                  <Input placeholder="Nom complet *" value={newClient.name} onChange={e => setNewClient({ ...newClient, name: e.target.value })} className="h-9 text-sm" data-testid="new-client-name" />
-                  <Input placeholder="Téléphone *" value={newClient.phone} onChange={e => setNewClient({ ...newClient, phone: e.target.value })} className="h-9 text-sm" data-testid="new-client-phone" />
-                  <Input placeholder="Adresse *" value={newClient.address} onChange={e => setNewClient({ ...newClient, address: e.target.value })} className="h-9 text-sm" data-testid="new-client-address" />
-                  <Input placeholder="Email (optionnel)" value={newClient.email} onChange={e => setNewClient({ ...newClient, email: e.target.value })} className="h-9 text-sm" data-testid="new-client-email" />
+                <div className={`space-y-2 p-3 rounded-lg border ${darkMode ? 'bg-slate-700/50 border-slate-600' : 'bg-blue-50/50 border-blue-200/50'}`}>
+                  <Input placeholder="Nom complet *" value={newClient.name} onChange={e => setNewClient({ ...newClient, name: e.target.value })} className={`h-9 text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} data-testid="new-client-name" />
+                  <Input placeholder="Téléphone *" value={newClient.phone} onChange={e => setNewClient({ ...newClient, phone: e.target.value })} className={`h-9 text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} data-testid="new-client-phone" />
+                  <Input placeholder="Adresse *" value={newClient.address} onChange={e => setNewClient({ ...newClient, address: e.target.value })} className={`h-9 text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} data-testid="new-client-address" />
+                  <Input placeholder="Email (optionnel)" value={newClient.email} onChange={e => setNewClient({ ...newClient, email: e.target.value })} className={`h-9 text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} data-testid="new-client-email" />
                 </div>
               )}
               <div className="mt-3">
@@ -198,20 +235,20 @@ const InvoiceForm = () => {
                   value={formData.custom_invoice_number}
                   onChange={e => updateField('custom_invoice_number', e.target.value)}
                   placeholder="Ex: FACT-2025-001 (auto si vide)"
-                  className="h-9 text-sm"
+                  className={`h-9 text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}
                   data-testid="invoice-number-input"
                 />
               </div>
               <div className="mt-3">
                 <Label className="text-xs text-gray-500">Lieu des travaux *</Label>
-                <Input value={formData.work_location} onChange={e => updateField('work_location', e.target.value)} placeholder="Adresse du chantier" className="h-9 text-sm" required data-testid="work-location-input" />
+                <Input value={formData.work_location} onChange={e => updateField('work_location', e.target.value)} placeholder="Adresse du chantier" className={`h-9 text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} required data-testid="work-location-input" />
               </div>
             </Card>
 
             {/* Services */}
-            <Card className="p-4 bg-white border-0 shadow-sm" data-testid="services-section">
+            <Card className={`p-4 border-0 shadow-sm ${darkMode ? 'bg-slate-800' : 'bg-white'}`} data-testid="services-section">
               <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold text-sm text-gray-800">Services</span>
+                <span className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-gray-800'}`}>Services</span>
                 <div className="flex gap-2">
                   <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => setShowCatalog(true)} data-testid="catalog-btn">
                     <BookOpen className="h-3.5 w-3.5 mr-1" /> Catalogue
@@ -252,7 +289,7 @@ const InvoiceForm = () => {
             </Card>
 
             {/* Notes, Remise, Acompte */}
-            <Card className="p-4 bg-white border-0 shadow-sm" data-testid="notes-section">
+            <Card className={`p-4 border-0 shadow-sm ${darkMode ? 'bg-slate-800' : 'bg-white'}`} data-testid="notes-section">
               <div className="mb-3">
                 <div className="flex items-center gap-2 mb-2">
                   <Label className="text-xs text-gray-500">Remise</Label>

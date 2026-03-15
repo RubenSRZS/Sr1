@@ -63,16 +63,28 @@ class Diagnostic(BaseModel):
     ardoise: bool = False
     zinc: bool = False
     bac_acier: bool = False
+    pc_tole: bool = False
+    pc_tole_rouille: bool = False
+    pc_tole_perfore: bool = False
+    pc_tole_joint: bool = False
     # Végétation / taches
     mousses: bool = False
     lichens: bool = False
     mousse_verte: bool = False
     trace_noire: bool = False
-    # Hydrologie
+    # Gouttières
     gouttieres: bool = False
+    gouttieres_obstruees: bool = False
+    gouttieres_encrassees: bool = False
+    gouttieres_rouille: bool = False
+    gouttieres_deformees: bool = False
+    gouttieres_decollees: bool = False
+    descente_ep: bool = False
+    # Hydrologie / Extérieur
     forte_humidite: bool = False
-    # Extérieur
     facade: bool = False
+    facade_fissures: bool = False
+    facade_mousse: bool = False
 
 class QuoteCreate(BaseModel):
     client_id: Optional[str] = None
@@ -568,6 +580,21 @@ async def delete_invoice(invoice_id: str):
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Facture non trouvée")
     return {"status": "success"}
+
+@api_router.patch("/invoices/{invoice_id}/payment")
+async def update_invoice_payment(invoice_id: str, payment_status: str):
+    inv = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    if not inv:
+        raise HTTPException(status_code=404, detail="Facture non trouvée")
+    update_data = {"payment_status": payment_status}
+    if payment_status == "paid":
+        update_data["acompte_paid"] = inv["total_net"]
+        update_data["reste_a_payer"] = 0.0
+    elif payment_status == "pending":
+        update_data["acompte_paid"] = 0.0
+        update_data["reste_a_payer"] = inv["total_net"]
+    await db.invoices.update_one({"id": invoice_id}, {"$set": update_data})
+    return {"status": "success", "payment_status": payment_status}
 
 # ==================== STATS ====================
 

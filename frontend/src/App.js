@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import '@/App.css';
 import { Toaster } from '@/components/ui/sonner';
-import { ThemeProvider } from '@/context/ThemeContext';
+import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { FormPersistProvider } from '@/context/FormPersistContext';
 import Dashboard from '@/pages/Dashboard';
 import QuotesList from '@/pages/QuotesList';
@@ -25,8 +25,9 @@ function App() {
 }
 
 function AppContent() {
+  const { darkMode } = useTheme();
   return (
-    <div className="App min-h-screen transition-colors duration-300">
+    <div className={`App min-h-screen transition-colors duration-300 ${darkMode ? 'bg-slate-900 text-slate-100' : 'bg-[var(--sr-cream)] text-gray-900'}`}>
       <BrowserRouter>
         <DesktopNav />
         <div className="pb-16 lg:pb-0">

@@ -3,239 +3,180 @@ The user, representing the renovation company Sr-Renovation.fr, requires a web a
 
 **PRODUCT REQUIREMENTS:**
 1.  **Core Functionality:** Create, view, and manage quotes and invoices.
-2.  **Unique Design:** A professional and unique document design reflecting the brand identity of , including specific logos.
-3.  **Client Management:** Manage a list of clients.
-4.  **Catalog:** A pre-filled catalog of professional service descriptions.
-5.  **Email Integration:** Ability to send documents via email (planned with Resend).
-6.  **E-Signature:** A simple electronic signature solution, including displaying a signature image.
-7.  **Mobile-First Design:** The application must be optimized for mobile use.
-8.  **Flexible Forms:**
-    *   Client's email must be optional.
-    *   Allow discounts as both a percentage (%) and a fixed amount (€), and also per service item.
-    *   Allow custom units for services (m², ml, unit, etc.).
-    *   Allow custom quote numbering.
-9.  **Live Preview:** Users must see a live preview of the PDF document as they fill out the form.
-10. **Document Numbering & Sorting:** Quotes/invoices numbered sequentially per client, but the list should be sorted by Client Name.
-11. **Multi-Option Quotes:** Ability to create a single quote with two distinct options.
-12. **Payment Plans:** Ability to specify payment terms (e.g., 30% deposit, installments).
-13. **PDF Download:** A clean, professional-looking PDF of the quote/invoice must be downloadable.
+2.  **Unique Design:** A professional and unique document design reflecting the brand identity.
+3.  **Client & Catalog Management:** Manage clients and a catalog of services.
+4.  **Email & E-Signature:** Send documents via email and include a simple e-signature feature.
+5.  **Mobile-First Design:** The application must be optimized for mobile use.
+6.  **Flexible Forms:**
+    *   Allow optional client email, discounts (%, €), custom units, and custom document numbering.
+    *   Ability to create a single quote with up to three distinct, titled options.
+    *   Ability to add a title to the overall quote.
+    *   Include a diagnostic section for roofing types (e.g., Fibro ciment, Amiante).
+7.  **Live PDF Preview:** Users must see a live preview of the PDF document as they fill out the form.
+8.  **Document Conversion:** One-click conversion from an accepted quote to a new invoice, with an option to mark it as paid.
+9.  **Item Numbering:** Service items in the PDF should be numbered, with an option to disable it.
+10. **State Persistence:** Form data should be saved automatically so work is not lost when navigating to other pages.
+11. **Global Dark Mode:** A dark mode theme that applies consistently across all pages of the application.
+12. **Catalog Enhancements:** Use color codes to categorize services and set default, editable units (m², ml, etc.) for each service.
 
 **User's preferred language**: French
 
 **what currently exists?**
-A full-stack application (React, FastAPI, MongoDB). The frontend is currently broken and will not compile due to a critical syntax error in . This was caused by a previous agent embedding an extremely large base64 string directly into the component. The current agent has started the fix by adding an import statement for a new constants file, but has not yet created that file or removed the broken code.
+A full-stack application (React, FastAPI, MongoDB). The critical frontend compilation error has been resolved, and the application is now functional. Several new features have been implemented, including optional line numbering for services, quote-to-invoice conversion, multi-option quotes with titles, new diagnostic fields, customizable invoice numbers, and an improved catalog with color-coding and default units.
+
+However, two major usability issues introduced during the last session persist:
+1.  **Form Persistence is Buggy:** When a user is filling out a quote and navigates to another page (like the Dashboard or Catalog), the form state is lost, and they have to start over.
+2.  **Dark Mode is Not Global:** The dark mode toggle only affects the page it's on (e.g., Dashboard or Quote Form header) and does not apply a consistent theme across the entire application.
 
 **Last working item**:
-- **Last item agent was working:** The agent is in the middle of resolving the critical frontend compilation error in . It has successfully added  to the file, but still needs to remove the malformed multi-line  declaration and create the  file with the correct base64 content.
-- **Status:** IN PROGRESS
-- **Agent Testing Done:** N
-- **Which testing method agent to use?** both. After the fix, use the screenshot tool to confirm the application loads. Then, use the frontend testing agent to verify all visual changes and PDF download functionality.
+- **Last item agent was working:** The agent was implementing user-requested catalog enhancements and the ability to set a custom invoice number. This involved:
+    1.  Adding a  field to the invoice form and backend model.
+    2.  Adding  and  fields to the catalog model.
+    3.  Updating the  to display color tags and allow editing of these new fields.
+    4.  Updating  to use the  when adding a service from the catalog.
+- **Status:** USER VERIFICATION PENDING
+- **Agent Testing Done:** Y (via screenshots)
+- **Which testing method agent to use?** Manual testing by the user. The agent should verify that the catalog displays colors, that default units are applied when adding items to a quote, and that a custom invoice number can be successfully saved.
 - **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1:** (P0) Critical: Frontend Compilation Failure due to Syntax Error.
--   **Issue 2:** (P1) Logo missing from downloaded PDF.
--   **Issue 3:** (P2) Incorrect logo in the footer.
--   **Issue 4:** (P2) Text is not vertically centered in tables.
--   **Issue 5:** (P3) Minor: Banque Populaire logo is too small.
--   **Issue 6:** (P3) Payment plan logic needs verification.
+-   **Issue 1:** (P0) Critical: Form data is lost upon navigation.
+-   **Issue 2:** (P0) Dark mode is not applied globally.
+-   **Issue 3:** (P2) Catalog contains duplicate entries from repeated initializations.
 
 **Issues Detail:**
--   **Issue 1: Critical: Frontend Compilation Failure due to Syntax Error (P0)**
-    -   **Attempted fixes:** The agent correctly identified the malformed base64 string and added an import statement for a new constants file in . The broken code itself has not yet been removed.
+-   **Issue 1: Critical: Form data is lost upon navigation (P0)**
+    -   **Attempted fixes:** The agent created a  using React Context and  to save the quote form state. A Draft Restored toast message appeared, but the form was still empty upon return navigation. The agent suspected a testing environment issue, but the behavior confirms the user's report. The state is likely being cleared or not rehydrated correctly when the  component remounts.
     -   **Next debug checklist:**
-        1.  In , use  to remove the entire  block, which is causing the unterminated string error.
-        2.  Read the base64 content from the existing file .
-        3.  Create a new file: .
-        4.  Write the content into the new file, exporting it as a JavaScript constant: .
-        5.  Check frontend logs (==> /var/log/supervisor/frontend.err.log <==
-(node:223) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
-(Use `node --trace-deprecation ...` to show where the warning was created)
-(node:223) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
-(node:73) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
-(Use `node --trace-deprecation ...` to show where the warning was created)
-(node:73) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+        1.  Review the  hooks in  that handle saving and loading from .
+        2.  Verify the dependency arrays in the  hooks to ensure they trigger correctly. The linter flagged a  warning which might be related.
+        3.  Check the logic within  and how  is being called, especially after form submission ().
+        4.  Ensure the component unmounting/remounting lifecycle is handled correctly to persist state across navigations.
+    -   **Why fix this issue and what will be achieved with the fix?** This is a critical usability flaw. Fixing it will prevent users from losing their work, which is essential for a data-entry-heavy application.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** Frontend
+    -   **Blocked on other issue:** None.
 
-==> /var/log/supervisor/frontend.out.log <==
-    at normalizeFile (/app/frontend/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
-    at normalizeFile.next (<anonymous>)
-    at run (/app/frontend/node_modules/@babel/core/lib/transformation/index.js:22:50)
-    at run.next (<anonymous>)
-    at transform (/app/frontend/node_modules/@babel/core/lib/transform.js:22:33)
-    at transform.next (<anonymous>)
-    at step (/app/frontend/node_modules/gensync/index.js:261:32)
-    at /app/frontend/node_modules/gensync/index.js:273:13
-    at async.call.result.err.err (/app/frontend/node_modules/gensync/index.js:223:11)
-    at /app/frontend/node_modules/gensync/index.js:189:28
-    at /app/frontend/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
-    at /app/frontend/node_modules/gensync/index.js:113:33
-    at step (/app/frontend/node_modules/gensync/index.js:287:14)
-    at /app/frontend/node_modules/gensync/index.js:273:13
-    at async.call.result.err.err (/app/frontend/node_modules/gensync/index.js:223:11)
-
-ERROR in [eslint] 
-src/components/PDFPreview.js
-  Line 34:22:  Parsing error: Unterminated string constant. (34:22)
-
-webpack compiled with 2 errors
-Compiling...
-Failed to compile.
-
-[eslint] 
-src/components/PDFPreview.js
-Syntax error: Invalid regular expression flag. (36:4165) (36:4165)
-ERROR in ./src/components/PDFPreview.js
-Module build failed (from ./node_modules/babel-loader/lib/index.js):
-SyntaxError: /app/frontend/src/components/PDFPreview.js: Invalid regular expression flag. (36:4165)
-
-  34 | import { LOGO_SARL_B64 } from '../lib/logoConstants';SuYKmlz
-  35 |
-> 36 | c3ZMvHMsbhgL3hhcC8xLjAvbW0vIiB4bWxuczpzdEV2dD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlRXZlbnQjIiB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgV2ViICgyMDI2LjEuMC4wIGFhMDg5NmQxMzIxKSAoR29vZ2xlIENocm9tZSkiIHhtcDpDcmVhdGVEYXRlPSIyMDI2LTAxLTE4VDIxOjEzOjMxKzAxOjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyNi0wMS0xOVQwMDo0MDoxOCswMTowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyNi0wMS0xOVQwMDo0MDoxOCswMTowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OTg3MDMyNzAtOTAzMi00MGRmLThmZDQtYTdkMWU2N2E1NGNhIiB4bXBNTTpEb2N1bWVudElEPSJhZG9iZTpkb2NpZDpwaG90b3Nob3A6MGY5YzJmYmUtMTAzMi0yMDQ1LTliMDAtZDQ2ZWQ0OGQ4ZmEwIiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6NDQyMGY5ZWMtMTk3Yi00NzBiLTgwYTEtODU5YTJlOTc5YjFmIj4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDo0NDIwZjllYy0xOTdiLTQ3MGItODBhMS04NTlhMmU5NzliMWYiIHN0RXZ0OndoZW49IjIwMjYtMDEtMThUMjE6MTM6MzErMDE6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBXZWIgKDIwMjYuMS4wLjAgYWEwODk2ZDEzMjEpIChHb29nbGUgQ2hyb21lKSIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6MDEwZWQ3ODctMzdjZS00ZTE5LWIxNjMtNzdiYjFjMDY3ZWZmIiBzdEV2dDp3aGVuPSIyMDI2LTAxLTE4VDIxOjE5OjAxKzAxOjAwIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgV2ViICgyMDI2LjEuMC4wIGFhMDg5NmQxMzIxKSAoR29vZ2xlIENocm9tZSkiIHN0RXZ0OmNoYW5nZWQ9Ii8iLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249InNhdmVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjI0M2YxOTQ3LWE1ZGMtNGE5Mi1iYjhlLWE2ZWVlODI1OTE0ZCIgc3RFdnQ6d2hlbj0iMjAyNi0wMS0xOFQyMToyODo1NCswMTowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIFdlYiAoMjAyNi4xLjAuMCBhYTA4OTZkMTMyMSkgKEdvb2dsZSBDaHJvbWUpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjb252ZXJ0ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImZyb20gZG9jdW1lbnQvdm5kLmFkb2JlLmNwc2QrZGN4IHRvIGltYWdlL3BuZyIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iZGVyaXZlZCIgc3RFdnQ6cGFyYW1ldGVycz0iY29udmVydGVkIGZyb20gZG9jdW1lbnQvdm5kLmFkb2JlLmNwc2QrZGN4IHRvIGltYWdlL3BuZyIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6Y2UyYzIxMDktNzNiNC00YTcyLWE3YjEtYmQ1MzY2MzdjYTYyIiBzdEV2dDp3aGVuPSIyMDI2LTAxLTE4VDIxOjI4OjU0KzAxOjAwIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgV2ViICgyMDI2LjEuMC4wIGFhMDg5NmQxMzIxKSAoR29vZ2xlIENocm9tZSkiIHN0RXZ0OmNoYW5nZWQ9Ii8iLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249ImRlcml2ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImNvbnZlcnRlZCBmcm9tIGltYWdlL3BuZyB0byBkb2N1bWVudC92bmQuYWRvYmUuY3BzZCtkY3giLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249InNhdmVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmQ2YTJkYTY1LWZlMDMtNDZhMS1hZGI1LTZmYWNhYTFhNWY0OSIgc3RFdnQ6d2hlbj0iMjAyNi0wMS0xOVQwMDo0MDoxNyswMTowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIFdlYiAoMjAyNi4xLjAuMCBhYTA4OTZkMTMyMSkgKEdvb2dsZSBDaHJvbWUpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJzYXZlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDo5MjA4ZjNlZC03YzgxLTQ0Y2EtOWFkYy1lNDljOTljZDI4OTkiIHN0RXZ0OndoZW49IjIwMjYtMDEtMTlUMDA6NDA6MTgrMDE6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBXZWIgKDIwMjYuMS4wLjAgYWEwODk2ZDEzMjEpIChHb29nbGUgQ2hyb21lKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY29udmVydGVkIiBzdEV2dDpwYXJhbWV0ZXJzPSJmcm9tIGRvY3VtZW50L3ZuZC5hZG9iZS5jcHNkK2RjeCB0byBpbWFnZS9wbmciLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249ImRlcml2ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImNvbnZlcnRlZCBmcm9tIGRvY3VtZW50L3ZuZC5hZG9iZS5jcHNkK2RjeCB0byBpbWFnZS9wbmciLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249InNhdmVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjk4NzAzMjcwLTkwMzItNDBkZi04ZmQ0LWE3ZDFlNjdhNTRjYSIgc3RFdnQ6d2hlbj0iMjAyNi0wMS0xOVQwMDo0MDoxOCswMTowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIFdlYiAoMjAyNi4xLjAuMCBhYTA4OTZkMTMyMSkgKEdvb2dsZSBDaHJvbWUpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDwvcmRmOlNlcT4gPC94bXBNTTpIaXN0b3J5PiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo5MjA4ZjNlZC03YzgxLTQ0Y2EtOWFkYy1lNDljOTljZDI4OTkiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6ZDZhMmRhNjUtZmUwMy00NmExLWFkYjUtNmZhY2FhMWE1ZjQ5IiBzdFJlZjpvcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6NDQyMGY5ZWMtMTk3Yi00NzBiLTgwYTEtODU5YTJlOTc5YjFmIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+/fCK1QAF6i9JREFUeJzs/WeULdl53wn+ztt7h7MzvG+83Cv..." (tronqué pour brièveté)
-     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ^
-  37 |
-  38 | const LOGO_B64_MAP = {
-  39 |   [LOGO_SARL_URL]: LOGO_SARL_B64,
-    at constructor (/app/frontend/node_modules/@babel/parser/lib/index.js:367:19)
-    at FlowParserMixin.raise (/app/frontend/node_modules/@babel/parser/lib/index.js:6624:19)
-    at FlowParserMixin.readRegexp (/app/frontend/node_modules/@babel/parser/lib/index.js:6389:14)
-    at FlowParserMixin.parseExprAtom (/app/frontend/node_modules/@babel/parser/lib/index.js:11377:16)
-    at FlowParserMixin.parseExprAtom (/app/frontend/node_modules/@babel/parser/lib/index.js:4793:20)
-    at FlowParserMixin.parseExprSubscripts (/app/frontend/node_modules/@babel/parser/lib/index.js:11145:23)
-    at FlowParserMixin.parseUpdate (/app/frontend/node_modules/@babel/parser/lib/index.js:11130:21)
-    at FlowParserMixin.parseMaybeUnary (/app/frontend/node_modules/@babel/parser/lib/index.js:11110:23)
-    at FlowParserMixin.parseMaybeUnaryOrPrivate (/app/frontend/node_modules/@babel/parser/lib/index.js:10963:61)
-    at FlowParserMixin.parseExprOpBaseRightExpr (/app/frontend/node_modules/@babel/parser/lib/index.js:11050:34)
-    at FlowParserMixin.parseExprOpRightExpr (/app/frontend/node_modules/@babel/parser/lib/index.js:11045:21)
-    at FlowParserMixin.parseExprOp (/app/frontend/node_modules/@babel/parser/lib/index.js:11011:27)
-    at FlowParserMixin.parseExprOp (/app/frontend/node_modules/@babel/parser/lib/index.js:11017:21)
-    at FlowParserMixin.parseExprOp (/app/frontend/node_modules/@babel/parser/lib/index.js:11017:21)
-    at FlowParserMixin.parseExprOp (/app/frontend/node_modules/@babel/parser/lib/index.js:11017:21)
-    at FlowParserMixin.parseExprOp (/app/frontend/node_modules/@babel/parser/lib/index.js:11017:21)
-    at FlowParserMixin.parseExprOp (/app/frontend/node_modules/@babel/parser/lib/index.js:11017:21)
-    at FlowParserMixin.parseExprOp (/app/frontend/node_modules/@babel/parser/lib/index.js:11017:21)
-    at FlowParserMixin.parseExprOps (/app/frontend/node_modules/@babel/parser/lib/index.js:10972:17)
-    at FlowParserMixin.parseMaybeConditional (/app/frontend/node_modules/@babel/parser/lib/index.js:10945:23)
-    at FlowParserMixin.parseMaybeAssign (/app/frontend/node_modules/@babel/parser/lib/index.js:10895:21)
-    at FlowParserMixin.parseMaybeAssign (/app/frontend/node_modules/@babel/parser/lib/index.js:3578:18)
-    at FlowParserMixin.parseExpressionBase (/app/frontend/node_modules/@babel/parser/lib/index.js:10848:23)
-    at /app/frontend/node_modules/@babel/parser/lib/index.js:10844:39
-    at FlowParserMixin.allowInAnd (/app/frontend/node_modules/@babel/parser/lib/index.js:12495:16)
-    at FlowParserMixin.parseExpression (/app/frontend/node_modules/@babel/parser/lib/index.js:10844:17)
-    at FlowParserMixin.parseStatementContent (/app/frontend/node_modules/@babel/parser/lib/index.js:12971:23)
-    at FlowParserMixin.parseStatementLike (/app/frontend/node_modules/@babel/parser/lib/index.js:12843:17)
-    at FlowParserMixin.parseStatementLike (/app/frontend/node_modules/@babel/parser/lib/index.js:2945:24)
-    at FlowParserMixin.parseModuleItem (/app/frontend/node_modules/@babel/parser/lib/index.js:12820:17)
-    at FlowParserMixin.parseBlockOrModuleBlockBody (/app/frontend/node_modules/@babel/parser/lib/index.js:13392:36)
-    at FlowParserMixin.parseBlockBody (/app/frontend/node_modules/@babel/parser/lib/index.js:13385:10)
-    at FlowParserMixin.parseProgram (/app/frontend/node_modules/@babel/parser/lib/index.js:12698:10)
-    at FlowParserMixin.parseTopLevel (/app/frontend/node_modules/@babel/parser/lib/index.js:12688:25)
-    at FlowParserMixin.parseTopLevel (/app/frontend/node_modules/@babel/parser/lib/index.js:3714:28)
-    at FlowParserMixin.parse (/app/frontend/node_modules/@babel/parser/lib/index.js:14568:25)
-    at parse (/app/frontend/node_modules/@babel/parser/lib/index.js:14602:38)
-    at parser (/app/frontend/node_modules/@babel/core/lib/parser/index.js:41:34)
-    at parser.next (<anonymous>)
-    at normalizeFile (/app/frontend/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
-    at normalizeFile.next (<anonymous>)
-    at run (/app/frontend/node_modules/@babel/core/lib/transformation/index.js:22:50)
-    at run.next (<anonymous>)
-    at transform (/app/frontend/node_modules/@babel/core/lib/transform.js:22:33)
-    at transform.next (<anonymous>)
-    at step (/app/frontend/node_modules/gensync/index.js:261:32)
-    at /app/frontend/node_modules/gensync/index.js:273:13
-    at async.call.result.err.err (/app/frontend/node_modules/gensync/index.js:223:11)
-
-ERROR in [eslint] 
-src/components/PDFPreview.js
-  Line 36:4165:  Parsing error: Invalid regular expression flag. (36:4165)
-
-webpack compiled with 2 errors
-yarn run v1.22.22
-$ craco start
-Attempting to bind to HOST environment variable: 0.0.0.0
-If this was unintentional, check that you haven't mistakenly set it in your shell.
-Learn more here: https://cra.link/advanced-config
-
-Starting the development server...) to confirm the compilation is successful.
-    -   **Why fix this issue and what will be achieved with the fix?** The application is currently non-functional. Fixing this will unblock all other frontend work.
+-   **Issue 2: Dark mode is not applied globally (P0)**
+    -   **Attempted fixes:** A  was created, and the  was wrapped in its provider. However, the theme state () is still managed and toggled within individual components like  and , rather than being centrally controlled and distributed by the context.
+    -   **Next debug checklist:**
+        1.  Centralize the  state and the  function within .
+        2.  Modify  to apply a  class to the root  based on the context's value.
+        3.  Update  with dark-mode-specific styles using  or  selectors for background, text colors, etc.
+        4.  Remove local state management for dark mode from  and , and have them consume the theme from the context only for the toggle button's appearance (e.g., sun/moon icon).
+    -   **Why fix this issue and what will be achieved with the fix?** Provides a consistent and professional user experience, fulfilling the user's request for a complete dark mode.
     -   **Status:** IN PROGRESS
     -   **Is recurring issue?** N
     -   **Should Test frontend/backend/both after fix?** Frontend
-    -   **Blocked on other issue:** None. This is the primary blocker for all other issues.
+    -   **Blocked on other issue:** None.
 
--   **Issue 2-6:** All other visual and functional bugs related to the PDF (, , , , ) are ready for verification once Issue 1 is resolved and the application loads. They are all blocked by Issue 1.
+-   **Issue 3: Catalog contains duplicate entries (P2)**
+    -   **Attempted fixes:** The agent identified the issue during testing but only performed a one-time cleanup using a reset endpoint. The root cause (the default catalog being added multiple times) was not addressed.
+    -   **Next debug checklist:**
+        1.  In , review the application startup logic or any endpoint that initializes the default catalog.
+        2.  Ensure the initialization only runs if the catalog collection is empty.
+    -   **Why fix this issue and what will be achieved with the fix?** Ensures data integrity and a clean user experience in the catalog.
+    -   **Status:** NOT STARTED
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** Backend
+    -   **Blocked on other issue:** None.
 
 **In progress Task List**:
--   **Task 1: Fix All Pending PDF Visual and Functional Bugs**
-    -   **Where to resume:** Immediately continue with the fix for **Issue 1**. The next step is to remove the broken constant declaration from .
-    -   **What will be achieved with this?** A working application where all recent user-requested PDF corrections can be verified.
-    -   **Status:** IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?** Both
-    -   **Blocked on something:** Blocked until the syntax error in  is fully resolved.
+- None.
 
 **Upcoming and Future Tasks**
-*   **Upcoming Tasks (User-interested):**
+*   **Upcoming Tasks:**
+    *   **(P1) Online Quote Acceptance:** Allow clients to accept and sign a quote via a unique link, including checkboxes to select between options if a quote has multiple.
     *   **(P1) Email Integration:** Add a Send to Client button to email the PDF using Resend.
-    *   **(P2) Online Quote Acceptance:** Allow clients to accept and sign a quote via a unique link.
-    *   **(P3) Convert Quote to Invoice:** Add a one-click button to convert an accepted quote into a new invoice.
-*   **Future Tasks (Agent-suggested):**
-    *   Automatic yearly quote numbering (e.g., DEVIS-2026-001).
-    *   An enhanced dashboard with revenue charts.
-    *   Automatic follow-up reminders for unaccepted quotes.
+*   **Future Tasks:**
+    *   **(P2) Convert Quote to Invoice:** Add a one-click button to convert an accepted quote into a new invoice (partially done, needs linking to acceptance status).
+    *   **(P3) Dashboard Enhancements:** Add revenue charts and visual performance indicators.
+    *   **(P3) UI/UX Improvements:** Implement drag & drop for reordering service items and create predefined quote templates.
 
 **Completed work in this session**
--   Added  to .
+-   Fixed the critical frontend  compilation error.
+-   Implemented optional line numbering for services in the PDF.
+-   Added a Facturer (Invoice) button to the quotes list to convert a quote to an invoice via a modal with a Mark as paid option.
+-   Added status indicators (e.g., Brouillon) to the quotes list.
+-   Added titles for the overall quote and for each of the three possible options.
+-   Expanded the Diagnostic section with new roofing types.
+-   Added checkboxes to the PDF for client-side selection of options.
+-   Fixed multi-line description rendering in the PDF.
+-   Changed the PDF services table header to a blue-orange gradient.
+-   Implemented customizable invoice numbers.
+-   Enhanced the catalog with color-coded categories and editable default units for services.
+-   Attempted to fix form persistence and global dark mode (bugs remain).
 
 **Earlier issues found/mentioned but not fixed**
-- All known issues are captured in the **All Pending/In progress Issue list**.
+- The two main issues are the **buggy form persistence** and the **non-global dark mode**, as detailed in the All Pending/In progress Issue list.
 
 **Known issue recurrence from previous fork**
--   **User's High Sensitivity to Design Details:** The user provides specific, minor visual feedback. All changes must be visually verified with the screenshot tool.
--   **Flawed Testing Declaration:** Previous agents declared success without proper visual validation of the downloaded PDF. This must be avoided.
+-   **Complex State Management:** The failure to correctly implement form state persistence across navigations indicates a recurring difficulty with managing React state lifecycles and contexts. The agent's previous solution was incomplete.
+-   **User's High Sensitivity to Design Details:** The user continues to provide specific feedback on UI/UX (e.g., gradients, dark mode). All frontend changes require careful visual verification.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-*   **Frontend:** React, Tailwind CSS.
+*   **Frontend:** React (with Hooks, Context API), Tailwind CSS, .
 *   **Backend:** FastAPI, Pydantic.
 *   **Database:** MongoDB.
-*   **PDF Generation:**  + . The agent must work within the limitations of this stack.
+*   **PDF Generation:**  + .
 
 **key DB schema**
--   **quotes collection:** , , ,  array.
--   **items array:** , , , , .
+-   **quotes:** Added , , , , , , .  model updated.
+-   **invoices:** Added .
+-   **catalog:** Added , .
 
 **changes in tech stack**
--   None. The user rejected the proposed change from  to .
+-   None.
 
 **All files of reference**
--   : **Primary file being edited. Currently contains a syntax error.**
--   : Contains the generated base64 string for the SARL logo, which must be used to create the constants file.
--   : The file that needs to be created.
+-   **/app/frontend/src/pages/QuoteForm.js**: Core file for quote creation, contains buggy state persistence logic.
+-   **/app/frontend/src/App.js**: Main app component, where Context providers are wrapped.
+-   **/app/frontend/src/context/FormPersistContext.js**: Context for managing form state persistence.
+-   **/app/frontend/src/context/ThemeContext.js**: Context for managing dark/light theme.
+-   **/app/frontend/src/pages/Dashboard.js**: Needs to consume theme from global context.
+-   **/app/frontend/src/pages/CatalogManager.js**: UI for the enhanced catalog.
+-   **/app/frontend/src/pages/InvoiceForm.js**: Contains the new custom invoice number field.
+-   **/app/backend/server.py**: Contains all API logic, including updated models and endpoints for new features.
 
 **Areas that need refactoring**:
--   The handling of large asset strings (like base64 images) must be refactored by moving them out of component files and into separate, imported modules. This is currently in progress.
+-   **State Persistence Logic:** The implementation in  and  must be redesigned to handle component unmounting on navigation correctly.
+-   **Theme Management:** The dark mode logic must be centralized in  and applied globally from  or  to ensure consistency. Local state toggles in components should be removed.
+-   **Catalog Initialization:** The backend logic that seeds the default catalog needs to be made idempotent to prevent creating duplicate entries.
 
 **key api endpoints**
--   
--   
+-   : Updates a catalog item.
+-   : Creates an invoice (updated to accept ).
+-   : Creates a quote (updated with multi-option and title fields).
+-   : Endpoint used by the agent to clear and re-initialize the catalog.
 
 **Critical Info for New Agent**
--   **Your immediate priority is to fix the JavaScript syntax error** in . The app is completely broken until this is done.
--   **Follow the plan:** Remove the broken  definition, then create  using the data from .
--   **Do not refactor to .** The user has explicitly rejected this. Fix the existing  implementation.
--   Once the app loads, systematically verify all other pending visual issues (logos, text alignment, etc.).
--   The user is highly sensitive to visual details and speaks French.
+-   **Your immediate priority is to fix the two critical usability bugs reported by the user:**
+    1.  **Form data loss on navigation.**
+    2.  **Incomplete dark mode implementation.**
+-   These are significant blockers to user satisfaction. Address them before starting any new features.
+-   The user is actively using the app and providing high-quality feedback. Acknowledge their points and prioritize fixes.
+-   After fixing the bugs, proceed to verify the last set of features (customizable invoice number and catalog colors/units) with the user before moving on to new tasks like e-signatures or email integration.
 
 **documents and test reports created in this job**
--   : A temporary file containing the base64-encoded SARL logo (from a previous job).
+-    (updated with completed tasks and new backlog items)
 
 **Last 10 User Messages and any pending HUMAN messages**
--   **User (latest):** There have been several reforks and things done, I dont know where its at anymore but here is what I see: There is a problem because the other forks use a lot of credit and dont fix anything. Im counting on you.
-    -   **Status:** The agent has started to act on this by beginning the fix for the compilation error.
+1.  **User:** Requests that line breaks in service descriptions should be rendered in the PDF and that header bars should have a blue-to-orange gradient.
+2.  **Agent:** Implements both visual fixes.
+3.  **User:** Asks to optimize the product catalog for better usability during quote creation.
+4.  **Agent:** Asks for clarification on optimize.
+5.  **User:** Clarifies catalog needs: use colors for categories (not sub-categories), allow pre-configured but changeable units. Also requests that invoice numbers be editable.
+6.  **Agent:** Implements these features.
+7.  **User (LATEST PENDING):** Reports two major bugs: 1) Dark mode only works on the home page and not on other pages like the quote/invoice forms. 2) When creating a quote and navigating to another page (like Home), all entered data is lost and the form is reset upon returning.
+    -   **Status:** The agent attempted a fix, but it was unsuccessful. This is the highest priority issue to resolve.
 
 **Project Health Check:**
-*   **Broken:** Yes. The frontend is non-functional and will not compile.
+*   **Broken:** No, the app compiles and runs.
+*   **Mocked:** Yes. Key user-facing features like form persistence and dark mode are fundamentally buggy, severely impacting usability.
 
 **3rd Party Integrations**
 *   : Used for rendering HTML to a canvas for PDF generation.
@@ -245,11 +186,15 @@ Starting the development server...) to confirm the compilation is successful.
 **Testing status**
 -   **Testing agent used after significant changes:** NO
 -   **Troubleshoot agent used after agent stuck in loop:** NO
--   **Test files created:** None
--   **Known regressions:** The entire frontend is down due to a syntax error introduced in a previous job.
+-   **Test files created:** None.
+-   **Known regressions:**
+    -   Form state persistence is not working, a major regression in usability.
+    -   Dark mode implementation is incomplete.
 
 **Credentials to test flow:**
 N/A
 
 **What agent forgot to execute**
-- The agent executed steps out of order: it added an  for a file () before creating the file itself. The most critical next step is to remove the code causing the error before proceeding.</analysis>
+- The agent failed to create a robust solution for the form state persistence issue. After an initial failed attempt, the agent incorrectly dismissed the bug as a testing artifact instead of digging deeper, leaving a critical flaw in the application.
+- The agent did not fix the root cause of the duplicate catalog entries, only performing a temporary cleanup.
+- The agent implemented dark mode in a fragmented way, leading to the inconsistent UI the user reported.</analysis>
