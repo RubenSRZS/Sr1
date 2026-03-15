@@ -1,69 +1,64 @@
 # Sr-Renovation.fr — Devis & Factures Pro
 
 ## Problème original
-Application web pour créer des devis et factures professionnels et personnalisés pour Sr-Renovation.fr, avec un design aligné à la marque et une approche mobile-first.
+Application web pour créer des devis et factures professionnels et personnalisés pour Sr-Renovation.fr.
 
 ## Architecture
 - **Frontend:** React + Tailwind CSS + Shadcn UI
 - **Backend:** FastAPI + Pydantic
 - **Database:** MongoDB
-- **PDF:** html2canvas + jspdf
+- **PDF:** html2canvas + jspdf (client-side generation)
 - **Email:** Resend API (devis@sr-renovation.fr)
 
 ## Fonctionnalités implémentées
 
 ### Core
-- Dashboard avec statistiques (clients, devis, factures, CA)
-- Gestion complète des clients (CRUD, tri alphabétique/récent)
-- Création/édition de devis avec aperçu PDF en temps réel
-- Création/édition de factures avec statut de paiement
+- Dashboard, clients CRUD, devis/factures avec aperçu PDF en temps réel
 - Catalogue de services avec catégories et couleurs
-- Diagnostic visuel hiérarchique (groupes/sous-options)
-- Conversion devis -> facture
-- Mode sombre global
-- Numérotation personnalisée des documents
-- Options multiples par devis (jusqu'à 3)
-- Remises et unités personnalisées
+- Diagnostic visuel hiérarchique, conversion devis->facture
+- Mode sombre global, numérotation personnalisée, options multiples, remises
 
 ### Sécurité
-- Protection par code PIN (4 chiffres) à l'entrée de l'app
-- Option "Code oublié" — envoi par email via Resend
-- Routes publiques séparées (pas de PIN requis pour les clients)
+- Protection par code PIN (0330)
+- Récupération du code par email
 
-### Système d'envoi & signature en ligne
-- Page publique de devis visuellement identique au PDF (réutilise PDFDocument)
-- Lien unique sécurisé par devis (token aléatoire 32 chars)
-- Signature en ligne (canvas tactile pour mobile)
-- Suivi : consulté (opened_at), signé (signed_at)
-- Notification email à l'admin quand un devis est signé
+### Email professionnel
+- Sender: "SR Renovation <devis@sr-renovation.fr>" + Reply-To
+- Template HTML avec dégradé bleu-orange, bouton CTA #F9A825, typographie variée (Georgia serif/sans-serif)
+- Footer pro avec icônes unicode (tel, email, maison, globe)
+- Accents HTML entities, responsive mobile, anti-spam
+- Prix masqué dans l'email
+- Salutation: "Bonjour, Monsieur {Nom}"
+- Sous-titre: "Nettoyage, toiture, façade, terrasse"
+- PDF en pièce jointe automatique
 
-### Email professionnel (15 Mars 2026)
-- Sender: "SR Renovation <devis@sr-renovation.fr>"
-- Reply-To: Srrenovation03@gmail.com
-- Objet dynamique: "Votre devis est prêt — SR Rénovation n°[Numéro]"
-- Template HTML avec dégradé bleu-orange identique à la marque
-- Bouton CTA orange (#FF8C42) "Consulter mon devis" arrondi
-- Prix masqué dans l'email (client doit cliquer pour voir)
-- Prénom du client injecté dynamiquement
-- Footer pro: téléphone, email, adresse, site web
-- Pièce jointe PDF générée côté client (html2canvas + jspdf) et envoyée via Resend
-- Nom fichier PDF: Devis_SR-Renovation_{numéro}.pdf
-- Responsive mobile, anti-spam compliant
+### Page publique de devis
+- Visuellement identique au PDF (réutilise PDFDocument)
+- Responsive mobile: CSS transform scale pour adapter 794px au viewport
+- Signature en ligne (canvas tactile)
+- Bouton "Télécharger le devis signé" après signature
+
+### Signature et suivi
+- Signature client intégrée directement sur le PDF (zone "Bon pour accord")
+- À la signature: email admin avec PDF signé en pièce jointe
+- À la signature: email confirmation client avec RIB (IBAN, BIC, Banque Populaire BFC)
+- Montant acompte 30% affiché dans l'email de confirmation
+- Suivi: envoyé, ouvert, signé
 
 ## Tests
-- Iteration 10: 100% pass — Parité visuelle page publique/PDF (9/9 backend, 12/12 frontend)
-- Iteration 11: 100% pass — Refonte email + PDF attachment (12/12 backend, 8/8 frontend)
+- Iteration 10: 100% (21/21) — Parité visuelle page publique/PDF
+- Iteration 11: 100% (20/20) — Refonte email + PDF attachment
+- Iteration 12: 100% (23/23) — Responsive, signature PDF, emails post-signature, RIB
 
 ## Backlog priorisé
 
 ### P1 — À venir
 - Dashboard statut des devis (section envoyés/ouverts/signés)
-- Personnalisation du texte email avant envoi (FAIT - texte modifiable dans le modal)
 
 ### P2
 - PDF preview fond blanc en mode sombre
 
 ### P3 — Futur
-- Dashboard : graphiques de revenus et indicateurs visuels
+- Dashboard: graphiques de revenus
 - Drag & drop pour réorganiser les services
 - Templates de devis prédéfinis
