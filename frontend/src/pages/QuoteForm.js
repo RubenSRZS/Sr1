@@ -441,47 +441,6 @@ const QuoteForm = () => {
     }
   };
 
-  const diagnosticGroups = [
-    { group: 'Structure', items: [
-      { key: 'tuiles_cassees', label: 'Tuiles cassées' },
-      { key: 'tuile_ciment', label: 'Tuile ciment' },
-      { key: 'tuile_terre_cuite', label: 'Tuile terre cuite' },
-      { key: 'faitage', label: 'Faîtage' },
-      { key: 'fissures', label: 'Fissures' },
-    ]},
-    { group: 'Type de toiture', items: [
-      { key: 'fibro_ciment', label: 'Fibro-ciment' },
-      { key: 'amiante', label: 'Amiante' },
-      { key: 'ardoise', label: 'Ardoise' },
-      { key: 'zinc', label: 'Zinc' },
-      { key: 'bac_acier', label: 'Bac acier' },
-      { key: 'pc_tole', label: 'PC tôle' },
-      { key: 'pc_tole_rouille', label: 'PC tôle — Rouille' },
-      { key: 'pc_tole_perfore', label: 'PC tôle — Perforé' },
-      { key: 'pc_tole_joint', label: 'PC tôle — Joint défaillant' },
-    ]},
-    { group: 'Végétation / Taches', items: [
-      { key: 'mousses', label: 'Mousses' },
-      { key: 'lichens', label: 'Lichens' },
-      { key: 'mousse_verte', label: 'Mousse verte' },
-      { key: 'trace_noire', label: 'Trace noire' },
-    ]},
-    { group: 'Gouttières', items: [
-      { key: 'gouttieres', label: 'Gouttières (général)' },
-      { key: 'gouttieres_obstruees', label: 'Obstruées' },
-      { key: 'gouttieres_encrassees', label: 'Encrassées' },
-      { key: 'gouttieres_rouille', label: 'Corrosion / Rouille' },
-      { key: 'gouttieres_deformees', label: 'Déformées' },
-      { key: 'gouttieres_decollees', label: 'Décollées' },
-      { key: 'descente_ep', label: 'Descente EP défectueuse' },
-    ]},
-    { group: 'Hydrologie / Extérieur', items: [
-      { key: 'forte_humidite', label: 'Forte humidité' },
-      { key: 'facade', label: 'Façade' },
-      { key: 'facade_fissures', label: 'Façade — Fissures' },
-      { key: 'facade_mousse', label: 'Façade — Mousses/traces' },
-    ]},
-  ];
   const PAYMENT_PLANS = [
     { value: 'acompte_solde', label: 'Acompte 30% + Solde 70%' },
     { value: '2_fois', label: '2 fois égales (50% + 50%)' },
