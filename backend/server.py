@@ -785,6 +785,8 @@ class SendQuoteEmail(BaseModel):
     subject: str
     message: str
     recipient_email: str
+    pdf_base64: str | None = None
+    pdf_filename: str | None = None
 
 @api_router.post("/quotes/{quote_id}/send-email")
 async def send_quote_email(quote_id: str, body: SendQuoteEmail):
@@ -797,62 +799,98 @@ async def send_quote_email(quote_id: str, body: SendQuoteEmail):
         public_token = secrets.token_urlsafe(32)
         await db.quotes.update_one({"id": quote_id}, {"$set": {"public_token": public_token}})
 
-    # Build the public URL for the quote
-    # This will be the frontend URL with /devis/public/{token}
     base_url = os.environ.get("PUBLIC_APP_URL", "")
     public_link = f"{base_url}/devis/public/{public_token}" if base_url else f"/devis/public/{public_token}"
 
     # Convert newlines in message to <br>
     message_html = body.message.replace('\n', '<br>')
 
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-    <body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;">
-      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:20px 0;">
-        <tr><td align="center">
-          <table width="600" cellpadding="0" cellspacing="0" style="background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
-            <!-- Header -->
-            <tr><td style="background:linear-gradient(135deg,#1e3a5f 0%,#2d5a8e 100%);padding:30px 40px;text-align:center;">
-              <h1 style="color:white;margin:0;font-size:22px;font-weight:700;">SR RÉNOVATION</h1>
-              <p style="color:#93c5fd;margin:5px 0 0;font-size:13px;">Rénovation de toiture et façade</p>
-            </td></tr>
-            <!-- Body -->
-            <tr><td style="padding:35px 40px;">
-              <p style="color:#1e293b;font-size:15px;line-height:1.7;margin:0 0 20px;">{message_html}</p>
-              <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin:20px 0;">
-                <tr><td style="padding:20px;">
-                  <p style="color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;">Devis</p>
-                  <p style="color:#1e3a5f;font-size:18px;font-weight:700;margin:0;">{q['quote_number']}</p>
-                  <p style="color:#475569;font-size:14px;margin:8px 0 0;">Montant : <strong>{q['total_net']:.2f} € TTC</strong></p>
-                </td></tr>
-              </table>
-              <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:10px 0 25px;">
-                <a href="{public_link}" style="display:inline-block;background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);color:white;text-decoration:none;padding:14px 40px;border-radius:8px;font-weight:700;font-size:15px;letter-spacing:0.5px;">
-                  Consulter et signer le devis
-                </a>
-              </td></tr></table>
-              <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">Ce lien est unique et sécurisé. Il vous permet de consulter le détail du devis et de le signer directement en ligne.</p>
-            </td></tr>
-            <!-- Footer -->
-            <tr><td style="background:#f8fafc;padding:20px 40px;border-top:1px solid #e2e8f0;">
-              <p style="color:#94a3b8;font-size:11px;text-align:center;margin:0;">SR Rénovation — Ce message a été envoyé automatiquement.</p>
-            </td></tr>
-          </table>
-        </td></tr>
-      </table>
-    </body>
-    </html>"""
+    html_content = f"""<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Devis SR Renovation</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f5;">
+<tr><td align="center" style="padding:24px 12px;">
+
+<!-- Main container -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:580px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+
+<!-- Header with gradient -->
+<tr><td style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 40%,#f97316 100%);padding:36px 32px;text-align:center;">
+  <h1 style="color:#ffffff;margin:0;font-size:26px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">SR RENOVATION</h1>
+  <p style="color:rgba(255,255,255,0.85);margin:6px 0 0;font-size:13px;font-weight:400;">Renovation de toiture et facade</p>
+</td></tr>
+
+<!-- Body -->
+<tr><td style="padding:32px 28px 24px;">
+  <p style="color:#1e293b;font-size:15px;line-height:1.75;margin:0 0 24px;">{message_html}</p>
+
+  <!-- CTA Button -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr><td align="center" style="padding:8px 0 28px;">
+    <a href="{public_link}" target="_blank" style="display:inline-block;background-color:#FF8C42;color:#ffffff;text-decoration:none;padding:15px 44px;border-radius:50px;font-weight:700;font-size:15px;letter-spacing:0.3px;mso-padding-alt:0;text-align:center;">
+      <!--[if mso]><i style="mso-font-width:300%;mso-text-raise:30px" hidden>&emsp;</i><![endif]-->
+      Consulter mon devis
+      <!--[if mso]><i style="mso-font-width:300%;" hidden>&emsp;&#8203;</i><![endif]-->
+    </a>
+  </td></tr>
+  </table>
+
+  <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0 0 8px;line-height:1.5;">
+    Ce lien securise vous permet de consulter votre devis, le telecharger et le signer electroniquement en ligne.
+  </p>
+  {'<p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;line-height:1.5;">Le devis est egalement joint a cet email en piece jointe PDF.</p>' if body.pdf_base64 else ''}
+</td></tr>
+
+<!-- Divider -->
+<tr><td style="padding:0 28px;"><div style="border-top:1px solid #e5e7eb;"></div></td></tr>
+
+<!-- Footer signature -->
+<tr><td style="padding:28px 28px 32px;text-align:center;">
+  <p style="color:#1e293b;font-size:15px;font-weight:700;margin:0 0 12px;">SR Renovation</p>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+    <tr><td style="padding:3px 0;color:#64748b;font-size:13px;line-height:1.5;">
+      Tel : 06 80 33 45 46
+    </td></tr>
+    <tr><td style="padding:3px 0;color:#64748b;font-size:13px;line-height:1.5;">
+      Email : <a href="mailto:SrRenovation03@gmail.com" style="color:#3b82f6;text-decoration:none;">SrRenovation03@gmail.com</a>
+    </td></tr>
+    <tr><td style="padding:3px 0;color:#64748b;font-size:13px;line-height:1.5;">
+      Jura (39) - Artisan local et certifie
+    </td></tr>
+    <tr><td style="padding:3px 0;color:#64748b;font-size:13px;line-height:1.5;">
+      Web : <a href="https://sr-renovation.fr" style="color:#3b82f6;text-decoration:none;">sr-renovation.fr</a>
+    </td></tr>
+  </table>
+</td></tr>
+
+</table>
+<!-- End main container -->
+
+</td></tr>
+</table>
+</body>
+</html>"""
 
     try:
+        sender = f"SR Renovation <{SENDER_EMAIL}>"
         params = {
-            "from": SENDER_EMAIL,
+            "from": sender,
             "to": [body.recipient_email],
             "reply_to": REPLY_TO_EMAIL,
             "subject": body.subject,
             "html": html_content,
         }
+        # Attach PDF if provided
+        if body.pdf_base64 and body.pdf_filename:
+            params["attachments"] = [{
+                "filename": body.pdf_filename,
+                "content": body.pdf_base64,
+            }]
         email_result = await asyncio.to_thread(resend.Emails.send, params)
         now = datetime.now(timezone.utc).isoformat()
         await db.quotes.update_one(

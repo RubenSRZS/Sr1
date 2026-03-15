@@ -453,6 +453,53 @@ const generatePDFFromHTML = async (document, type) => {
   }
 };
 
+const generatePDFBase64 = async (document, type) => {
+  const isQuote = type === 'quote';
+  const number = isQuote ? document.quote_number : document.invoice_number;
+  const prefix = isQuote ? 'Devis_SR-Renovation' : 'Facture_SR-Renovation';
+  const filename = `${prefix}_${number || 'XX'}.pdf`;
+
+  const container = window.document.createElement('div');
+  container.style.cssText = 'position:fixed;top:0;left:-9999px;width:794px;background:white;z-index:-9999;pointer-events:none;';
+  window.document.body.appendChild(container);
+  const root = createRoot(container);
+  root.render(<PDFDocument document={document} type={type} compact={false} />);
+
+  try {
+    await new Promise(r => setTimeout(r, 1000));
+    await window.document.fonts.ready;
+    const canvas = await html2canvas(container.firstChild, {
+      scale: 2.5, useCORS: true, allowTaint: false, backgroundColor: '#ffffff', logging: false,
+      onclone: (clonedDoc) => {
+        clonedDoc.querySelectorAll('img').forEach(img => {
+          const b64 = LOGO_B64_MAP[img.src] || LOGO_B64_MAP[img.getAttribute('src')];
+          if (b64) img.src = b64;
+        });
+      },
+    });
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const pxPerMm = canvas.width / pageW;
+    const pageHpx = pageH * pxPerMm;
+    const totalPages = Math.ceil(canvas.height / pageHpx);
+    for (let p = 0; p < totalPages; p++) {
+      if (p > 0) pdf.addPage();
+      const sc = window.document.createElement('canvas');
+      sc.width = canvas.width;
+      const start = p * pageHpx;
+      sc.height = Math.ceil(Math.min(pageHpx, canvas.height - start));
+      sc.getContext('2d').drawImage(canvas, 0, -start);
+      pdf.addImage(sc.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pageW, (sc.height / canvas.width) * pageW);
+    }
+    const base64 = pdf.output('datauristring').split(',')[1];
+    return { base64, filename };
+  } finally {
+    root.unmount();
+    window.document.body.removeChild(container);
+  }
+};
+
 const downloadPDF = async (document, type) => {
   try {
     await generatePDFFromHTML(document, type);
@@ -489,5 +536,5 @@ const PDFPreview = ({ document, type, onClose }) => {
   );
 };
 
-export { PDFDocument, downloadPDF, generatePDFFromHTML, BRAND_BLUE, BRAND_ORANGE };
+export { PDFDocument, downloadPDF, generatePDFFromHTML, generatePDFBase64, BRAND_BLUE, BRAND_ORANGE };
 export default PDFPreview;
