@@ -568,24 +568,11 @@ const QuoteForm = () => {
             </Card>
 
             {/* Diagnostic */}
-            <Card className="p-4 bg-white border-0 shadow-sm" data-testid="diagnostic-section">
-              <span className="font-semibold text-sm text-gray-800 mb-2 block">Diagnostic visuel</span>
-              <div className="space-y-2">
-                {diagnosticGroups.map(group => (
-                  <div key={group.group}>
-                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{group.group}</div>
-                    <div className="grid grid-cols-3 gap-x-2 gap-y-1.5">
-                      {group.items.map(d => (
-                        <label key={d.key} className="flex items-center gap-1.5 text-xs cursor-pointer">
-                          <Checkbox checked={formData.diagnostic[d.key] || false} onCheckedChange={v => updateField('diagnostic', { ...formData.diagnostic, [d.key]: v })} data-testid={`diag-${d.key}`} />
-                          {d.label}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+            <DiagnosticSection 
+              diagnostic={formData.diagnostic || {}}
+              updateDiagnostic={(newDiag) => updateField('diagnostic', newDiag)}
+              darkMode={darkMode}
+            />
 
             {/* Payment plan */}
             <Card className="p-4 bg-white border-0 shadow-sm" data-testid="payment-plan-section">
