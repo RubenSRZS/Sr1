@@ -741,6 +741,8 @@ async def track_quote_opened(token: str):
 class SignQuote(BaseModel):
     signature_data: str
     signer_name: Optional[str] = ""
+    pdf_base64: Optional[str] = None
+    pdf_filename: Optional[str] = None
 
 @api_router.post("/public/quote/{token}/sign")
 async def sign_quote_public(token: str, body: SignQuote):
@@ -759,24 +761,141 @@ async def sign_quote_public(token: str, body: SignQuote):
             "signer_name": body.signer_name or "",
         }}
     )
-    # Notify admin by email
+
+    # Accept optional PDF with client signature embedded
+    signed_pdf_base64 = None
+    signed_pdf_filename = None
+    if hasattr(body, 'pdf_base64') and body.pdf_base64:
+        signed_pdf_base64 = body.pdf_base64
+        signed_pdf_filename = body.pdf_filename or f"Devis_SR-Renovation_{q['quote_number']}_signe.pdf"
+
+    sign_date_str = datetime.now().strftime('%d/%m/%Y')
+    sender = f"SR Renovation <{SENDER_EMAIL}>"
+    client_name = q.get('client_name', 'Client')
+    client_last_name = client_name.split()[-1] if client_name else 'Client'
+    quote_number = q.get('quote_number', '')
+    acompte = q.get('acompte_30', 0)
+    total_net = q.get('total_net', 0)
+
+    # 1) Notify admin with signed PDF attached
     try:
-        params = {
-            "from": SENDER_EMAIL,
+        admin_html = f"""<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:'Segoe UI',Arial,Helvetica,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f5;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:580px;background-color:#ffffff;border-radius:16px;overflow:hidden;">
+<tr><td style="background:linear-gradient(135deg,#16a34a 0%,#22c55e 100%);padding:28px 28px;text-align:center;">
+  <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:800;">Devis sign&eacute; !</h1>
+</td></tr>
+<tr><td style="padding:28px;">
+  <p style="color:#1e293b;font-size:15px;line-height:1.7;margin:0 0 16px;">
+    <strong>{q['client_name']}</strong> a accept&eacute; et sign&eacute; le devis <strong>n&deg;{quote_number}</strong>.
+  </p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;margin:0 0 16px;">
+    <tr><td style="padding:16px;">
+      <p style="color:#64748b;font-size:12px;margin:0 0 4px;">Montant</p>
+      <p style="color:#166534;font-size:20px;font-weight:700;margin:0;">{total_net:.2f} &euro;</p>
+      <p style="color:#64748b;font-size:13px;margin:6px 0 0;">Sign&eacute; le {sign_date_str}</p>
+    </td></tr>
+  </table>
+  <p style="color:#64748b;font-size:13px;margin:0;">Le devis sign&eacute; est joint &agrave; cet email en pi&egrave;ce jointe PDF.</p>
+</td></tr>
+</table>
+</td></tr></table></body></html>"""
+
+        admin_params = {
+            "from": sender,
             "to": [ADMIN_EMAIL],
             "reply_to": REPLY_TO_EMAIL,
-            "subject": f"Devis {q['quote_number']} signé par {q['client_name']}",
-            "html": f"""
-            <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:30px;background:#f0fdf4;border-radius:12px;border:1px solid #bbf7d0;">
-                <h2 style="color:#166534;margin:0 0 15px;">Devis signé !</h2>
-                <p style="color:#475569;"><strong>{q['client_name']}</strong> a accepté et signé le devis <strong>{q['quote_number']}</strong></p>
-                <p style="color:#475569;">Montant : <strong>{q['total_net']:.2f} €</strong></p>
-                <p style="color:#64748b;font-size:13px;">Signé le {datetime.now().strftime('%d/%m/%Y à %H:%M')}</p>
-            </div>"""
+            "subject": f"Devis {quote_number} signe par {client_name}",
+            "html": admin_html,
         }
-        await asyncio.to_thread(resend.Emails.send, params)
+        if signed_pdf_base64:
+            admin_params["attachments"] = [{
+                "filename": signed_pdf_filename or f"Devis_SR-Renovation_{quote_number}_signe.pdf",
+                "content": signed_pdf_base64,
+            }]
+        await asyncio.to_thread(resend.Emails.send, admin_params)
     except Exception as e:
-        logger.error(f"Erreur notification signature: {e}")
+        logger.error(f"Erreur notification admin signature: {e}")
+
+    # 2) Send confirmation email to client with RIB
+    client_email = q.get('sent_to_email') or q.get('client_email')
+    if client_email:
+        try:
+            client_html = f"""<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:'Segoe UI',Arial,Helvetica,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f5;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:580px;background-color:#ffffff;border-radius:16px;overflow:hidden;">
+<tr><td style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 40%,#f97316 100%);padding:32px 28px;text-align:center;">
+  <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:800;letter-spacing:0.5px;">SR R&Eacute;NOVATION</h1>
+  <p style="color:rgba(255,255,255,0.85);margin:6px 0 0;font-size:13px;">Nettoyage, toiture, fa&ccedil;ade, terrasse</p>
+</td></tr>
+<tr><td style="padding:28px;">
+  <p style="color:#1e293b;font-size:16px;line-height:1.7;margin:0 0 20px;">
+    Bonjour, Monsieur <strong>{client_last_name}</strong>,
+  </p>
+  <p style="color:#475569;font-size:15px;line-height:1.7;margin:0 0 20px;">
+    Nous vous confirmons la bonne r&eacute;ception de votre signature pour le devis <strong>n&deg;{quote_number}</strong>.<br><br>
+    Nous vous remercions pour votre confiance. Votre devis sign&eacute; est joint &agrave; cet email.
+  </p>
+
+  {'<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;margin:0 0 20px;"><tr><td style="padding:18px;"><p style="color:#1e40af;font-size:14px;font-weight:700;margin:0 0 10px;">Acompte de 30%% &agrave; verser : ' + f'{acompte:.2f}' + ' &euro;</p><p style="color:#475569;font-size:13px;line-height:1.6;margin:0;">Vous pouvez effectuer le virement aux coordonn&eacute;es suivantes :</p></td></tr></table>' if acompte > 0 else ''}
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin:0 0 20px;">
+    <tr><td style="padding:18px;">
+      <p style="color:#1e40af;font-size:14px;font-weight:700;margin:0 0 12px;">Coordonn&eacute;es bancaires (RIB)</p>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+        <tr><td style="color:#64748b;font-size:12px;padding:3px 0;">Titulaire</td><td style="color:#1e293b;font-size:13px;font-weight:600;padding:3px 0;">M RUBEN SUAREZ-SAR</td></tr>
+        <tr><td style="color:#64748b;font-size:12px;padding:3px 0;">Banque</td><td style="color:#1e293b;font-size:13px;font-weight:600;padding:3px 0;">Banque Populaire BFC</td></tr>
+        <tr><td style="color:#64748b;font-size:12px;padding:3px 0;">IBAN</td><td style="color:#1e293b;font-size:13px;font-weight:600;padding:3px 0;word-break:break-all;">FR76 1080 7000 1312 3197 7296 321</td></tr>
+        <tr><td style="color:#64748b;font-size:12px;padding:3px 0;">BIC</td><td style="color:#1e293b;font-size:13px;font-weight:600;padding:3px 0;">CCBPFRPPDJN</td></tr>
+      </table>
+    </td></tr>
+  </table>
+
+  <p style="color:#475569;font-size:14px;line-height:1.7;margin:0 0 8px;">
+    N'h&eacute;sitez pas &agrave; me contacter pour toute question.
+  </p>
+  <p style="color:#1e293b;font-size:14px;line-height:1.7;margin:0;">
+    &Agrave; tr&egrave;s bient&ocirc;t,<br>
+    <strong>Ruben &mdash; SR R&eacute;novation</strong>
+  </p>
+</td></tr>
+
+<tr><td style="padding:0 28px;"><div style="border-top:1px solid #e5e7eb;"></div></td></tr>
+
+<tr><td style="padding:24px 28px;text-align:center;">
+  <p style="color:#1e293b;font-size:15px;font-weight:700;margin:0 0 10px;">SR R&eacute;novation</p>
+  <p style="color:#64748b;font-size:13px;line-height:2;margin:0;">
+    &#9742; 06 80 33 45 46<br>
+    &#9993; <a href="mailto:SrRenovation03@gmail.com" style="color:#3b82f6;text-decoration:none;">SrRenovation03@gmail.com</a><br>
+    &#127968; Jura (39) - Artisan local &amp; certifi&eacute;<br>
+    &#127760; <a href="https://sr-renovation.fr" style="color:#3b82f6;text-decoration:none;">sr-renovation.fr</a>
+  </p>
+</td></tr>
+</table>
+</td></tr></table></body></html>"""
+
+            client_params = {
+                "from": sender,
+                "to": [client_email],
+                "reply_to": REPLY_TO_EMAIL,
+                "subject": f"Confirmation de signature — Devis n{quote_number} SR Renovation",
+                "html": client_html,
+            }
+            if signed_pdf_base64:
+                client_params["attachments"] = [{
+                    "filename": signed_pdf_filename or f"Devis_SR-Renovation_{quote_number}_signe.pdf",
+                    "content": signed_pdf_base64,
+                }]
+            await asyncio.to_thread(resend.Emails.send, client_params)
+        except Exception as e:
+            logger.error(f"Erreur confirmation client signature: {e}")
+
     return {"status": "success", "signed_at": now}
 
 # ==================== SEND QUOTE EMAIL ====================
@@ -810,9 +929,9 @@ async def send_quote_email(quote_id: str, body: SendQuoteEmail):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Devis SR Renovation</title>
+<title>Devis SR R&eacute;novation</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:'Segoe UI',Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f5;">
 <tr><td align="center" style="padding:24px 12px;">
 
@@ -820,9 +939,9 @@ async def send_quote_email(quote_id: str, body: SendQuoteEmail):
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:580px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
 
 <!-- Header with gradient -->
-<tr><td style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 40%,#f97316 100%);padding:36px 32px;text-align:center;">
-  <h1 style="color:#ffffff;margin:0;font-size:26px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">SR RENOVATION</h1>
-  <p style="color:rgba(255,255,255,0.85);margin:6px 0 0;font-size:13px;font-weight:400;">Renovation de toiture et facade</p>
+<tr><td style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 40%,#f97316 100%);padding:36px 28px;text-align:center;">
+  <h1 style="color:#ffffff;margin:0;font-size:26px;font-weight:800;letter-spacing:1px;text-transform:uppercase;font-family:Georgia,'Times New Roman',serif;">SR R&Eacute;NOVATION</h1>
+  <p style="color:rgba(255,255,255,0.9);margin:8px 0 0;font-size:13px;font-weight:400;letter-spacing:0.5px;">Nettoyage, toiture, fa&ccedil;ade, terrasse</p>
 </td></tr>
 
 <!-- Body -->
@@ -831,8 +950,8 @@ async def send_quote_email(quote_id: str, body: SendQuoteEmail):
 
   <!-- CTA Button -->
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr><td align="center" style="padding:8px 0 28px;">
-    <a href="{public_link}" target="_blank" style="display:inline-block;background-color:#FF8C42;color:#ffffff;text-decoration:none;padding:15px 44px;border-radius:50px;font-weight:700;font-size:15px;letter-spacing:0.3px;mso-padding-alt:0;text-align:center;">
+  <tr><td align="center" style="padding:8px 0 24px;">
+    <a href="{public_link}" target="_blank" style="display:inline-block;background-color:#F9A825;color:#ffffff;text-decoration:none;padding:16px 48px;border-radius:50px;font-weight:700;font-size:16px;letter-spacing:0.3px;mso-padding-alt:0;text-align:center;font-family:'Segoe UI',Arial,sans-serif;">
       <!--[if mso]><i style="mso-font-width:300%;mso-text-raise:30px" hidden>&emsp;</i><![endif]-->
       Consulter mon devis
       <!--[if mso]><i style="mso-font-width:300%;" hidden>&emsp;&#8203;</i><![endif]-->
@@ -840,30 +959,30 @@ async def send_quote_email(quote_id: str, body: SendQuoteEmail):
   </td></tr>
   </table>
 
-  <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0 0 8px;line-height:1.5;">
-    Ce lien securise vous permet de consulter votre devis, le telecharger et le signer electroniquement en ligne.
+  <p style="color:#475569;font-size:13px;text-align:center;margin:0 0 8px;line-height:1.6;">
+    Ce lien s&eacute;curis&eacute; vous permet de consulter votre devis,<br>le t&eacute;l&eacute;charger et le signer &eacute;lectroniquement en ligne.
   </p>
-  {'<p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;line-height:1.5;">Le devis est egalement joint a cet email en piece jointe PDF.</p>' if body.pdf_base64 else ''}
+  {'<p style="color:#475569;font-size:13px;text-align:center;margin:8px 0 0;line-height:1.6;">Le devis est &eacute;galement joint &agrave; cet email en pi&egrave;ce jointe PDF.</p>' if body.pdf_base64 else ''}
 </td></tr>
 
 <!-- Divider -->
 <tr><td style="padding:0 28px;"><div style="border-top:1px solid #e5e7eb;"></div></td></tr>
 
 <!-- Footer signature -->
-<tr><td style="padding:28px 28px 32px;text-align:center;">
-  <p style="color:#1e293b;font-size:15px;font-weight:700;margin:0 0 12px;">SR Renovation</p>
+<tr><td style="padding:24px 28px 28px;text-align:center;">
+  <p style="color:#1e293b;font-size:16px;font-weight:700;margin:0 0 14px;font-family:Georgia,'Times New Roman',serif;">SR R&eacute;novation</p>
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
-    <tr><td style="padding:3px 0;color:#64748b;font-size:13px;line-height:1.5;">
-      Tel : 06 80 33 45 46
+    <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
+      &#9742; 06 80 33 45 46
     </td></tr>
-    <tr><td style="padding:3px 0;color:#64748b;font-size:13px;line-height:1.5;">
-      Email : <a href="mailto:SrRenovation03@gmail.com" style="color:#3b82f6;text-decoration:none;">SrRenovation03@gmail.com</a>
+    <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
+      &#9993; <a href="mailto:SrRenovation03@gmail.com" style="color:#3b82f6;text-decoration:none;">SrRenovation03@gmail.com</a>
     </td></tr>
-    <tr><td style="padding:3px 0;color:#64748b;font-size:13px;line-height:1.5;">
-      Jura (39) - Artisan local et certifie
+    <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
+      &#127968; Jura (39) &mdash; Artisan local &amp; certifi&eacute;
     </td></tr>
-    <tr><td style="padding:3px 0;color:#64748b;font-size:13px;line-height:1.5;">
-      Web : <a href="https://sr-renovation.fr" style="color:#3b82f6;text-decoration:none;">sr-renovation.fr</a>
+    <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
+      &#127760; <a href="https://sr-renovation.fr" style="color:#3b82f6;text-decoration:none;">sr-renovation.fr</a>
     </td></tr>
   </table>
 </td></tr>

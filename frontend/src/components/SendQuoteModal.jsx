@@ -7,8 +7,8 @@ import { generatePDFBase64 } from './PDFPreview';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const getDefaultBody = (clientName) => {
-  const firstName = clientName ? clientName.split(' ')[0] : 'Client';
-  return `Bonjour ${firstName},
+  const lastName = clientName ? clientName.split(' ').slice(-1)[0] : '';
+  return `Bonjour, Monsieur ${lastName},
 
 Suite à notre échange, j'ai le plaisir de vous transmettre votre devis personnalisé pour votre projet de rénovation.
 

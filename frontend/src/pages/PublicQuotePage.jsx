@@ -2,9 +2,10 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Check, Download, Pen, FileText } from 'lucide-react';
-import { PDFDocument, BRAND_BLUE, BRAND_ORANGE } from '@/components/PDFPreview';
+import { PDFDocument, generatePDFBase64, BRAND_BLUE } from '@/components/PDFPreview';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const PDF_WIDTH_PX = 794; // 210mm in pixels
 
 const PublicQuotePage = () => {
   const { token } = useParams();
@@ -15,8 +16,25 @@ const PublicQuotePage = () => {
   const [signed, setSigned] = useState(false);
   const [signerName, setSignerName] = useState('');
   const canvasRef = useRef(null);
+  const wrapperRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
+  const [scale, setScale] = useState(1);
+  const [downloading, setDownloading] = useState(false);
+
+  // Responsive scaling: fit 210mm PDF into viewport
+  useEffect(() => {
+    const updateScale = () => {
+      if (wrapperRef.current) {
+        const availableWidth = wrapperRef.current.offsetWidth;
+        const newScale = Math.min(1, availableWidth / PDF_WIDTH_PX);
+        setScale(newScale);
+      }
+    };
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, [quote]);
 
   useEffect(() => {
     const fetchQuote = async () => {
@@ -81,17 +99,53 @@ const PublicQuotePage = () => {
     setSigning(true);
     try {
       const signatureData = canvasRef.current.toDataURL('image/png');
+      // First update local state so PDFDocument renders with signature
+      const updatedQuote = { ...quote, signature_data: signatureData, signed_at: new Date().toISOString(), signer_name: signerName };
+
+      // Generate signed PDF
+      let pdfData = null;
+      try {
+        pdfData = await generatePDFBase64(updatedQuote, 'quote');
+      } catch (err) {
+        console.error('PDF generation for signature:', err);
+      }
+
+      const payload = {
+        signature_data: signatureData,
+        signer_name: signerName,
+      };
+      if (pdfData) {
+        payload.pdf_base64 = pdfData.base64;
+        payload.pdf_filename = pdfData.filename;
+      }
+
       const res = await fetch(`${API}/public/quote/${token}/sign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ signature_data: signatureData, signer_name: signerName }),
+        body: JSON.stringify(payload),
       });
-      if (res.ok) setSigned(true);
+      if (res.ok) {
+        setSigned(true);
+        setQuote(updatedQuote);
+      }
     } catch (e) { console.error(e); }
     setSigning(false);
   };
 
-  const handlePrint = useCallback(() => window.print(), []);
+  const handleDownloadPDF = useCallback(async () => {
+    if (!quote) return;
+    setDownloading(true);
+    try {
+      const { base64, filename } = await generatePDFBase64(quote, 'quote');
+      const link = document.createElement('a');
+      link.href = `data:application/pdf;base64,${base64}`;
+      link.download = filename;
+      link.click();
+    } catch (err) {
+      console.error('Download error:', err);
+    }
+    setDownloading(false);
+  }, [quote]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-100">
@@ -111,26 +165,34 @@ const PublicQuotePage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100" data-testid="public-quote-page">
-      {/* Download/Print bar */}
+      {/* Toolbar */}
       <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between print:hidden sticky top-0 z-10" data-testid="public-quote-toolbar">
         <span style={{ color: BRAND_BLUE, fontWeight: 700, fontSize: '14px' }}>
           Devis {quote.quote_number}
         </span>
-        <Button onClick={handlePrint} size="sm" variant="outline" style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }} data-testid="print-btn">
-          <Download className="w-4 h-4 mr-1.5" /> PDF
+        <Button onClick={handleDownloadPDF} size="sm" variant="outline" disabled={downloading} style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }} data-testid="download-pdf-btn">
+          <Download className="w-4 h-4 mr-1.5" /> {downloading ? 'Génération...' : 'Télécharger PDF'}
         </Button>
       </div>
 
-      {/* PDF Document — exact same rendering as the downloaded PDF */}
-      <div className="p-4 print:p-0">
-        <div className="mx-auto shadow-lg rounded overflow-hidden bg-white" style={{ maxWidth: '210mm' }}>
-          <PDFDocument document={quote} type="quote" />
+      {/* PDF Document — responsive scaled */}
+      <div ref={wrapperRef} className="px-2 py-4 print:p-0" style={{ overflow: 'hidden' }}>
+        <div style={{
+          width: `${PDF_WIDTH_PX}px`,
+          transform: `scale(${scale})`,
+          transformOrigin: 'top center',
+          margin: '0 auto',
+          height: scale < 1 ? 'auto' : undefined,
+        }}>
+          <div className="shadow-lg rounded overflow-hidden bg-white">
+            <PDFDocument document={quote} type="quote" />
+          </div>
         </div>
       </div>
 
-      {/* Signature Section — below the document */}
-      <div className="p-4 print:p-0">
-        <div className="mx-auto rounded-xl overflow-hidden bg-white shadow-lg" style={{ maxWidth: '210mm' }} data-testid="signature-section">
+      {/* Signature Section */}
+      <div className="px-2 pb-4 print:p-0">
+        <div className="mx-auto rounded-xl overflow-hidden bg-white shadow-lg" style={{ maxWidth: '580px' }} data-testid="signature-section">
           {signed || quote.signed_at ? (
             <div className="p-8 text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" style={{ background: '#dcfce7' }}>
@@ -145,9 +207,14 @@ const PublicQuotePage = () => {
                   <img src={quote.signature_data} alt="Signature" className="h-20" />
                 </div>
               )}
+              <div className="mt-4">
+                <Button onClick={handleDownloadPDF} size="sm" variant="outline" disabled={downloading} style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }} data-testid="download-signed-pdf-btn">
+                  <Download className="w-4 h-4 mr-1.5" /> {downloading ? 'Génération...' : 'Télécharger le devis signé'}
+                </Button>
+              </div>
             </div>
           ) : (
-            <div className="p-6">
+            <div className="p-5">
               <div className="flex items-center gap-2 mb-5">
                 <Pen className="w-5 h-5" style={{ color: BRAND_BLUE }} />
                 <h3 className="font-bold text-base" style={{ color: BRAND_BLUE }}>Signer le devis</h3>
@@ -207,7 +274,7 @@ const PublicQuotePage = () => {
               </Button>
 
               <p className="text-xs text-slate-400 text-center mt-3">
-                En signant, vous acceptez les termes de ce devis. Vous recevrez une confirmation.
+                En signant, vous acceptez les termes de ce devis. Vous recevrez une confirmation par email.
               </p>
             </div>
           )}
@@ -216,7 +283,7 @@ const PublicQuotePage = () => {
 
       {/* Footer */}
       <div className="text-center py-6 text-slate-400 text-xs print:hidden">
-        <p>SR Rénovation — Rénovation de toiture et façade</p>
+        <p>SR Rénovation — Nettoyage, toiture, façade, terrasse</p>
       </div>
     </div>
   );

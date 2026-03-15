@@ -375,7 +375,15 @@ const PDFDocument = ({ document, type, compact = false }) => {
             </div>
             <div style={{ border: '1px dashed #fdba74', borderRadius: '8px', padding: '8px 10px', minHeight: '75px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div style={{ fontSize: '8px', fontWeight: 600, color: BRAND_ORANGE }}>Bon pour accord — Signature client</div>
-              <div style={{ fontSize: '8px', color: '#d1d5db', marginTop: 'auto' }}>Précédé de "Lu et approuvé"</div>
+              {document.signature_data ? (
+                <div style={{ textAlign: 'center' }}>
+                  <img src={document.signature_data} alt="Signature client" style={{ height: '40px', objectFit: 'contain' }} />
+                  {document.signer_name && <div style={{ fontSize: '7px', color: '#6b7280', marginTop: '2px' }}>{document.signer_name}</div>}
+                  {document.signed_at && <div style={{ fontSize: '6px', color: '#9ca3af' }}>Signé le {new Date(document.signed_at).toLocaleDateString('fr-FR')}</div>}
+                </div>
+              ) : (
+                <div style={{ fontSize: '8px', color: '#d1d5db', marginTop: 'auto' }}>Précédé de "Lu et approuvé"</div>
+              )}
             </div>
           </div>
         )}
