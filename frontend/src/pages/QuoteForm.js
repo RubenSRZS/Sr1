@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { PDFDocument, downloadPDF, BRAND_BLUE, BRAND_ORANGE } from '@/components/PDFPreview';
 import { useTheme } from '@/context/ThemeContext';
 import { useFormPersist } from '@/context/FormPersistContext';
+import { DiagnosticSection } from '@/components/DiagnosticSection';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
