@@ -44,13 +44,28 @@ const LOGO_B64_MAP = {
   [LOGO_SIGN_URL]: LOGO_SIGN_B64,
 };
 
-const DiagnosticLabels = {
-  tuiles_cassees: 'Tuiles cassées', tuile_ciment: 'Tuile ciment', tuile_terre_cuite: 'Tuile terre cuite',
-  faitage: 'Faîtage', fissures: 'Fissures', 
-  fibro_ciment: 'Fibro-ciment', amiante: 'Amiante', ardoise: 'Ardoise', zinc: 'Zinc', bac_acier: 'Bac acier',
-  mousses: 'Mousses', lichens: 'Lichens',
-  mousse_verte: 'Mousse verte', trace_noire: 'Trace noire', gouttieres: 'Gouttières',
-  forte_humidite: 'Forte humidité', facade: 'Façade',
+import { DIAGNOSTIC_GROUPS } from './DiagnosticSection';
+
+// Build grouped diagnostic lines from flat boolean state
+// Output: ["Structure : Tuiles cassées, Fissures", "Gouttières : Obstruée, Encrassée"]
+const buildDiagnosticLines = (diagnostic) => {
+  if (!diagnostic) return [];
+  const lines = [];
+  for (const group of DIAGNOSTIC_GROUPS) {
+    // Check if group-level is checked
+    if (diagnostic[group.id] === true) {
+      lines.push(group.label);
+      continue;
+    }
+    // Collect checked sub-options
+    const checkedSubs = group.options
+      .filter(opt => diagnostic[opt.id] === true)
+      .map(opt => opt.label);
+    if (checkedSubs.length > 0) {
+      lines.push(`${group.label} : ${checkedSubs.join(', ')}`);
+    }
+  }
+  return lines;
 };
 
 // Compute payment installments based on payment_plan setting
@@ -178,7 +193,7 @@ const PDFDocument = ({ document, type, compact = false }) => {
   const isQuote = type === 'quote';
   const number = isQuote ? document.quote_number : document.invoice_number;
   const fs = compact ? '9px' : '11px';
-  const diagItems = document.diagnostic ? Object.entries(document.diagnostic).filter(([, v]) => v === true) : [];
+  const diagLines = buildDiagnosticLines(document.diagnostic);
   const hasOption2 = isQuote && document.option_2_services && document.option_2_services.length > 0;
   const hasOption3 = isQuote && document.option_3_services && document.option_3_services.length > 0;
   const paymentPlan = document.payment_plan || 'acompte_solde';
@@ -231,13 +246,13 @@ const PDFDocument = ({ document, type, compact = false }) => {
         </div>
 
         {/* Diagnostic */}
-        {isQuote && diagItems.length > 0 && (
+        {isQuote && diagLines.length > 0 && (
           <div style={{ borderRadius: '8px', padding: '8px 10px', marginBottom: '8px', border: '1px solid #dbeafe', background: '#f8fafc' }}>
             <div style={{ fontSize: '8px', fontWeight: 700, textTransform: 'uppercase', color: BRAND_BLUE, marginBottom: '5px' }}>Diagnostic</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-              {diagItems.map(([key]) => (
-                <span key={key} style={{ display: 'inline-flex', alignItems: 'center', fontSize: '8px', padding: '2px 7px', borderRadius: '999px', background: '#dbeafe', color: '#2563eb', fontWeight: 500 }}>
-                  ✓ {DiagnosticLabels[key] || key}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              {diagLines.map((line, idx) => (
+                <span key={idx} style={{ display: 'inline-flex', alignItems: 'center', fontSize: '9px', padding: '2px 7px', borderRadius: '4px', background: '#dbeafe', color: '#2563eb', fontWeight: 500 }}>
+                  {line}
                 </span>
               ))}
             </div>

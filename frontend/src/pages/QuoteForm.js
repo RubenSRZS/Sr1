@@ -18,6 +18,16 @@ import { DiagnosticSection } from '@/components/DiagnosticSection';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// Category color mapping (same as CatalogManager)
+const CATALOG_CATEGORIES = {
+  'TOITURE': '#3b82f6',
+  'FAÇADE': '#f97316',
+  'ZINGUERIE & HABILLAGE': '#10b981',
+  'SOLS & EXTÉRIEURS': '#8b5cf6',
+};
+
+const getCatalogItemColor = (item) => item.color || CATALOG_CATEGORIES[item.category] || '#6b7280';
+
 // ─── ServicesSection MUST be defined OUTSIDE QuoteForm to prevent remount on every render ─────
 const UNITS = ['unité', 'm²', 'ML', 'm', 'h', 'forfait', 'kg'];
 
@@ -816,32 +826,31 @@ const QuoteForm = () => {
                       {category}
                     </div>
                     <div className="space-y-1.5">
-                      {items.map(item => (
+                      {items.map(item => {
+                        const itemColor = getCatalogItemColor(item);
+                        return (
                         <div 
                           key={item.id} 
                           onClick={() => addFromCatalog(item)}
                           className="p-3 rounded-lg border hover:shadow-sm cursor-pointer transition-all"
                           style={{ 
-                            borderColor: item.color || '#e5e7eb',
+                            borderColor: itemColor,
                             borderLeftWidth: '4px',
-                            backgroundColor: item.color ? `${item.color}08` : 'white'
+                            backgroundColor: `${itemColor}08`
                           }}
                           data-testid={`catalog-item-${item.id}`}
                         >
                           <div className="flex items-center gap-2 mb-1">
-                            {item.color && (
-                              <div 
-                                className="w-5 h-5 rounded-md border-2 shadow-sm flex-shrink-0" 
-                                style={{ 
-                                  backgroundColor: item.color,
-                                  borderColor: item.color
-                                }}
-                                title={`Couleur: ${item.color}`}
-                              />
-                            )}
+                            <div 
+                              className="w-5 h-5 rounded-md border-2 shadow-sm flex-shrink-0" 
+                              style={{ 
+                                backgroundColor: itemColor,
+                                borderColor: itemColor
+                              }}
+                            />
                             <span className="font-semibold text-sm flex-1">{item.service_name}</span>
                             {item.default_price && (
-                              <span className="text-sm font-bold px-2 py-0.5 rounded" style={{ color: item.color || BRAND_BLUE }}>
+                              <span className="text-sm font-bold px-2 py-0.5 rounded" style={{ color: itemColor }}>
                                 {item.default_price.toFixed(2)} €
                               </span>
                             )}
@@ -850,7 +859,7 @@ const QuoteForm = () => {
                             <p className="text-xs text-gray-600 ml-7">{item.description}</p>
                           )}
                         </div>
-                      ))}
+                      );})}
                     </div>
                   </div>
                 ));

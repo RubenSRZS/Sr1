@@ -50,42 +50,6 @@ class Service(BaseModel):
     remise_percent: float = 0.0
     total: float
 
-class Diagnostic(BaseModel):
-    # Structure
-    tuiles_cassees: bool = False
-    tuile_ciment: bool = False
-    tuile_terre_cuite: bool = False
-    faitage: bool = False
-    fissures: bool = False
-    # Types de toiture spéciaux
-    fibro_ciment: bool = False
-    amiante: bool = False
-    ardoise: bool = False
-    zinc: bool = False
-    bac_acier: bool = False
-    pc_tole: bool = False
-    pc_tole_rouille: bool = False
-    pc_tole_perfore: bool = False
-    pc_tole_joint: bool = False
-    # Végétation / taches
-    mousses: bool = False
-    lichens: bool = False
-    mousse_verte: bool = False
-    trace_noire: bool = False
-    # Gouttières
-    gouttieres: bool = False
-    gouttieres_obstruees: bool = False
-    gouttieres_encrassees: bool = False
-    gouttieres_rouille: bool = False
-    gouttieres_deformees: bool = False
-    gouttieres_decollees: bool = False
-    descente_ep: bool = False
-    # Hydrologie / Extérieur
-    forte_humidite: bool = False
-    facade: bool = False
-    facade_fissures: bool = False
-    facade_mousse: bool = False
-
 class QuoteCreate(BaseModel):
     client_id: Optional[str] = None
     new_client: Optional[ClientCreate] = None
@@ -93,7 +57,7 @@ class QuoteCreate(BaseModel):
     quote_title: Optional[str] = ""  # Titre du devis
     work_location: str
     work_surface: Optional[str] = ""
-    diagnostic: Optional[Diagnostic] = None
+    diagnostic: Optional[dict] = None
     services: List[Service]
     option_1_title: Optional[str] = ""  # Titre Option 1
     remise_percent: float = 0.0
@@ -125,7 +89,7 @@ class Quote(BaseModel):
     date: str
     work_location: str
     work_surface: Optional[str] = ""
-    diagnostic: Optional[Diagnostic] = None
+    diagnostic: Optional[dict] = None
     services: List[Service]
     option_1_title: Optional[str] = ""
     total_brut: float
@@ -463,7 +427,7 @@ async def update_quote(quote_id: str, input: QuoteCreate):
         "client_email": client_data.get("email", ""),
         "work_location": input.work_location,
         "work_surface": input.work_surface or "",
-        "diagnostic": input.diagnostic.model_dump() if input.diagnostic else None,
+        "diagnostic": input.diagnostic if input.diagnostic else None,
         "services": [s.model_dump() for s in input.services],
         "total_brut": total_brut,
         "remise_percent": input.remise_percent,

@@ -61,9 +61,12 @@ const CatalogManager = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Auto-assign color from category
+      const catDef = CATEGORIES.find(c => c.name === form.category);
       const payload = { 
         ...form, 
-        default_price: form.default_price ? parseFloat(form.default_price) : null 
+        default_price: form.default_price ? parseFloat(form.default_price) : null,
+        color: catDef ? catDef.color : null,
       };
       
       if (editingItem) {
