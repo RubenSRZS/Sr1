@@ -5,7 +5,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 // Configuration des groupes de diagnostic avec leurs sous-options
 // IMPORTANT: Les sous-options utilisent des labels COURTS sans répéter le groupe
 // Ex: "Obstruée" et non "Gouttières obstruées"
-const DIAGNOSTIC_GROUPS = [
+export const DIAGNOSTIC_GROUPS = [
   {
     id: 'structure',
     label: 'Structure',
