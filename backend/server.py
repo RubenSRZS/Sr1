@@ -292,6 +292,19 @@ async def delete_client(client_id: str):
 
 # ==================== CATALOG ====================
 
+@api_router.delete("/catalog/clear-all")
+async def clear_all_catalog():
+    """Vide complètement le catalogue de services"""
+    try:
+        result = await db.catalog.delete_many({})
+        return {
+            "status": "success",
+            "deleted": result.deleted_count
+        }
+    except Exception as e:
+        logger.error(f"Erreur lors de la suppression du catalogue: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.post("/catalog", response_model=CatalogItem)
 async def create_catalog_item(input: CatalogItemCreate):
     item = CatalogItem(**input.model_dump())
@@ -346,19 +359,6 @@ async def cleanup_test_data():
         }
     except Exception as e:
         logger.error(f"Erreur lors du nettoyage: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@api_router.delete("/catalog/clear-all")
-async def clear_all_catalog():
-    """Vide complètement le catalogue de services"""
-    try:
-        result = await db.catalog.delete_many({})
-        return {
-            "status": "success",
-            "deleted": result.deleted_count
-        }
-    except Exception as e:
-        logger.error(f"Erreur lors de la suppression du catalogue: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ==================== QUOTES ====================
