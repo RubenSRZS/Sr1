@@ -383,8 +383,8 @@ const InvoiceForm = () => {
                 <div className="px-3 py-2 border-b border-gray-100">
                   <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Aperçu en direct</span>
                 </div>
-                <div className="p-2 bg-gray-100 max-h-[55vh] overflow-y-auto" data-testid="live-preview-desktop">
-                  <div className="transform scale-[0.48] origin-top-left" style={{ width: '210mm' }}>
+                <div className="p-2 bg-white max-h-[55vh] overflow-y-auto" data-testid="live-preview-desktop">
+                  <div className="transform scale-[0.48] origin-top-left bg-white" style={{ width: '210mm' }}>
                     <PDFDocument document={previewDoc} type="invoice" compact={false} />
                   </div>
                 </div>
@@ -414,7 +414,7 @@ const InvoiceForm = () => {
                 <Button variant="ghost" size="sm" onClick={() => setShowPreviewMobile(false)} className="h-7" data-testid="close-mobile-preview"><EyeOff className="h-4 w-4" /></Button>
               </div>
             </div>
-            <div className="p-2 bg-gray-100">
+            <div className="p-2 bg-white">
               <PDFDocument document={previewDoc} type="invoice" compact={true} />
             </div>
           </div>
