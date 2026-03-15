@@ -22,8 +22,9 @@ db = client[os.environ['DB_NAME']]
 
 # Resend config
 resend.api_key = os.environ.get('RESEND_API_KEY', '')
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
-ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', '')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL')
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
+REPLY_TO_EMAIL = os.environ.get('REPLY_TO_EMAIL')
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -659,6 +660,7 @@ async def recover_pin():
         params = {
             "from": SENDER_EMAIL,
             "to": [admin_email],
+            "reply_to": REPLY_TO_EMAIL,
             "subject": "SR Rénovation - Votre code d'accès",
             "html": f"""
             <div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;padding:30px;background:#f8fafc;border-radius:12px;">
@@ -762,6 +764,7 @@ async def sign_quote_public(token: str, body: SignQuote):
         params = {
             "from": SENDER_EMAIL,
             "to": [ADMIN_EMAIL],
+            "reply_to": REPLY_TO_EMAIL,
             "subject": f"Devis {q['quote_number']} signé par {q['client_name']}",
             "html": f"""
             <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:30px;background:#f0fdf4;border-radius:12px;border:1px solid #bbf7d0;">
@@ -846,6 +849,7 @@ async def send_quote_email(quote_id: str, body: SendQuoteEmail):
         params = {
             "from": SENDER_EMAIL,
             "to": [body.recipient_email],
+            "reply_to": REPLY_TO_EMAIL,
             "subject": body.subject,
             "html": html_content,
         }
