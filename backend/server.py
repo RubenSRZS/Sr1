@@ -292,6 +292,15 @@ async def get_catalog():
     items = await db.catalog.find({}, {"_id": 0}).to_list(1000)
     return [fix_datetime(i) for i in items]
 
+@api_router.put("/catalog/{item_id}", response_model=CatalogItem)
+async def update_catalog_item(item_id: str, input: CatalogItemCreate):
+    item = await db.catalog.find_one({"id": item_id}, {"_id": 0})
+    if not item:
+        raise HTTPException(status_code=404, detail="Service non trouvé")
+    await db.catalog.update_one({"id": item_id}, {"$set": input.model_dump()})
+    updated = await db.catalog.find_one({"id": item_id}, {"_id": 0})
+    return fix_datetime(updated)
+
 @api_router.delete("/catalog/{item_id}")
 async def delete_catalog_item(item_id: str):
     result = await db.catalog.delete_one({"id": item_id})
