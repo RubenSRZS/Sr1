@@ -170,6 +170,7 @@ class InvoiceCreate(BaseModel):
     remise_percent: float = 0.0
     remise_montant: float = 0.0
     acompte_paid: float = 0.0
+    payment_status: str = "pending"  # 'pending', 'paid', 'partial'
     notes: Optional[str] = ""
 
 class Invoice(BaseModel):
