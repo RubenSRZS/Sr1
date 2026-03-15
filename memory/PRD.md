@@ -8,7 +8,7 @@ Application web pour créer des devis et factures professionnels et personnalis�
 - **Backend:** FastAPI + Pydantic
 - **Database:** MongoDB
 - **PDF:** html2canvas + jspdf
-- **Email:** Resend API
+- **Email:** Resend API (devis@sr-renovation.fr)
 
 ## Fonctionnalités implémentées
 
@@ -19,57 +19,48 @@ Application web pour créer des devis et factures professionnels et personnalis�
 - Création/édition de factures avec statut de paiement
 - Catalogue de services avec catégories et couleurs
 - Diagnostic visuel hiérarchique (groupes/sous-options)
-- Conversion devis → facture
+- Conversion devis -> facture
 - Mode sombre global
 - Numérotation personnalisée des documents
 - Options multiples par devis (jusqu'à 3)
 - Remises et unités personnalisées
 
-### Sécurité (15 Mars 2026)
+### Sécurité
 - Protection par code PIN (4 chiffres) à l'entrée de l'app
 - Option "Code oublié" — envoi par email via Resend
-- Option "Changer le code" avec vérification du code actuel
 - Routes publiques séparées (pas de PIN requis pour les clients)
 
-### Système d'envoi & signature en ligne (15 Mars 2026)
-- Page publique de devis mobile-first aux couleurs SR Rénovation
+### Système d'envoi & signature en ligne
+- Page publique de devis visuellement identique au PDF (réutilise PDFDocument)
 - Lien unique sécurisé par devis (token aléatoire 32 chars)
 - Signature en ligne (canvas tactile pour mobile)
-- Bouton "Accepter et signer le devis"
 - Suivi : consulté (opened_at), signé (signed_at)
 - Notification email à l'admin quand un devis est signé
-- Email professionnel avec template HTML responsive
-- Texte prédéfini modifiable avant chaque envoi
-- Bouton "Envoyer" sur chaque devis dans la liste
-- Badges de tracking : Envoyé / Ouvert / Signé
 
-### Correction critique (15 Mars 2026)
-- **Page publique = PDF identique** : La page publique réutilise directement le composant `PDFDocument` du PDF preview, garantissant une identité visuelle parfaite
-- Backend mis à jour pour retourner tous les champs nécessaires au composant PDF
-
-### Corrections antérieures (15 Mars 2026)
-- Diagnostic visuel : rendu PDF groupé (ex: "Gouttières : Obstruée, Encrassée")
-- Couleurs catalogue : items affichés avec couleur de catégorie
-- Backend diagnostic : champ changé de Pydantic rigide vers dict
-- Doublons catalogue nettoyés
+### Email professionnel (15 Mars 2026)
+- Sender: "SR Renovation <devis@sr-renovation.fr>"
+- Reply-To: Srrenovation03@gmail.com
+- Objet dynamique: "Votre devis est prêt — SR Rénovation n°[Numéro]"
+- Template HTML avec dégradé bleu-orange identique à la marque
+- Bouton CTA orange (#FF8C42) "Consulter mon devis" arrondi
+- Prix masqué dans l'email (client doit cliquer pour voir)
+- Prénom du client injecté dynamiquement
+- Footer pro: téléphone, email, adresse, site web
+- Pièce jointe PDF générée côté client (html2canvas + jspdf) et envoyée via Resend
+- Nom fichier PDF: Devis_SR-Renovation_{numéro}.pdf
+- Responsive mobile, anti-spam compliant
 
 ## Tests
-- Iteration 8 : 100% pass — catalogue couleurs + diagnostic (7/7 backend, 6/6 frontend)
-- Iteration 9 : 100% pass — PIN auth + page publique + envoi email (15/15 backend, 10/10 frontend)
-- Iteration 10 : 100% pass — Parité visuelle page publique/PDF (9/9 backend, 12/12 frontend)
+- Iteration 10: 100% pass — Parité visuelle page publique/PDF (9/9 backend, 12/12 frontend)
+- Iteration 11: 100% pass — Refonte email + PDF attachment (12/12 backend, 8/8 frontend)
 
 ## Backlog priorisé
 
-### P0 — Fait
-- ~~Parité visuelle page publique / PDF~~ FAIT
-- ~~Guide de déploiement (Render + Oracle Cloud)~~ FAIT → /app/GUIDE_DEPLOIEMENT.md
-
 ### P1 — À venir
-- Dashboard statut des devis (section pour voir envoyés/ouverts/signés)
-- Domaine email personnalisé (remplacer onboarding@resend.dev par un email @sr-renovation.fr — nécessite vérification DNS côté utilisateur)
-- Texte email prédéfini modifiable avant envoi
+- Dashboard statut des devis (section envoyés/ouverts/signés)
+- Personnalisation du texte email avant envoi (FAIT - texte modifiable dans le modal)
 
-### P2 — Vérification
+### P2
 - PDF preview fond blanc en mode sombre
 
 ### P3 — Futur
