@@ -166,6 +166,7 @@ const InvoiceForm = () => {
         remise_percent: formData.remise_type === 'percent' ? formData.remise_percent : 0,
         remise_montant: formData.remise_type === 'amount' ? formData.remise_montant : 0,
         acompte_paid: formData.acompte_paid,
+        payment_status: formData.payment_status || 'pending',
         notes: formData.notes,
       };
       await axios.post(`${API}/invoices`, payload);
