@@ -43,7 +43,11 @@ Application web pour créer des devis et factures professionnels et personnalis�
 - Bouton "Envoyer" sur chaque devis dans la liste
 - Badges de tracking : Envoyé / Ouvert / Signé
 
-### Corrections 15 Mars 2026
+### Correction critique (15 Mars 2026)
+- **Page publique = PDF identique** : La page publique réutilise directement le composant `PDFDocument` du PDF preview, garantissant une identité visuelle parfaite
+- Backend mis à jour pour retourner tous les champs nécessaires au composant PDF
+
+### Corrections antérieures (15 Mars 2026)
 - Diagnostic visuel : rendu PDF groupé (ex: "Gouttières : Obstruée, Encrassée")
 - Couleurs catalogue : items affichés avec couleur de catégorie
 - Backend diagnostic : champ changé de Pydantic rigide vers dict
@@ -52,13 +56,18 @@ Application web pour créer des devis et factures professionnels et personnalis�
 ## Tests
 - Iteration 8 : 100% pass — catalogue couleurs + diagnostic (7/7 backend, 6/6 frontend)
 - Iteration 9 : 100% pass — PIN auth + page publique + envoi email (15/15 backend, 10/10 frontend)
+- Iteration 10 : 100% pass — Parité visuelle page publique/PDF (9/9 backend, 12/12 frontend)
 
 ## Backlog priorisé
 
+### P0 — Fait
+- ~~Parité visuelle page publique / PDF~~ FAIT
+- ~~Guide de déploiement (Render + Oracle Cloud)~~ FAIT → /app/GUIDE_DEPLOIEMENT.md
+
 ### P1 — À venir
-- Guide de déploiement (Render.com vs Oracle Cloud)
-- Domaine email personnalisé (remplacer onboarding@resend.dev par un email @sr-renovation.fr)
-- Texte email prédéfini par le client (il nous en donnera un)
+- Dashboard statut des devis (section pour voir envoyés/ouverts/signés)
+- Domaine email personnalisé (remplacer onboarding@resend.dev par un email @sr-renovation.fr — nécessite vérification DNS côté utilisateur)
+- Texte email prédéfini modifiable avant envoi
 
 ### P2 — Vérification
 - PDF preview fond blanc en mode sombre
