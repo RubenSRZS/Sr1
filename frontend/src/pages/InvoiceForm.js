@@ -289,8 +289,51 @@ const InvoiceForm = () => {
               </div>
             </Card>
 
-            {/* Notes, Remise, Acompte */}
+            {/* Notes, Remise, Acompte, Statut */}
             <Card className={`p-4 border-0 shadow-sm ${darkMode ? 'bg-slate-800' : 'bg-white'}`} data-testid="notes-section">
+              {/* Statut de paiement */}
+              <div className="mb-3 pb-3 border-b border-gray-200">
+                <Label className="text-xs text-gray-500 mb-2 block">Statut de paiement</Label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => updateField('payment_status', 'pending')}
+                    className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                      formData.payment_status === 'pending'
+                        ? 'bg-orange-100 text-orange-700 border-2 border-orange-400'
+                        : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
+                    }`}
+                    data-testid="payment-status-pending"
+                  >
+                    Non payée
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateField('payment_status', 'partial')}
+                    className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                      formData.payment_status === 'partial'
+                        ? 'bg-yellow-100 text-yellow-700 border-2 border-yellow-400'
+                        : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
+                    }`}
+                    data-testid="payment-status-partial"
+                  >
+                    Partielle
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateField('payment_status', 'paid')}
+                    className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                      formData.payment_status === 'paid'
+                        ? 'bg-green-100 text-green-700 border-2 border-green-400'
+                        : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
+                    }`}
+                    data-testid="payment-status-paid"
+                  >
+                    Payée
+                  </button>
+                </div>
+              </div>
+              
               <div className="mb-3">
                 <div className="flex items-center gap-2 mb-2">
                   <Label className="text-xs text-gray-500">Remise</Label>
