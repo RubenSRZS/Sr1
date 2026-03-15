@@ -801,6 +801,13 @@ const QuoteForm = () => {
                 data-testid={`catalog-item-${item.id}`}
               >
                 <div className="flex items-center gap-2 mb-1">
+                  {item.color && (
+                    <div 
+                      className="w-4 h-4 rounded-full border border-gray-300" 
+                      style={{ backgroundColor: item.color }}
+                      title={`Couleur: ${item.color}`}
+                    />
+                  )}
                   <span className="text-xs font-medium px-1.5 py-0.5 rounded" style={{ background: '#eff6ff', color: BRAND_BLUE }}>{item.category}</span>
                   <span className="font-medium text-sm">{item.service_name}</span>
                 </div>
