@@ -1,0 +1,80 @@
+{
+  "summary": "Completed testing of Public Quote Page visual parity with PDF feature. The PublicQuotePage now uses the same PDFDocument component from PDFPreview.js, ensuring identical rendering. Backend API returns all required fields (client_phone, client_email, remise_percent, show_line_numbers, option_2/3 remise fields). All 9 backend tests passed.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "PublicQuotePage console",
+        "issues": ["HTML hydration warnings in console about span/th/tr nesting - cosmetic, doesn't affect functionality"]
+      }
+    ]
+  },
+  "test_results": {
+    "backend_api_tests": {
+      "test_public_quote_returns_all_pdf_fields": "PASS - All 26+ fields returned including client_phone, client_email, remise_percent, show_line_numbers, option_2/3 fields",
+      "test_public_quote_client_fields_not_empty": "PASS - Client name, phone, email correctly populated",
+      "test_public_quote_totals_calculated": "PASS - total_brut=4500, remise_percent=30, remise=1350, total_net=3150, acompte_30=945",
+      "test_public_quote_services_structure": "PASS - All 5 services have correct structure",
+      "test_public_quote_invalid_token": "PASS - Returns 404 for invalid token",
+      "test_opened_tracking_endpoint": "PASS - POST /api/public/quote/{token}/opened works",
+      "test_verify_pin_correct": "PASS - PIN 0330 authenticates",
+      "test_verify_pin_wrong": "PASS - Wrong PIN returns 401",
+      "test_sign_endpoint_exists": "PASS - Sign endpoint available"
+    },
+    "frontend_tests": {
+      "public_quote_page_loads": "PASS - /devis/public/{token} loads without PIN auth",
+      "pdf_document_component_rendered": "PASS - Same PDFDocument from PDFPreview.js used",
+      "toolbar_with_quote_number": "PASS - Shows 'Devis 01' and PDF button",
+      "client_info_displayed": "PASS - Client name, address, phone, email visible",
+      "services_table_with_line_numbers": "PASS - N°, Description, Qté, Unité, P.U., Total TTC columns",
+      "option_2_displayed": "PASS - Option 2 services and totals visible",
+      "totals_section": "PASS - Remise (30%), TOTAL NET (TTC) 3150.00€, Acompte, Solde displayed",
+      "signature_section_below_document": "PASS - 'Signer le devis' section with canvas and button",
+      "signature_canvas": "PASS - Canvas with 'Signez ici' placeholder",
+      "sign_button_disabled_initially": "PASS - 'Accepter et signer le devis' disabled without signature",
+      "footer_visible": "PASS - 'SR Rénovation — Rénovation de toiture et façade'",
+      "pin_screen_protects_app": "PASS - Main app requires PIN 0330"
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_public_quote_pdfvisual.py",
+    "/app/test_reports/pytest/pytest_results_v5.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "✅ PublicQuotePage correctly imports and uses PDFDocument from PDFPreview.js (line 5)",
+    "✅ Backend endpoint at lines 683-725 returns all fields needed by PDFDocument",
+    "✅ Visual parity achieved - public page looks identical to PDF preview",
+    "✅ Signature section correctly placed below the PDFDocument",
+    "⚠️ Minor: HTML nesting warnings in console (span in tr/tbody) - cosmetic only, doesn't affect rendering"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_public_quote_pdfvisual.py"
+  ],
+  "success_rate": {
+    "backend": "100% (9/9 tests passed)",
+    "frontend": "100% (12/12 features verified)"
+  },
+  "test_credentials": {
+    "pin": "0330",
+    "test_token": "tM8t9k-StPu8nM8KVvJqjwunRjap8D5ldAIOlZKWnAc"
+  },
+  "seed_data_creation": "Used existing test quote with provided token",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Public quote page visual parity with PDF is now complete. The key change was: PublicQuotePage now imports and renders the SAME PDFDocument component from PDFPreview.js (exported at line 5). Backend GET /api/public/quote/{token} returns all required fields for PDFDocument including client_phone, client_email, remise_percent, show_line_numbers, option_2/3 remise fields. Test token: tM8t9k-StPu8nM8KVvJqjwunRjap8D5ldAIOlZKWnAc",
+  "features_verified": [
+    "GET /api/public/quote/{token} returns all PDFDocument fields",
+    "PublicQuotePage at /devis/public/{token} renders PDFDocument",
+    "Toolbar with Devis number and PDF button",
+    "Signature section below document for unsigned quotes",
+    "POST /api/public/quote/{token}/opened tracking works",
+    "POST /api/auth/pin still works with PIN 0330",
+    "App protected behind PIN gate"
+  ]
+}
