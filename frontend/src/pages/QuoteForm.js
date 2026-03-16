@@ -790,17 +790,9 @@ const QuoteForm = () => {
                 ) : (
                   <ServicesSection
                     services={formData.option_3_services}
-                    updateSvc={(i, f, v) => {
-                      const newServices = [...formData.option_3_services];
-                      newServices[i] = { ...newServices[i], [f]: f === 'quantity' || f === 'unit_price' || f === 'remise_percent' ? parseFloat(v) || 0 : v };
-                      const qty = parseFloat(newServices[i].quantity) || 0;
-                      const price = parseFloat(newServices[i].unit_price) || 0;
-                      const rem = parseFloat(newServices[i].remise_percent) || 0;
-                      newServices[i].total = qty * price * (1 - rem / 100);
-                      updateField('option_3_services', newServices);
-                    }}
-                    removeSvc={(i) => updateField('option_3_services', formData.option_3_services.filter((_, idx) => idx !== i))}
-                    addSvc={() => updateField('option_3_services', [...formData.option_3_services, { description: '', quantity: 1, unit: 'unité', unit_price: 0, remise_percent: 0, total: 0 }])}
+                    updateSvc={updateService3}
+                    removeSvc={removeService3}
+                    addSvc={addService3}
                     openCat={() => openCatalog('option3')}
                     optionNum={3}
                     totals={totals3}
@@ -808,6 +800,13 @@ const QuoteForm = () => {
                     remisePercent={formData.option_3_remise_percent}
                     remiseMontant={formData.option_3_remise_montant}
                     onRemiseTypeChange={(t) => { updateField('option_3_remise_type', t); if(t === 'percent') updateField('option_3_remise_montant', 0); else updateField('option_3_remise_percent', 0); }}
+                    onRemisePercentChange={(v) => updateField('option_3_remise_percent', v)}
+                    onRemiseMontantChange={(v) => updateField('option_3_remise_montant', v)}
+                    optionTitle={formData.option_3_title}
+                    onTitleChange={(v) => updateField('option_3_title', v)}
+                    moveSvcUp={moveService3Up}
+                    moveSvcDown={moveService3Down}
+                  />
                     onRemisePercentChange={(v) => updateField('option_3_remise_percent', v)}
                     onRemiseMontantChange={(v) => updateField('option_3_remise_montant', v)}
                     optionTitle={formData.option_3_title}
