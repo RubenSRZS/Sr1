@@ -587,8 +587,8 @@ def main():
     # Test AI generation (requires client)
     tester.test_ai_generate()
     
-    # Test email (expected to fail)
-    tester.test_email_send()
+    # Run SR-Renovation specific tests
+    tester.test_sr_renovation_specific_endpoints()
     
     # Print results
     print("\n" + "=" * 50)
