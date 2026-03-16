@@ -196,6 +196,81 @@ const PublicQuotePage = () => {
                 <h3 className="font-bold text-base" style={{ color: BRAND_BLUE }}>Signer le devis</h3>
               </div>
 
+              {/* Sélection d'option si plusieurs options disponibles */}
+              {(quote.option_2_services?.length > 0 || quote.option_3_services?.length > 0) && (
+                <div className="mb-5 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <label className="text-sm font-semibold text-slate-700 mb-3 block">Choisissez l'option que vous souhaitez accepter :</label>
+                  <div className="space-y-2">
+                    {/* Option 1 */}
+                    <label className="flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:bg-white" style={{ borderColor: selectedOption === 1 ? BRAND_BLUE : '#e2e8f0', backgroundColor: selectedOption === 1 ? '#eff6ff' : 'white' }}>
+                      <input
+                        type="radio"
+                        name="option"
+                        value="1"
+                        checked={selectedOption === 1}
+                        onChange={() => setSelectedOption(1)}
+                        className="mt-1"
+                        style={{ accentColor: BRAND_BLUE }}
+                      />
+                      <div className="flex-1">
+                        <div className="font-semibold text-sm" style={{ color: selectedOption === 1 ? BRAND_BLUE : '#1e293b' }}>
+                          {quote.option_1_title || 'Option 1'}
+                        </div>
+                        <div className="text-sm text-slate-600 mt-1">
+                          Montant : <span className="font-bold">{quote.total_net?.toFixed(2) || '0.00'} €</span>
+                        </div>
+                      </div>
+                    </label>
+
+                    {/* Option 2 */}
+                    {quote.option_2_services?.length > 0 && (
+                      <label className="flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:bg-white" style={{ borderColor: selectedOption === 2 ? BRAND_BLUE : '#e2e8f0', backgroundColor: selectedOption === 2 ? '#eff6ff' : 'white' }}>
+                        <input
+                          type="radio"
+                          name="option"
+                          value="2"
+                          checked={selectedOption === 2}
+                          onChange={() => setSelectedOption(2)}
+                          className="mt-1"
+                          style={{ accentColor: BRAND_BLUE }}
+                        />
+                        <div className="flex-1">
+                          <div className="font-semibold text-sm" style={{ color: selectedOption === 2 ? BRAND_BLUE : '#1e293b' }}>
+                            {quote.option_2_title || 'Option 2'}
+                          </div>
+                          <div className="text-sm text-slate-600 mt-1">
+                            Montant : <span className="font-bold">{quote.option_2_total_net?.toFixed(2) || '0.00'} €</span>
+                          </div>
+                        </div>
+                      </label>
+                    )}
+
+                    {/* Option 3 */}
+                    {quote.option_3_services?.length > 0 && (
+                      <label className="flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:bg-white" style={{ borderColor: selectedOption === 3 ? BRAND_BLUE : '#e2e8f0', backgroundColor: selectedOption === 3 ? '#eff6ff' : 'white' }}>
+                        <input
+                          type="radio"
+                          name="option"
+                          value="3"
+                          checked={selectedOption === 3}
+                          onChange={() => setSelectedOption(3)}
+                          className="mt-1"
+                          style={{ accentColor: BRAND_BLUE }}
+                        />
+                        <div className="flex-1">
+                          <div className="font-semibold text-sm" style={{ color: selectedOption === 3 ? BRAND_BLUE : '#1e293b' }}>
+                            {quote.option_3_title || 'Option 3'}
+                          </div>
+                          <div className="text-sm text-slate-600 mt-1">
+                            Montant : <span className="font-bold">{quote.option_3_total_net?.toFixed(2) || '0.00'} €</span>
+                          </div>
+                        </div>
+                      </label>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="mb-4">
                 <label className="text-xs text-slate-500 mb-1 block">Votre nom (optionnel)</label>
                 <input
