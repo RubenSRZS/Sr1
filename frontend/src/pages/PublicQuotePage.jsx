@@ -5,7 +5,6 @@ import { Check, Download, Pen, FileText } from 'lucide-react';
 import { PDFDocument, generatePDFBase64, BRAND_BLUE } from '@/components/PDFPreview';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-const PDF_WIDTH_PX = 794; // 210mm in pixels
 
 const PublicQuotePage = () => {
   const { token } = useParams();
@@ -16,25 +15,9 @@ const PublicQuotePage = () => {
   const [signed, setSigned] = useState(false);
   const [signerName, setSignerName] = useState('');
   const canvasRef = useRef(null);
-  const wrapperRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
-  const [scale, setScale] = useState(1);
   const [downloading, setDownloading] = useState(false);
-
-  // Responsive scaling: fit 210mm PDF into viewport
-  useEffect(() => {
-    const updateScale = () => {
-      if (wrapperRef.current) {
-        const availableWidth = wrapperRef.current.offsetWidth;
-        const newScale = Math.min(1, availableWidth / PDF_WIDTH_PX);
-        setScale(newScale);
-      }
-    };
-    updateScale();
-    window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
-  }, [quote]);
 
   useEffect(() => {
     const fetchQuote = async () => {
