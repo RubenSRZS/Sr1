@@ -825,29 +825,31 @@ async def sign_quote_public(token: str, body: SignQuote):
     if client_email:
         try:
             client_html = f"""<!DOCTYPE html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap" rel="stylesheet"></head>
 <body style="margin:0;padding:0;background-color:#f0f2f5;font-family:'Segoe UI',Arial,Helvetica,sans-serif;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f5;">
 <tr><td align="center" style="padding:24px 12px;">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:580px;background-color:#ffffff;border-radius:16px;overflow:hidden;">
 <tr><td style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 40%,#f97316 100%);padding:32px 28px;text-align:center;">
-  <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:800;letter-spacing:0.5px;">SR R&Eacute;NOVATION</h1>
-  <p style="color:rgba(255,255,255,0.85);margin:6px 0 0;font-size:13px;">Nettoyage, toiture, fa&ccedil;ade, terrasse</p>
+  <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:800;letter-spacing:0.5px;font-family:'Montserrat',Georgia,'Times New Roman',serif;">SR NOVATION</h1>
+  <p style="color:rgba(255,255,255,0.85);margin:4px 0 0;font-size:13px;line-height:1.5;">Nettoyage professionnel<br>Nettoyage fa&ccedil;ade terrasse</p>
 </td></tr>
 <tr><td style="padding:28px;">
   <p style="color:#1e293b;font-size:16px;line-height:1.7;margin:0 0 20px;">
-    Bonjour, Monsieur <strong>{client_last_name}</strong>,
+    Bonjour, <strong>Monsieur {client_last_name}</strong>,
+  </p>
+  <p style="color:#475569;font-size:15px;line-height:1.7;margin:0 0 16px;">
+    Nous vous confirmons la bonne réception de la signature électronique de votre devis <strong>n°{quote_number}</strong> d'un montant de <strong>{q.get('total_net', 0):.2f} €</strong>.
   </p>
   <p style="color:#475569;font-size:15px;line-height:1.7;margin:0 0 20px;">
-    Nous vous confirmons la bonne r&eacute;ception de votre signature pour le devis <strong>n&deg;{quote_number}</strong>.<br><br>
-    Nous vous remercions pour votre confiance. Votre devis sign&eacute; est joint &agrave; cet email.
+    Nous vous remercions pour votre confiance et nous nous engageons à vous fournir un travail de qualité. Votre devis signé est joint à cet email.
   </p>
 
-  {'<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;margin:0 0 20px;"><tr><td style="padding:18px;"><p style="color:#1e40af;font-size:14px;font-weight:700;margin:0 0 10px;">Acompte de 30%% &agrave; verser : ' + f'{acompte:.2f}' + ' &euro;</p><p style="color:#475569;font-size:13px;line-height:1.6;margin:0;">Vous pouvez effectuer le virement aux coordonn&eacute;es suivantes :</p></td></tr></table>' if acompte > 0 else ''}
+  {'<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;margin:0 0 20px;"><tr><td style="padding:18px;"><p style="color:#1e40af;font-size:14px;font-weight:700;margin:0 0 10px;">Acompte de 30%% à verser : ' + f'{acompte:.2f}' + ' €</p><p style="color:#475569;font-size:13px;line-height:1.6;margin:0;">Vous pouvez effectuer le virement aux coordonnées suivantes :</p></td></tr></table>' if acompte > 0 else ''}
 
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin:0 0 20px;">
     <tr><td style="padding:18px;">
-      <p style="color:#1e40af;font-size:14px;font-weight:700;margin:0 0 12px;">Coordonn&eacute;es bancaires (RIB)</p>
+      <p style="color:#1e40af;font-size:14px;font-weight:700;margin:0 0 12px;">Coordonnées bancaires (RIB)</p>
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
         <tr><td style="color:#64748b;font-size:12px;padding:3px 0;">Titulaire</td><td style="color:#1e293b;font-size:13px;font-weight:600;padding:3px 0;">M RUBEN SUAREZ-SAR</td></tr>
         <tr><td style="color:#64748b;font-size:12px;padding:3px 0;">Banque</td><td style="color:#1e293b;font-size:13px;font-weight:600;padding:3px 0;">Banque Populaire BFC</td></tr>
@@ -858,22 +860,22 @@ async def sign_quote_public(token: str, body: SignQuote):
   </table>
 
   <p style="color:#475569;font-size:14px;line-height:1.7;margin:0 0 8px;">
-    N'h&eacute;sitez pas &agrave; me contacter pour toute question.
+    N'hésitez pas à me contacter pour toute question.
   </p>
   <p style="color:#1e293b;font-size:14px;line-height:1.7;margin:0;">
-    &Agrave; tr&egrave;s bient&ocirc;t,<br>
-    <strong>Ruben &mdash; SR R&eacute;novation</strong>
+    À très bientôt,<br>
+    <strong>Ruben — SR Rénovation</strong>
   </p>
 </td></tr>
 
 <tr><td style="padding:0 28px;"><div style="border-top:1px solid #e5e7eb;"></div></td></tr>
 
 <tr><td style="padding:24px 28px;text-align:center;">
-  <p style="color:#1e293b;font-size:15px;font-weight:700;margin:0 0 10px;">SR R&eacute;novation</p>
+  <p style="color:#1e293b;font-size:15px;font-weight:700;margin:0 0 10px;">SR Rénovation</p>
   <p style="color:#64748b;font-size:13px;line-height:2;margin:0;">
     &#9742; 06 80 33 45 46<br>
     &#9993; <a href="mailto:SrRenovation03@gmail.com" style="color:#3b82f6;text-decoration:none;">SrRenovation03@gmail.com</a><br>
-    &#127968; Jura (39) - Artisan local &amp; certifi&eacute;<br>
+    &#127968; Jura (39) - Artisan local &amp; certifié<br>
     &#127760; <a href="https://sr-renovation.fr" style="color:#3b82f6;text-decoration:none;">sr-renovation.fr</a>
   </p>
 </td></tr>
