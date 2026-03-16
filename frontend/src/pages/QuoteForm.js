@@ -707,6 +707,8 @@ const QuoteForm = () => {
               onRemiseMontantChange={(v) => updateField('remise_montant', v)}
               optionTitle={formData.option_1_title}
               onTitleChange={(v) => updateField('option_1_title', v)}
+              moveSvcUp={moveServiceUp}
+              moveSvcDown={moveServiceDown}
             />
 
             {/* Toggle Option 2 */}
@@ -741,6 +743,8 @@ const QuoteForm = () => {
                   onRemiseMontantChange={(v) => updateField('option_2_remise_montant', v)}
                   optionTitle={formData.option_2_title}
                   onTitleChange={(v) => updateField('option_2_title', v)}
+                  moveSvcUp={moveService2Up}
+                  moveSvcDown={moveService2Down}
                 />
                 
                 {/* Toggle Option 3 */}
