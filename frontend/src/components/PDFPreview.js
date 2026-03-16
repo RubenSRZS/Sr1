@@ -474,8 +474,23 @@ const generatePDFBase64 = async (document, type) => {
   root.render(<PDFDocument document={document} type={type} compact={false} />);
 
   try {
-    await new Promise(r => setTimeout(r, 1000));
+    // Attendre le rendu et les images
+    await new Promise(r => setTimeout(r, 2000));
     await window.document.fonts.ready;
+    
+    // Pré-charger toutes les images en base64
+    const images = container.querySelectorAll('img');
+    await Promise.all(Array.from(images).map(img => {
+      return new Promise((resolve) => {
+        if (img.complete) {
+          resolve();
+        } else {
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+        }
+      });
+    }));
+    
     const canvas = await html2canvas(container.firstChild, {
       scale: 2.5, useCORS: true, allowTaint: false, backgroundColor: '#ffffff', logging: false,
       onclone: (clonedDoc) => {
