@@ -225,7 +225,10 @@ const CatalogManager = () => {
         <DialogContent className={`sm:max-w-[500px] ${darkMode ? 'bg-slate-800 border-slate-700' : ''}`} data-testid="catalog-dialog">
           <DialogHeader>
             <DialogTitle className={darkMode ? 'text-white' : ''}>
-              {editingItem ? 'Modifier la prestation' : 'Ajouter une prestation'}
+              {editingItem 
+                ? (CATEGORIES.find(c => c.name === form.category)?.type === 'note_condition' ? 'Modifier la note' : 'Modifier la prestation')
+                : (CATEGORIES.find(c => c.name === form.category)?.type === 'note_condition' ? 'Ajouter une note' : 'Ajouter une prestation')
+              }
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
@@ -250,44 +253,49 @@ const CatalogManager = () => {
               </div>
               
               <div>
-                <Label className={`text-xs ${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>Nom de la prestation *</Label>
+                <Label className={`text-xs ${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                  {CATEGORIES.find(c => c.name === form.category)?.type === 'note_condition' ? 'Nom de la note *' : 'Nom de la prestation *'}
+                </Label>
                 <Input 
                   value={form.service_name} 
                   onChange={e => setForm({ ...form, service_name: e.target.value })} 
                   required 
                   className={`h-9 text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}
-                  placeholder="Ex: Nettoyage toiture"
+                  placeholder={CATEGORIES.find(c => c.name === form.category)?.type === 'note_condition' ? "Ex: Conditions générales standard" : "Ex: Nettoyage toiture"}
                   data-testid="catalog-service-name-input" 
                 />
               </div>
               
               <div>
-                <Label className={`text-xs ${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>Description *</Label>
+                <Label className={`text-xs ${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                  {CATEGORIES.find(c => c.name === form.category)?.type === 'note_condition' ? 'Texte de la note *' : 'Description *'}
+                </Label>
                 <Textarea 
                   value={form.description} 
                   onChange={e => setForm({ ...form, description: e.target.value })} 
                   required 
-                  rows={3} 
+                  rows={CATEGORIES.find(c => c.name === form.category)?.type === 'note_condition' ? 5 : 3}
                   className={`text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}
-                  placeholder="Description détaillée de la prestation..."
+                  placeholder={CATEGORIES.find(c => c.name === form.category)?.type === 'note_condition' ? "Ex: Paiement : 30% acompte à la signature, solde à la fin des travaux. Devis valable 30 jours." : "Description détaillée de la prestation..."}
                   data-testid="catalog-description-input" 
                 />
               </div>
               
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className={`text-xs ${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>Prix par défaut (€)</Label>
-                  <Input 
-                    type="number" 
-                    step="0.01" 
-                    value={form.default_price} 
-                    onChange={e => setForm({ ...form, default_price: e.target.value })} 
-                    className={`h-9 text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}
-                    placeholder="0.00"
-                    data-testid="catalog-price-input" 
-                  />
-                </div>
-                <div>
+              {CATEGORIES.find(c => c.name === form.category)?.type !== 'note_condition' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className={`text-xs ${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>Prix par défaut (€)</Label>
+                    <Input 
+                      type="number" 
+                      step="0.01" 
+                      value={form.default_price} 
+                      onChange={e => setForm({ ...form, default_price: e.target.value })} 
+                      className={`h-9 text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}
+                      placeholder="0.00"
+                      data-testid="catalog-price-input" 
+                    />
+                  </div>
+                  <div>
                   <Label className={`text-xs ${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>Unité par défaut</Label>
                   <Select value={form.default_unit} onValueChange={v => setForm({ ...form, default_unit: v })}>
                     <SelectTrigger className={`h-9 text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} data-testid="catalog-unit-select">
