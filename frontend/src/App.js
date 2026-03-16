@@ -11,6 +11,7 @@ import InvoicesList from '@/pages/InvoicesList';
 import InvoiceForm from '@/pages/InvoiceForm';
 import ClientsManager from '@/pages/ClientsManager';
 import CatalogManager from '@/pages/CatalogManager';
+import AIAssistant from '@/pages/AIAssistant';
 import PublicQuotePage from '@/pages/PublicQuotePage';
 import PinScreen from '@/components/PinScreen';
 import BottomNav from '@/components/BottomNav';
