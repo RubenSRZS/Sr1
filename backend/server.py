@@ -825,14 +825,14 @@ async def sign_quote_public(token: str, body: SignQuote):
     if client_email:
         try:
             client_html = f"""<!DOCTYPE html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap" rel="stylesheet"></head>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet"></head>
 <body style="margin:0;padding:0;background-color:#f0f2f5;font-family:'Segoe UI',Arial,Helvetica,sans-serif;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f5;">
 <tr><td align="center" style="padding:24px 12px;">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:580px;background-color:#ffffff;border-radius:16px;overflow:hidden;">
 <tr><td style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 40%,#f97316 100%);padding:32px 28px;text-align:center;">
-  <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:800;letter-spacing:0.5px;font-family:'Montserrat',Georgia,'Times New Roman',serif;">SR NOVATION</h1>
-  <p style="color:rgba(255,255,255,0.85);margin:4px 0 0;font-size:13px;line-height:1.5;">Nettoyage professionnel<br>Nettoyage fa&ccedil;ade terrasse</p>
+  <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:800;letter-spacing:0.5px;font-family:'Montserrat',sans-serif;">SR RÉNOVATION</h1>
+  <p style="color:rgba(255,255,255,0.85);margin:4px 0 0;font-size:13px;font-weight:600;line-height:1.5;">Nettoyage <span style="font-weight:700;">Professionnel</span><br>Toitures &bull; Fa&ccedil;ades &bull; Terrasses</p>
 </td></tr>
 <tr><td style="padding:28px;">
   <p style="color:#1e293b;font-size:16px;line-height:1.7;margin:0 0 20px;">
@@ -943,8 +943,8 @@ async def send_quote_email(quote_id: str, body: SendQuoteEmail):
 
 <!-- Header with gradient -->
 <tr><td style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 40%,#f97316 100%);padding:36px 28px;text-align:center;">
-  <h1 style="color:#ffffff;margin:0;font-size:26px;font-weight:800;letter-spacing:1px;font-family:'Montserrat',Georgia,'Times New Roman',serif;">SR NOVATION</h1>
-  <p style="color:rgba(255,255,255,0.9);margin:4px 0 0;font-size:13px;font-weight:400;letter-spacing:0.5px;line-height:1.5;">Nettoyage professionnel<br>Nettoyage fa&ccedil;ade terrasse</p>
+  <h1 style="color:#ffffff;margin:0;font-size:26px;font-weight:800;letter-spacing:1px;font-family:'Montserrat',sans-serif;">SR RÉNOVATION</h1>
+  <p style="color:rgba(255,255,255,0.9);margin:4px 0 0;font-size:13px;font-weight:600;letter-spacing:0.5px;line-height:1.5;">Nettoyage <span style="background:linear-gradient(90deg,#3b82f6,#8b5cf6,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">Professionnel</span><br>Toitures &bull; Fa&ccedil;ades &bull; Terrasses</p>
 </td></tr>
 
 <!-- Body -->
