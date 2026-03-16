@@ -1148,7 +1148,7 @@ Réponds UNIQUEMENT en JSON avec cette structure exacte:
 
         # Appeler Gemini
         response = gemini_client.models.generate_content(
-            model='gemini-2.0-flash-exp',
+            model='gemini-1.5-flash',
             contents=f"{system_prompt}\n\nTEXTE DE L'UTILISATEUR:\n{body.user_input}",
             config=types.GenerateContentConfig(
                 temperature=0.3,
