@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, Sparkles, FileText, Receipt, Loader2 } from 'lucide-react';
+import { ArrowLeft, Sparkles, FileText, Receipt, Loader2, Mic, MicOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
@@ -17,6 +17,56 @@ const AIAssistant = () => {
   const [userInput, setUserInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [isListening, setIsListening] = useState(false);
+  const [recognition, setRecognition] = useState(null);
+
+  // Initialiser la reconnaissance vocale
+  React.useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recog = new SpeechRecognition();
+      recog.continuous = true;
+      recog.interimResults = true;
+      recog.lang = 'fr-FR';
+
+      recog.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        setUserInput(prev => prev + ' ' + transcript);
+      };
+
+      recog.onerror = (event) => {
+        console.error('Erreur reconnaissance vocale:', event.error);
+        setIsListening(false);
+        toast.error('Erreur de reconnaissance vocale');
+      };
+
+      recog.onend = () => {
+        setIsListening(false);
+      };
+
+      setRecognition(recog);
+    }
+  }, []);
+
+  const toggleVoiceRecognition = () => {
+    if (!recognition) {
+      toast.error('Reconnaissance vocale non supportée par votre navigateur');
+      return;
+    }
+
+    if (isListening) {
+      recognition.stop();
+      setIsListening(false);
+      toast.success('Dictée arrêtée');
+    } else {
+      recognition.start();
+      setIsListening(true);
+      toast.success('Dictée en cours... Parlez maintenant');
+    }
+  };
 
   const handleGenerate = async () => {
     if (!userInput.trim()) {
