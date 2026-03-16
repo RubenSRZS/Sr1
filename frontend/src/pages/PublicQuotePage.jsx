@@ -14,6 +14,7 @@ const PublicQuotePage = () => {
   const [signing, setSigning] = useState(false);
   const [signed, setSigned] = useState(false);
   const [signerName, setSignerName] = useState('');
+  const [selectedOption, setSelectedOption] = useState(1); // Nouvelle state pour l'option sélectionnée
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
