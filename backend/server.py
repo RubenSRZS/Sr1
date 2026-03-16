@@ -741,6 +741,7 @@ async def track_quote_opened(token: str):
 class SignQuote(BaseModel):
     signature_data: str
     signer_name: Optional[str] = ""
+    selected_option: Optional[int] = 1  # Option sélectionnée (1, 2 ou 3)
     pdf_base64: Optional[str] = None
     pdf_filename: Optional[str] = None
 
