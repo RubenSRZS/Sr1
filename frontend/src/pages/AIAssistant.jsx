@@ -26,15 +26,16 @@ const AIAssistant = () => {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recog = new SpeechRecognition();
       recog.continuous = true;
-      recog.interimResults = true;
+      recog.interimResults = false;  // Désactiver les résultats intermédiaires
       recog.lang = 'fr-FR';
 
       recog.onresult = (event) => {
-        let transcript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
+        // Ne prendre que le dernier résultat final
+        const lastResult = event.results[event.results.length - 1];
+        if (lastResult.isFinal) {
+          const transcript = lastResult[0].transcript;
+          setUserInput(prev => prev + (prev ? ' ' : '') + transcript);
         }
-        setUserInput(prev => prev + ' ' + transcript);
       };
 
       recog.onerror = (event) => {
