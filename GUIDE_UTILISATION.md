@@ -80,7 +80,7 @@ Vous avez **3 options** pour utiliser votre application :
 
 ### **Option 1 : Utiliser la Preview Emergent (RECOMMANDÉ pour tester)**
 
-✅ **URL actuelle** : https://sr-reno-quotes.preview.emergentagent.com
+✅ **URL actuelle** : https://quote-invoice-app-3.preview.emergentagent.com
 
 **Avantages :**
 - ✅ Gratuit en preview
