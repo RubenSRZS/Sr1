@@ -32,7 +32,7 @@ REPLY_TO_EMAIL = os.environ.get('REPLY_TO_EMAIL')
 # Gemini config
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 if GEMINI_API_KEY:
-    gemini_client = genai.Client(api_key=GEMINI_API_KEY, http_options={'api_version': 'v1'})
+    gemini_client = genai.Client(api_key=GEMINI_API_KEY, http_options={'api_version': 'v1alpha'})
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
