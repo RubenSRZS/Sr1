@@ -149,6 +149,7 @@ const QuoteForm = () => {
   const [clients, setClients] = useState([]);
   const [catalog, setCatalog] = useState([]);
   const [showCatalog, setShowCatalog] = useState(false);
+  const [showNotesCatalog, setShowNotesCatalog] = useState(false);
   const [catalogTarget, setCatalogTarget] = useState('option1'); // 'option1', 'option2', 'option3'
   const [showPreviewMobile, setShowPreviewMobile] = useState(false);
   const [showNewClient, setShowNewClient] = useState(false);
