@@ -222,10 +222,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Email Sending with PDF Attachment"
-    - "Quote Signature and Email Notifications"
-    - "Public Quote Retrieval"
-    - "PIN Authentication System"
+    - "Complete Signature Workflow with Corrections"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
