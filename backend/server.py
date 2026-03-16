@@ -185,6 +185,7 @@ class CatalogItem(BaseModel):
     default_price: Optional[float] = None
     default_unit: str = "unité"
     color: Optional[str] = None
+    item_type: str = "service"  # "service" or "note_condition"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class CatalogItemCreate(BaseModel):
@@ -194,6 +195,7 @@ class CatalogItemCreate(BaseModel):
     default_price: Optional[float] = None
     default_unit: str = "unité"
     color: Optional[str] = None
+    item_type: str = "service"
 
 # ==================== HELPERS ====================
 

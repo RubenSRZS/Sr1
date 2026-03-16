@@ -15,10 +15,11 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // Catégories avec couleurs
 const CATEGORIES = [
-  { name: 'TOITURE', color: '#3b82f6', bgLight: '#eff6ff', bgDark: '#1e3a5f' },
-  { name: 'FAÇADE', color: '#f97316', bgLight: '#fff7ed', bgDark: '#4a2c17' },
-  { name: 'ZINGUERIE & HABILLAGE', color: '#10b981', bgLight: '#ecfdf5', bgDark: '#134e3a' },
-  { name: 'SOLS & EXTÉRIEURS', color: '#8b5cf6', bgLight: '#f5f3ff', bgDark: '#3b2d5e' },
+  { name: 'TOITURE', color: '#3b82f6', bgLight: '#eff6ff', bgDark: '#1e3a5f', type: 'service' },
+  { name: 'FAÇADE', color: '#f97316', bgLight: '#fff7ed', bgDark: '#4a2c17', type: 'service' },
+  { name: 'ZINGUERIE & HABILLAGE', color: '#10b981', bgLight: '#ecfdf5', bgDark: '#134e3a', type: 'service' },
+  { name: 'SOLS & EXTÉRIEURS', color: '#8b5cf6', bgLight: '#f5f3ff', bgDark: '#3b2d5e', type: 'service' },
+  { name: 'NOTES & CONDITIONS', color: '#64748b', bgLight: '#f1f5f9', bgDark: '#1e293b', type: 'note_condition' },
 ];
 
 const UNITS = ['unité', 'm²', 'ML', 'm', 'h', 'forfait', 'kg', 'pièce'];
