@@ -401,6 +401,33 @@ const QuoteForm = () => {
     updateField('option_2_services', s);
   };
 
+  // Option 3 services
+  const addService3 = () => updateField('option_3_services', [...formData.option_3_services, { description: '', quantity: 1, unit: 'unité', unit_price: 0, remise_percent: 0, total: 0 }]);
+  const updateService3 = (i, field, val) => {
+    const s = [...formData.option_3_services];
+    s[i] = { ...s[i], [field]: val };
+    if (field === 'quantity' || field === 'unit_price' || field === 'remise_percent') {
+      const qty = parseFloat(s[i].quantity || 0);
+      const pu = parseFloat(s[i].unit_price || 0);
+      const remise = parseFloat(s[i].remise_percent || 0);
+      s[i].total = qty * pu * (1 - remise / 100);
+    }
+    updateField('option_3_services', s);
+  };
+  const removeService3 = (i) => updateField('option_3_services', formData.option_3_services.filter((_, idx) => idx !== i));
+  const moveService3Up = (i) => {
+    if (i === 0) return;
+    const s = [...formData.option_3_services];
+    [s[i-1], s[i]] = [s[i], s[i-1]];
+    updateField('option_3_services', s);
+  };
+  const moveService3Down = (i) => {
+    if (i === formData.option_3_services.length - 1) return;
+    const s = [...formData.option_3_services];
+    [s[i], s[i+1]] = [s[i+1], s[i]];
+    updateField('option_3_services', s);
+  };
+
   // Catalog handler
   const addFromCatalog = (item) => {
     const newService = { 
