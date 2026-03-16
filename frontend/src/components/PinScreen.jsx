@@ -93,21 +93,21 @@ const PinScreen = ({ onSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4" data-testid="pin-screen">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-orange-600 p-4" data-testid="pin-screen">
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center">
-              <span className="text-slate-900 font-black text-sm">SR</span>
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-orange-500 flex items-center justify-center">
+              <span className="text-white font-black text-sm">SR</span>
             </div>
             <span className="text-white font-bold text-xl tracking-tight">RÉNOVATION</span>
           </div>
-          <p className="text-slate-400 text-sm">Gestion devis & factures</p>
+          <p className="text-slate-200 text-sm">Gestion devis & factures</p>
         </div>
 
         {!showChange ? (
-          <div className="bg-slate-800/50 backdrop-blur border border-slate-700 rounded-2xl p-8" data-testid="pin-entry">
+          <div className="bg-slate-800/50 backdrop-blur border border-blue-500/30 rounded-2xl p-8" data-testid="pin-entry">
             <h2 className="text-white text-center text-lg font-semibold mb-6">Entrez votre code</h2>
             
             <div className="flex justify-center gap-3 mb-8">
@@ -122,17 +122,17 @@ const PinScreen = ({ onSuccess }) => {
                   onChange={e => handleDigit(i, e.target.value)}
                   onKeyDown={e => handleKeyDown(i, e)}
                   disabled={loading}
-                  className="w-14 h-16 text-center text-2xl font-bold rounded-xl bg-slate-700/50 border-2 border-slate-600 text-white focus:border-amber-400 focus:outline-none transition-colors"
+                  className="w-14 h-16 text-center text-2xl font-bold rounded-xl bg-slate-700/50 border-2 border-blue-500 text-white focus:border-orange-400 focus:outline-none transition-colors"
                   data-testid={`pin-digit-${i}`}
                 />
               ))}
             </div>
 
             <div className="flex flex-col gap-2 text-center">
-              <button onClick={() => setShowRecover(true)} className="text-sm text-slate-400 hover:text-amber-400 transition-colors" data-testid="forgot-pin-btn">
+              <button onClick={() => setShowRecover(true)} className="text-sm text-blue-300 hover:text-orange-400 transition-colors" data-testid="forgot-pin-btn">
                 Code oublié ?
               </button>
-              <button onClick={() => setShowChange(true)} className="text-xs text-slate-500 hover:text-slate-300 transition-colors" data-testid="change-pin-btn">
+              <button onClick={() => setShowChange(true)} className="text-xs text-slate-400 hover:text-slate-200 transition-colors" data-testid="change-pin-btn">
                 Changer le code
               </button>
             </div>
@@ -141,10 +141,10 @@ const PinScreen = ({ onSuccess }) => {
               <div className="mt-4 p-4 bg-slate-700/50 rounded-lg">
                 <p className="text-slate-300 text-sm mb-3">Recevoir le code par email ?</p>
                 <div className="flex gap-2">
-                  <Button onClick={handleRecover} disabled={loading} className="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold text-sm" data-testid="send-recover-btn">
+                  <Button onClick={handleRecover} disabled={loading} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm" data-testid="send-recover-btn">
                     {loading ? 'Envoi...' : 'Envoyer'}
                   </Button>
-                  <Button onClick={() => setShowRecover(false)} variant="outline" className="border-slate-600 text-slate-300 text-sm">
+                  <Button onClick={() => setShowRecover(false)} variant="outline" className="border-blue-500 text-blue-300 text-sm">
                     Annuler
                   </Button>
                 </div>
@@ -152,7 +152,7 @@ const PinScreen = ({ onSuccess }) => {
             )}
           </div>
         ) : (
-          <div className="bg-slate-800/50 backdrop-blur border border-slate-700 rounded-2xl p-8" data-testid="change-pin-form">
+          <div className="bg-slate-800/50 backdrop-blur border border-blue-500/30 rounded-2xl p-8" data-testid="change-pin-form">
             <h2 className="text-white text-center text-lg font-semibold mb-6">Changer le code</h2>
             
             <div className="mb-5">
@@ -163,7 +163,7 @@ const PinScreen = ({ onSuccess }) => {
                 maxLength={4}
                 value={currentPin}
                 onChange={e => setCurrentPin(e.target.value.replace(/\D/g, ''))}
-                className="w-full h-12 text-center text-xl font-bold rounded-lg bg-slate-700/50 border border-slate-600 text-white focus:border-amber-400 focus:outline-none tracking-widest"
+                className="w-full h-12 text-center text-xl font-bold rounded-lg bg-slate-700/50 border border-blue-500 text-white focus:border-orange-400 focus:outline-none tracking-widest"
                 data-testid="current-pin-input"
               />
             </div>
@@ -180,7 +180,7 @@ const PinScreen = ({ onSuccess }) => {
                     maxLength={1}
                     value={d}
                     onChange={e => handleNewPinDigit(i, e.target.value)}
-                    className="w-14 h-14 text-center text-xl font-bold rounded-lg bg-slate-700/50 border border-slate-600 text-white focus:border-amber-400 focus:outline-none"
+                    className="w-14 h-14 text-center text-xl font-bold rounded-lg bg-slate-700/50 border border-blue-500 text-white focus:border-orange-400 focus:outline-none"
                     data-testid={`new-pin-digit-${i}`}
                   />
                 ))}
@@ -188,10 +188,10 @@ const PinScreen = ({ onSuccess }) => {
             </div>
 
             <div className="flex gap-2">
-              <Button onClick={handleChangePin} disabled={loading} className="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold" data-testid="confirm-change-pin-btn">
+              <Button onClick={handleChangePin} disabled={loading} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-semibold" data-testid="confirm-change-pin-btn">
                 {loading ? 'Modification...' : 'Confirmer'}
               </Button>
-              <Button onClick={() => { setShowChange(false); setCurrentPin(''); setNewPin(['','','','']); }} variant="outline" className="border-slate-600 text-slate-300">
+              <Button onClick={() => { setShowChange(false); setCurrentPin(''); setNewPin(['','','','']); }} variant="outline" className="border-blue-500 text-blue-300">
                 Retour
               </Button>
             </div>
