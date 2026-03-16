@@ -186,16 +186,18 @@ const CatalogManager = () => {
                     <div className="flex-1 min-w-0">
                       <div className={`font-medium text-sm ${darkMode ? 'text-white' : ''}`}>{item.service_name}</div>
                       <p className={`text-xs mt-0.5 line-clamp-2 ${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>{item.description}</p>
-                      <div className="flex items-center gap-3 mt-1.5">
-                        {item.default_price && (
-                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: darkMode ? cat.bgDark : cat.bgLight, color: cat.color }}>
-                            {item.default_price.toFixed(2)} €
+                      {item.item_type !== 'note_condition' && (
+                        <div className="flex items-center gap-3 mt-1.5">
+                          {item.default_price && (
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: darkMode ? cat.bgDark : cat.bgLight, color: cat.color }}>
+                              {item.default_price.toFixed(2)} €
+                            </span>
+                          )}
+                          <span className={`text-xs ${darkMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                            Unité: {item.default_unit || 'unité'}
                           </span>
-                        )}
-                        <span className={`text-xs ${darkMode ? 'text-slate-500' : 'text-gray-400'}`}>
-                          Unité: {item.default_unit || 'unité'}
-                        </span>
-                      </div>
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-1 shrink-0 ml-2">
                       <Button variant="ghost" size="sm" onClick={() => openDialog(item)} className={`h-7 ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'hover:bg-gray-100'}`} data-testid={`edit-catalog-${item.id}`}>
