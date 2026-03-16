@@ -175,18 +175,10 @@ const PublicQuotePage = () => {
         </Button>
       </div>
 
-      {/* PDF Document — responsive scaled */}
-      <div ref={wrapperRef} className="px-2 py-4 print:p-0" style={{ overflow: 'hidden' }}>
-        <div style={{
-          width: `${PDF_WIDTH_PX}px`,
-          transform: `scale(${scale})`,
-          transformOrigin: 'top center',
-          margin: '0 auto',
-          height: scale < 1 ? 'auto' : undefined,
-        }}>
-          <div className="shadow-lg rounded overflow-hidden bg-white">
-            <PDFDocument document={quote} type="quote" />
-          </div>
+      {/* PDF Document — responsive */}
+      <div className="px-2 py-4 print:p-0">
+        <div className="mx-auto shadow-lg rounded overflow-hidden bg-white" style={{ maxWidth: '794px' }}>
+          <PDFDocument document={quote} type="quote" compact={true} />
         </div>
       </div>
 
