@@ -176,14 +176,25 @@ const AIAssistant = () => {
           <Label className={`text-sm mb-2 block ${darkMode ? 'text-slate-300' : 'text-gray-700'}`}>
             Votre demande (dictée vocale ou texte)
           </Label>
-          <Textarea
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-            placeholder="Exemple : Je veux un devis pour M. Dupont, 15 rue de Paris, 06 12 34 56 78. Nettoyage toiture + façade. Total 1200€. Ajoute les conditions standard."
-            rows={8}
-            className={`text-sm mb-4 ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}
-            disabled={loading}
-          />
+          <div className="relative">
+            <Textarea
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              placeholder="Exemple : Je veux un devis pour M. Dupont, 15 rue de Paris, 06 12 34 56 78. Nettoyage toiture + façade. Total 1200€. Ajoute les conditions standard."
+              rows={8}
+              className={`text-sm mb-4 pr-12 ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}
+              disabled={loading}
+            />
+            <Button
+              type="button"
+              onClick={toggleVoiceRecognition}
+              className={`absolute right-2 top-2 ${isListening ? 'bg-red-600 hover:bg-red-700 animate-pulse' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
+              size="sm"
+              disabled={loading}
+            >
+              {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </Button>
+          </div>
 
           <Button
             onClick={handleGenerate}
