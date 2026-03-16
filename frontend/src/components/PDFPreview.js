@@ -474,12 +474,22 @@ const generatePDFBase64 = async (document, type) => {
   root.render(<PDFDocument document={document} type={type} compact={false} />);
 
   try {
-    // Attendre le rendu et les images
+    // Attendre le rendu
     await new Promise(r => setTimeout(r, 2000));
     await window.document.fonts.ready;
     
-    // Pré-charger toutes les images en base64
+    // Convertir TOUTES les images en base64 dans le DOM
     const images = container.querySelectorAll('img');
+    for (const img of images) {
+      const originalSrc = img.src || img.getAttribute('src');
+      const b64 = LOGO_B64_MAP[originalSrc];
+      if (b64) {
+        img.src = b64;
+        img.setAttribute('src', b64);
+      }
+    }
+    
+    // Attendre que les images base64 soient chargées
     await Promise.all(Array.from(images).map(img => {
       return new Promise((resolve) => {
         if (img.complete) {
@@ -491,15 +501,17 @@ const generatePDFBase64 = async (document, type) => {
       });
     }));
     
+    // Petit délai supplémentaire pour s'assurer que tout est bien rendu
+    await new Promise(r => setTimeout(r, 500));
+    
     const canvas = await html2canvas(container.firstChild, {
-      scale: 2.5, useCORS: true, allowTaint: false, backgroundColor: '#ffffff', logging: false,
-      onclone: (clonedDoc) => {
-        clonedDoc.querySelectorAll('img').forEach(img => {
-          const b64 = LOGO_B64_MAP[img.src] || LOGO_B64_MAP[img.getAttribute('src')];
-          if (b64) img.src = b64;
-        });
-      },
+      scale: 2.5,
+      useCORS: false, // Désactiver CORS car maintenant tout est en base64
+      allowTaint: true, // Autoriser car tout est en base64
+      backgroundColor: '#ffffff',
+      logging: false,
     });
+    
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
