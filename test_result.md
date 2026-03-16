@@ -207,8 +207,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "PDF Generation and Preview for Quotes"
-    - "PDF Generation and Preview for Invoices"
+    - "Email Sending with PDF Attachment"
+    - "Quote Signature and Email Notifications"
+    - "Public Quote Retrieval"
+    - "PIN Authentication System"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
