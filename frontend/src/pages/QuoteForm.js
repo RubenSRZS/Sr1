@@ -93,7 +93,31 @@ const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, opti
                 <Label className="text-xs text-gray-500">Total €</Label>
                 <Input value={(s.total || 0).toFixed(2)} readOnly className="h-8 text-sm bg-gray-100 font-medium" />
               </div>
-              <Button type="button" variant="ghost" size="sm" onClick={() => removeSvc(i)} className="h-8 mt-4 text-red-500 hover:bg-red-50">
+              <div className="flex flex-col gap-0.5 mt-4">
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => moveSvcUp(i)} 
+                  disabled={i === 0}
+                  className="h-4 p-0 w-8 text-gray-500 hover:text-blue-600 hover:bg-blue-50 disabled:opacity-30"
+                  title="Déplacer vers le haut"
+                >
+                  <ChevronUp className="h-3.5 w-3.5" />
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => moveSvcDown(i)} 
+                  disabled={i === services.length - 1}
+                  className="h-4 p-0 w-8 text-gray-500 hover:text-blue-600 hover:bg-blue-50 disabled:opacity-30"
+                  title="Déplacer vers le bas"
+                >
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              <Button type="button" variant="ghost" size="sm" onClick={() => removeSvc(i)} className="h-8 mt-4 text-red-500 hover:bg-red-50" title="Supprimer">
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
