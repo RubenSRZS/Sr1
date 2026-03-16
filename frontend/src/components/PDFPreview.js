@@ -201,7 +201,7 @@ const PDFDocument = ({ document, type, compact = false }) => {
   const multipleOptions = hasOption2 || hasOption3;
 
   return (
-    <div className="bg-white" style={{ width: compact ? '100%' : '210mm', minHeight: compact ? 'auto' : '297mm', fontFamily: "'Manrope', 'Inter', sans-serif", fontSize: fs, lineHeight: 1.4 }} data-testid="pdf-document">
+    <div className="bg-white" style={{ width: '100%', maxWidth: '794px', minHeight: compact ? 'auto' : '297mm', fontFamily: "'Manrope', 'Inter', sans-serif", fontSize: fs, lineHeight: 1.4 }} data-testid="pdf-document">
       {/* Header */}
       <div style={{ background: `linear-gradient(135deg, ${BRAND_BLUE} 0%, ${BRAND_BLUE_LIGHT} 40%, ${BRAND_ORANGE} 100%)` }}>
         <div style={{ padding: compact ? '10px 14px' : '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
