@@ -79,6 +79,7 @@ function AppContent() {
           <Route path="/invoices/edit/:id" element={<InvoiceForm />} />
           <Route path="/clients" element={<ClientsManager />} />
           <Route path="/catalog" element={<CatalogManager />} />
+          <Route path="/ai-assistant" element={<AIAssistant />} />
         </Routes>
       </div>
       <BottomNav />
