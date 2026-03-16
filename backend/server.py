@@ -1067,6 +1067,110 @@ async def get_stats():
         "revenue": {"total": total_revenue, "pending": pending_revenue},
     }
 
+# ==================== AI ASSISTANT ====================
+
+class AIGenerateRequest(BaseModel):
+    user_input: str
+    document_type: str = "quote"  # "quote" or "invoice"
+
+@api_router.post("/ai/generate-document")
+async def ai_generate_document(body: AIGenerateRequest):
+    """
+    Utilise Gemini pour générer un devis/facture à partir d'un texte libre
+    """
+    if not GEMINI_API_KEY:
+        raise HTTPException(status_code=500, detail="Clé API Gemini non configurée")
+    
+    try:
+        # Récupérer le catalogue complet
+        catalog_items = await db.catalog.find({}, {"_id": 0}).to_list(1000)
+        
+        # Séparer services et notes
+        services = [item for item in catalog_items if item.get('item_type', 'service') == 'service']
+        notes = [item for item in catalog_items if item.get('item_type') == 'note_condition']
+        
+        # Construire le system prompt avec le catalogue
+        services_list = "\n".join([
+            f"- {s['service_name']} (Catégorie: {s['category']}, Prix suggéré: {s.get('default_price', 'N/A')}€, Unité: {s.get('default_unit', 'unité')})"
+            for s in services
+        ])
+        
+        notes_list = "\n".join([
+            f"- {n['service_name']}: {n['description']}"
+            for n in notes
+        ])
+        
+        system_prompt = f"""Tu es un assistant intelligent pour SR Rénovation, spécialisé dans la création de devis et factures.
+
+CATALOGUE DE SERVICES DISPONIBLES:
+{services_list}
+
+NOTES & CONDITIONS PRÉENREGISTRÉES:
+{notes_list}
+
+INSTRUCTIONS:
+1. Analyse le texte de l'utilisateur
+2. Extrait les informations client (nom, adresse, téléphone, email)
+3. Identifie les prestations du catalogue mentionnées
+4. Si l'utilisateur mentionne un montant total cible, ajuste les quantités et prix pour l'atteindre
+5. Identifie les notes/conditions à inclure
+
+IMPORTANT:
+- Utilise UNIQUEMENT les services du catalogue
+- Si le service n'existe pas exactement, trouve le plus proche
+- Ajuste intelligemment les quantités pour atteindre le montant cible
+- Si pas de montant cible, utilise les prix du catalogue
+
+Réponds UNIQUEMENT en JSON avec cette structure exacte:
+{{
+  "client": {{
+    "name": "Nom du client",
+    "address": "Adresse complète",
+    "phone": "Téléphone",
+    "email": "Email (si mentionné)"
+  }},
+  "work_location": "Lieu des travaux",
+  "services": [
+    {{
+      "description": "Description de la prestation",
+      "quantity": 1.0,
+      "unit": "unité",
+      "unit_price": 100.0,
+      "remise_percent": 0.0,
+      "total": 100.0
+    }}
+  ],
+  "notes": "Notes et conditions (combine les notes préenregistrées si mentionnées)",
+  "target_amount": 0.0,
+  "confidence": "high/medium/low"
+}}"""
+
+        # Appeler Gemini
+        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        response = model.generate_content(
+            f"{system_prompt}\n\nTEXTE DE L'UTILISATEUR:\n{body.user_input}",
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.3,
+                response_mime_type="application/json"
+            )
+        )
+        
+        # Parser la réponse JSON
+        result = json.loads(response.text)
+        
+        return {
+            "status": "success",
+            "data": result
+        }
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"Erreur parsing JSON Gemini: {e}")
+        logger.error(f"Réponse brute: {response.text if 'response' in locals() else 'N/A'}")
+        raise HTTPException(status_code=500, detail="L'IA n'a pas retourné un JSON valide")
+    except Exception as e:
+        logger.error(f"Erreur génération IA: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
 app.include_router(api_router)
 
 app.add_middleware(
