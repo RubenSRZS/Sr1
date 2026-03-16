@@ -80,7 +80,7 @@ Vous avez **3 options** pour utiliser votre application :
 
 ### **Option 1 : Utiliser la Preview Emergent (RECOMMANDÉ pour tester)**
 
-✅ **URL actuelle** : https://quotation-hub-32.preview.emergentagent.com
+✅ **URL actuelle** : https://sleepy-keller-1.preview.emergentagent.com
 
 **Avantages :**
 - ✅ Gratuit en preview
