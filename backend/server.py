@@ -1151,8 +1151,7 @@ Réponds UNIQUEMENT en JSON avec cette structure exacte:
             model='gemini-1.5-flash',
             contents=f"{system_prompt}\n\nTEXTE DE L'UTILISATEUR:\n{body.user_input}",
             config=types.GenerateContentConfig(
-                temperature=0.3,
-                response_mime_type="application/json"
+                temperature=0.3
             )
         )
         
