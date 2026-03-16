@@ -1155,8 +1155,17 @@ Réponds UNIQUEMENT en JSON avec cette structure exacte:
             )
         )
         
-        # Parser la réponse JSON
-        result = json.loads(response.text)
+        # Parser la réponse JSON (nettoyer les ```json si présent)
+        response_text = response.text.strip()
+        if response_text.startswith('```json'):
+            response_text = response_text[7:]  # Enlever ```json
+        if response_text.startswith('```'):
+            response_text = response_text[3:]  # Enlever ```
+        if response_text.endswith('```'):
+            response_text = response_text[:-3]  # Enlever ```
+        response_text = response_text.strip()
+        
+        result = json.loads(response_text)
         
         return {
             "status": "success",
