@@ -97,6 +97,7 @@ const PublicQuotePage = () => {
       const payload = {
         signature_data: signatureData,
         signer_name: signerName,
+        selected_option: selectedOption, // Ajouter l'option sélectionnée
       };
       if (pdfData) {
         payload.pdf_base64 = pdfData.base64;
