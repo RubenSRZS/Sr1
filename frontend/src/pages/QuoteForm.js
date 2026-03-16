@@ -218,6 +218,59 @@ const QuoteForm = () => {
   useEffect(() => {
     axios.get(`${API}/clients`).then(r => setClients(r.data)).catch(() => {});
     axios.get(`${API}/catalog`).then(r => setCatalog(r.data)).catch(() => {});
+    
+    // Charger les données générées par l'IA si présentes
+    const aiData = sessionStorage.getItem('ai_generated_quote');
+    if (aiData && !id) {
+      try {
+        const data = JSON.parse(aiData);
+        
+        // Créer le client d'abord ou trouver un client existant
+        if (data.client) {
+          // Vérifier si le client existe déjà
+          const existingClient = clients.find(c => 
+            c.phone === data.client.phone || c.email === data.client.email
+          );
+          
+          if (existingClient) {
+            // Utiliser le client existant
+            setFormData(prev => ({
+              ...prev,
+              client_id: existingClient.id,
+              work_location: data.work_location || existingClient.address,
+              services: data.items || [],
+              notes: data.notes || ''
+            }));
+          } else {
+            // Créer un nouveau client
+            setNewClient({
+              name: data.client.name || '',
+              address: data.client.address || '',
+              phone: data.client.phone || '',
+              email: data.client.email || '',
+              postal_code: '',
+              city: ''
+            });
+            setShowNewClient(true);
+            
+            // Pré-remplir les services et notes
+            setFormData(prev => ({
+              ...prev,
+              work_location: data.work_location || data.client.address,
+              services: data.items || [],
+              notes: data.notes || ''
+            }));
+          }
+        }
+        
+        // Nettoyer le sessionStorage
+        sessionStorage.removeItem('ai_generated_quote');
+        toast.success('Données IA chargées ! Vérifiez et ajustez si nécessaire.');
+      } catch (e) {
+        console.error('Erreur chargement données IA:', e);
+      }
+    }
+    
     if (id) {
       axios.get(`${API}/quotes/${id}`).then(r => {
         const q = r.data;
