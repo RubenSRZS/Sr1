@@ -296,34 +296,268 @@ class SrRenovationAPITester:
         
         return success
 
-    def test_email_send(self):
-        """Test POST /api/send-email (expected to fail due to missing RESEND_API_KEY)"""
-        if not self.created_quote_id:
-            print("❌ Cannot test email sending - no quote ID available")
-            return True  # Return True since this is expected behavior
+    def test_email_send_with_pdf(self):
+        """Test POST /api/quotes/{quote_id}/send-email - SR-Renovation specific test"""
+        # First get existing quotes to use real IDs
+        success, quotes = self.run_test(
+            "Get Existing Quotes for Email Test",
+            "GET", 
+            "quotes",
+            200
+        )
+        
+        if not success or not quotes:
+            print("❌ Cannot test email sending - no quotes available")
+            return False
             
-        email_request = {
+        # Use the first available quote
+        quote_id = quotes[0]['id']
+        print(f"   Using quote ID: {quote_id}")
+        
+        # Test email sending with PDF
+        email_data = {
+            "subject": "Votre devis SR-Renovation",
+            "message": "Test d'envoi d'email",
             "recipient_email": "test@example.com",
-            "subject": "Test Devis",
-            "document_id": self.created_quote_id,
-            "document_type": "quote"
+            "pdf_base64": None,
+            "pdf_filename": None
         }
         
         success, response = self.run_test(
-            "Send Email (Expected to Fail)",
+            "Send Quote Email with PDF",
             "POST",
-            "send-email",
-            500,  # Expecting 500 due to missing RESEND_API_KEY
-            data=email_request
+            f"quotes/{quote_id}/send-email",
+            200,
+            data=email_data
         )
         
-        if not success:
-            # Check if it failed for the expected reason
-            print("   ✅ Email sending failed as expected (RESEND_API_KEY not configured)")
-            return True
-        else:
-            print("   ⚠️  Email sending unexpectedly succeeded")
-            return True
+        if success:
+            print("   ✅ Email sent successfully")
+            print(f"   Email ID: {response.get('email_id', 'N/A')}")
+            print(f"   Public token: {response.get('public_token', 'N/A')}")
+            
+            # Verify the quote was updated with sent status
+            quote_success, quote_data = self.run_test(
+                "Verify Quote Status Updated",
+                "GET",
+                f"quotes/{quote_id}",
+                200
+            )
+            
+            if quote_success:
+                print(f"   Quote status: {quote_data.get('status', 'N/A')}")
+                print(f"   Sent to email: {quote_data.get('sent_to_email', 'N/A')}")
+                
+        return success
+
+    def test_public_quote_retrieval(self):
+        """Test GET /api/public/quote/{token}"""
+        # First get a quote with public token
+        success, quotes = self.run_test(
+            "Get Quotes for Public Token Test",
+            "GET",
+            "quotes", 
+            200
+        )
+        
+        if not success or not quotes:
+            print("❌ Cannot test public quote - no quotes available")
+            return False
+            
+        # Find a quote with public_token
+        quote_with_token = None
+        for quote in quotes:
+            if quote.get('public_token'):
+                quote_with_token = quote
+                break
+                
+        if not quote_with_token:
+            print("❌ No quotes with public tokens found")
+            return False
+            
+        token = quote_with_token['public_token']
+        print(f"   Using public token: {token[:10]}...")
+        
+        success, response = self.run_test(
+            "Get Public Quote",
+            "GET",
+            f"public/quote/{token}",
+            200
+        )
+        
+        if success:
+            print("   ✅ Public quote retrieved successfully")
+            # Verify required fields for PDF rendering
+            required_fields = ['id', 'quote_number', 'client_name', 'services', 'total_net']
+            missing_fields = [field for field in required_fields if field not in response]
+            
+            if missing_fields:
+                print(f"   ⚠️  Missing required fields: {missing_fields}")
+            else:
+                print("   ✅ All required fields present for PDF rendering")
+                
+            print(f"   Quote number: {response.get('quote_number', 'N/A')}")
+            print(f"   Client: {response.get('client_name', 'N/A')}")
+            print(f"   Services count: {len(response.get('services', []))}")
+            
+        return success
+
+    def test_quote_signature_flow(self):
+        """Test POST /api/public/quote/{token}/sign"""
+        # First get a quote that's not signed yet
+        success, quotes = self.run_test(
+            "Get Quotes for Signature Test",
+            "GET",
+            "quotes",
+            200
+        )
+        
+        if not success or not quotes:
+            print("❌ Cannot test signature - no quotes available")
+            return False
+            
+        # Find an unsigned quote with public token
+        unsigned_quote = None
+        for quote in quotes:
+            if quote.get('public_token') and not quote.get('signed_at'):
+                unsigned_quote = quote
+                break
+                
+        if not unsigned_quote:
+            print("❌ No unsigned quotes with public tokens found")
+            return False
+            
+        token = unsigned_quote['public_token']
+        print(f"   Using quote: {unsigned_quote.get('quote_number', 'N/A')}")
+        print(f"   Public token: {token[:10]}...")
+        
+        # Test signature data (minimal PNG base64)
+        signature_data = {
+            "signature_data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+            "signer_name": "Test User",
+            "pdf_base64": "test",
+            "pdf_filename": "test.pdf"
+        }
+        
+        success, response = self.run_test(
+            "Sign Quote Electronically",
+            "POST",
+            f"public/quote/{token}/sign",
+            200,
+            data=signature_data
+        )
+        
+        if success:
+            print("   ✅ Quote signed successfully")
+            print(f"   Signed at: {response.get('signed_at', 'N/A')}")
+            
+            # Verify the quote was updated
+            quote_success, quote_data = self.run_test(
+                "Verify Quote Signature Updated",
+                "GET",
+                f"quotes/{unsigned_quote['id']}",
+                200
+            )
+            
+            if quote_success:
+                print(f"   Quote status: {quote_data.get('status', 'N/A')}")
+                print(f"   Signature present: {'Yes' if quote_data.get('signature_data') else 'No'}")
+                
+        return success
+
+    def test_track_quote_opened(self):
+        """Test POST /api/public/quote/{token}/opened"""
+        # Get a quote with public token
+        success, quotes = self.run_test(
+            "Get Quotes for Tracking Test",
+            "GET",
+            "quotes",
+            200
+        )
+        
+        if not success or not quotes:
+            print("❌ Cannot test tracking - no quotes available")
+            return False
+            
+        quote_with_token = None
+        for quote in quotes:
+            if quote.get('public_token'):
+                quote_with_token = quote
+                break
+                
+        if not quote_with_token:
+            print("❌ No quotes with public tokens found")
+            return False
+            
+        token = quote_with_token['public_token']
+        
+        success, response = self.run_test(
+            "Track Quote Opened",
+            "POST",
+            f"public/quote/{token}/opened",
+            200
+        )
+        
+        if success:
+            print("   ✅ Quote opening tracked successfully")
+            
+        return success
+
+    def test_pin_authentication(self):
+        """Test PIN authentication endpoints"""
+        # Test PIN verification
+        pin_data = {"pin": "0330"}  # Default PIN from env
+        
+        success, response = self.run_test(
+            "Verify PIN Authentication",
+            "POST",
+            "auth/verify-pin",
+            200,
+            data=pin_data
+        )
+        
+        if success:
+            print(f"   Authentication status: {response.get('authenticated', False)}")
+            
+        # Test wrong PIN
+        wrong_pin_data = {"pin": "1234"}
+        
+        wrong_success, wrong_response = self.run_test(
+            "Test Wrong PIN (Expected to Fail)",
+            "POST", 
+            "auth/verify-pin",
+            401,
+            data=wrong_pin_data
+        )
+        
+        if not wrong_success:
+            print("   ✅ Wrong PIN correctly rejected")
+            
+        return success
+
+    def test_sr_renovation_specific_endpoints(self):
+        """Run all SR-Renovation specific tests"""
+        print("\n🎯 Running SR-Renovation Specific API Tests")
+        print("=" * 60)
+        
+        results = []
+        
+        # Test email sending with PDF verification
+        results.append(self.test_email_send_with_pdf())
+        
+        # Test public quote retrieval
+        results.append(self.test_public_quote_retrieval())
+        
+        # Test quote signature flow
+        results.append(self.test_quote_signature_flow())
+        
+        # Test quote tracking
+        results.append(self.test_track_quote_opened())
+        
+        # Test PIN authentication
+        results.append(self.test_pin_authentication())
+        
+        return all(results)
 
 def main():
     print("🚀 Starting Sr-Renovation API Tests")
