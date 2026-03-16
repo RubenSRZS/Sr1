@@ -474,42 +474,90 @@ const generatePDFBase64 = async (document, type) => {
   root.render(<PDFDocument document={document} type={type} compact={false} />);
 
   try {
-    // Attendre le rendu
-    await new Promise(r => setTimeout(r, 2000));
+    // Attendre le rendu initial
+    await new Promise(r => setTimeout(r, 1500));
     await window.document.fonts.ready;
     
-    // Convertir TOUTES les images en base64 dans le DOM
+    // NOUVELLE STRATÉGIE : Pré-charger toutes les images en base64 dans le DOM
     const images = container.querySelectorAll('img');
+    const imageLoadPromises = [];
+    
     for (const img of images) {
       const originalSrc = img.src || img.getAttribute('src');
-      const b64 = LOGO_B64_MAP[originalSrc];
-      if (b64) {
+      
+      // Essayer d'abord avec la map existante
+      let b64 = LOGO_B64_MAP[originalSrc];
+      
+      // Si pas dans la map, essayer de télécharger et convertir l'URL
+      if (!b64 && originalSrc && !originalSrc.startsWith('data:')) {
+        try {
+          // Créer une promesse pour charger l'image via fetch et la convertir en base64
+          const loadPromise = (async () => {
+            try {
+              const response = await fetch(originalSrc);
+              const blob = await response.blob();
+              return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+              });
+            } catch (err) {
+              console.warn('Failed to load image:', originalSrc, err);
+              return null;
+            }
+          })();
+          
+          imageLoadPromises.push(
+            loadPromise.then(dataUrl => {
+              if (dataUrl) {
+                img.src = dataUrl;
+                img.setAttribute('src', dataUrl);
+              }
+            })
+          );
+        } catch (err) {
+          console.warn('Error setting up image load:', originalSrc, err);
+        }
+      } else if (b64) {
+        // Utiliser directement la valeur de la map
         img.src = b64;
         img.setAttribute('src', b64);
       }
     }
     
-    // Attendre que les images base64 soient chargées
+    // Attendre que toutes les images soient téléchargées et converties
+    await Promise.all(imageLoadPromises);
+    
+    // Attendre que toutes les images base64 soient complètement chargées dans le DOM
     await Promise.all(Array.from(images).map(img => {
       return new Promise((resolve) => {
-        if (img.complete) {
+        if (img.complete && img.naturalWidth > 0) {
           resolve();
         } else {
-          img.onload = () => resolve();
-          img.onerror = () => resolve();
+          const timeout = setTimeout(() => resolve(), 3000); // Timeout de sécurité
+          img.onload = () => {
+            clearTimeout(timeout);
+            resolve();
+          };
+          img.onerror = () => {
+            clearTimeout(timeout);
+            resolve();
+          };
         }
       });
     }));
     
-    // Petit délai supplémentaire pour s'assurer que tout est bien rendu
-    await new Promise(r => setTimeout(r, 500));
+    // Délai supplémentaire pour garantir le rendu complet
+    await new Promise(r => setTimeout(r, 1000));
     
     const canvas = await html2canvas(container.firstChild, {
       scale: 2.5,
-      useCORS: false, // Désactiver CORS car maintenant tout est en base64
-      allowTaint: true, // Autoriser car tout est en base64
+      useCORS: false,
+      allowTaint: true,
       backgroundColor: '#ffffff',
       logging: false,
+      imageTimeout: 0, // Pas de timeout car images déjà chargées
     });
     
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
