@@ -807,11 +807,6 @@ const QuoteForm = () => {
                     moveSvcUp={moveService3Up}
                     moveSvcDown={moveService3Down}
                   />
-                    onRemisePercentChange={(v) => updateField('option_3_remise_percent', v)}
-                    onRemiseMontantChange={(v) => updateField('option_3_remise_montant', v)}
-                    optionTitle={formData.option_3_title}
-                    onTitleChange={(v) => updateField('option_3_title', v)}
-                  />
                 )}
                 
                 <Button 
