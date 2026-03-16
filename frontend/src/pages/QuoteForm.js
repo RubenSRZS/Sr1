@@ -31,7 +31,7 @@ const getCatalogItemColor = (item) => item.color || CATALOG_CATEGORIES[item.cate
 // ─── ServicesSection MUST be defined OUTSIDE QuoteForm to prevent remount on every render ─────
 const UNITS = ['unité', 'm²', 'ML', 'm', 'h', 'forfait', 'kg'];
 
-const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, optionNum, totals, remiseType, remisePercent, remiseMontant, onRemiseTypeChange, onRemisePercentChange, onRemiseMontantChange, optionTitle, onTitleChange }) => (
+const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, optionNum, totals, remiseType, remisePercent, remiseMontant, onRemiseTypeChange, onRemisePercentChange, onRemiseMontantChange, optionTitle, onTitleChange, moveSvcUp, moveSvcDown }) => (
   <Card className="p-4 bg-white border-0 shadow-sm" data-testid={`services-section-${optionNum}`}>
     <div className="flex items-center justify-between mb-2">
       <span className="font-bold text-sm px-2 py-0.5 rounded"
