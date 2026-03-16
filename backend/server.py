@@ -13,7 +13,8 @@ from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
 import json
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -31,7 +32,7 @@ REPLY_TO_EMAIL = os.environ.get('REPLY_TO_EMAIL')
 # Gemini config
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+    gemini_client = genai.Client(api_key=GEMINI_API_KEY)
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
