@@ -35,6 +35,7 @@ const InvoiceForm = () => {
   const [clients, setClients] = useState([]);
   const [catalog, setCatalog] = useState([]);
   const [showCatalog, setShowCatalog] = useState(false);
+  const [showNotesCatalog, setShowNotesCatalog] = useState(false);
   const [showPreviewMobile, setShowPreviewMobile] = useState(false);
   const [showNewClient, setShowNewClient] = useState(false);
   const [draftRestored, setDraftRestored] = useState(false);
