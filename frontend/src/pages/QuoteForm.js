@@ -361,6 +361,18 @@ const QuoteForm = () => {
     updateField('services', s);
   };
   const removeService = (i) => updateField('services', formData.services.filter((_, idx) => idx !== i));
+  const moveServiceUp = (i) => {
+    if (i === 0) return;
+    const s = [...formData.services];
+    [s[i-1], s[i]] = [s[i], s[i-1]];
+    updateField('services', s);
+  };
+  const moveServiceDown = (i) => {
+    if (i === formData.services.length - 1) return;
+    const s = [...formData.services];
+    [s[i], s[i+1]] = [s[i+1], s[i]];
+    updateField('services', s);
+  };
 
   // Option 2 services
   const addService2 = () => updateField('option_2_services', [...formData.option_2_services, { description: '', quantity: 1, unit: 'unité', unit_price: 0, remise_percent: 0, total: 0 }]);
@@ -376,6 +388,18 @@ const QuoteForm = () => {
     updateField('option_2_services', s);
   };
   const removeService2 = (i) => updateField('option_2_services', formData.option_2_services.filter((_, idx) => idx !== i));
+  const moveService2Up = (i) => {
+    if (i === 0) return;
+    const s = [...formData.option_2_services];
+    [s[i-1], s[i]] = [s[i], s[i-1]];
+    updateField('option_2_services', s);
+  };
+  const moveService2Down = (i) => {
+    if (i === formData.option_2_services.length - 1) return;
+    const s = [...formData.option_2_services];
+    [s[i], s[i+1]] = [s[i+1], s[i]];
+    updateField('option_2_services', s);
+  };
 
   // Catalog handler
   const addFromCatalog = (item) => {
