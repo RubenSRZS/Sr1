@@ -21,14 +21,14 @@ const DesktopNav = () => {
         <img src={LOGO_SR} alt="SR Renovation" className="h-8" />
       </Link>
       <div className="flex items-center gap-1">
-        {items.map(({ path, icon: Icon, label }) => {
+        {items.map(({ path, icon: Icon, label, gradient }) => {
           const active = location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
           return (
             <Link key={path} to={path} data-testid={`desktop-nav-${label.toLowerCase()}`}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
-                active ? 'text-white' : 'text-gray-600 hover:bg-gray-100'
+                active ? 'text-white' : gradient ? 'text-purple-600 hover:bg-purple-50' : 'text-gray-600 hover:bg-gray-100'
               }`}
-              style={active ? { background: 'linear-gradient(135deg, #3b82f6, #60a5fa)' } : {}}
+              style={active ? (gradient ? { background: 'linear-gradient(135deg, #3b82f6, #9333ea)' } : { background: 'linear-gradient(135deg, #3b82f6, #60a5fa)' }) : {}}
             >
               <Icon size={16} />
               {label}
