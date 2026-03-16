@@ -940,8 +940,8 @@ async def send_quote_email(quote_id: str, body: SendQuoteEmail):
 
 <!-- Header with gradient -->
 <tr><td style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 40%,#f97316 100%);padding:36px 28px;text-align:center;">
-  <h1 style="color:#ffffff;margin:0;font-size:26px;font-weight:800;letter-spacing:1px;text-transform:uppercase;font-family:Georgia,'Times New Roman',serif;">SR R&Eacute;NOVATION</h1>
-  <p style="color:rgba(255,255,255,0.9);margin:8px 0 0;font-size:13px;font-weight:400;letter-spacing:0.5px;">Nettoyage, toiture, fa&ccedil;ade, terrasse</p>
+  <h1 style="color:#ffffff;margin:0;font-size:26px;font-weight:800;letter-spacing:1px;font-family:'Montserrat',Georgia,'Times New Roman',serif;">SR NOVATION</h1>
+  <p style="color:rgba(255,255,255,0.9);margin:4px 0 0;font-size:13px;font-weight:400;letter-spacing:0.5px;line-height:1.5;">Nettoyage professionnel<br>Nettoyage fa&ccedil;ade terrasse</p>
 </td></tr>
 
 <!-- Body -->
