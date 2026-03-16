@@ -96,9 +96,35 @@ const AIAssistant = () => {
   const handleCreateQuote = () => {
     if (!result) return;
     
-    // Sauvegarder les données dans sessionStorage pour les récupérer dans QuoteForm
-    sessionStorage.setItem('ai_generated_quote', JSON.stringify(result));
-    navigate('/devis/nouveau');
+    // Créer ou récupérer le client
+    const clientData = {
+      name: result.client?.name || '',
+      address: result.client?.address || '',
+      phone: result.client?.phone || '',
+      email: result.client?.email || '',
+    };
+
+    // Préparer les données du devis
+    const quoteData = {
+      client: clientData,
+      work_location: result.work_location || result.client?.address || '',
+      items: result.services?.map(s => ({
+        description: s.description,
+        quantity: s.quantity,
+        unit: s.unit,
+        unit_price: s.unit_price,
+        remise_percent: s.remise_percent || 0,
+        total: s.total
+      })) || [],
+      notes: result.notes || '',
+      ai_generated: true
+    };
+    
+    // Sauvegarder dans sessionStorage
+    sessionStorage.setItem('ai_generated_quote', JSON.stringify(quoteData));
+    
+    // Rediriger vers le formulaire de devis
+    navigate('/quotes/new');
     toast.success('Redirection vers le formulaire...');
   };
 
