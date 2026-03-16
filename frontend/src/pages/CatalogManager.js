@@ -307,6 +307,7 @@ const CatalogManager = () => {
                   </Select>
                 </div>
               </div>
+              )}
             </div>
             
             <DialogFooter>
