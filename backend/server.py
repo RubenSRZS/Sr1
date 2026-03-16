@@ -760,6 +760,7 @@ async def sign_quote_public(token: str, body: SignQuote):
             "signed_at": now,
             "status": "accepted",
             "signer_name": body.signer_name or "",
+            "selected_option": body.selected_option or 1,
         }}
     )
 
