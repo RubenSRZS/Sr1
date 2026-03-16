@@ -137,31 +137,21 @@ export const DiagnosticSection = ({ diagnostic = {}, updateDiagnostic, darkMode 
               className={`rounded-lg border ${darkMode ? 'border-slate-600' : 'border-gray-200'} overflow-hidden`}
             >
               {/* En-tête du groupe */}
-              <div 
-                className={`p-3 ${darkMode ? 'bg-slate-700' : 'bg-gray-50'} cursor-pointer hover:bg-opacity-80 transition-colors`}
-                onClick={() => toggleGroup(group.id)}
-              >
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleGroup(group.id);
-                    }}
-                    className={`flex-shrink-0 ${darkMode ? 'text-slate-300 hover:text-slate-100' : 'text-gray-500 hover:text-gray-700'} transition-colors`}
-                    aria-label={isExpanded ? 'Réduire' : 'Développer'}
-                  >
+              <div className={`p-3 ${darkMode ? 'bg-slate-700' : 'bg-gray-50'}`}>
+                <div 
+                  className="flex items-center gap-2 cursor-pointer"
+                  onClick={() => toggleGroup(group.id)}
+                >
+                  <div className={`flex-shrink-0 ${darkMode ? 'text-slate-300' : 'text-gray-500'} transition-colors`}>
                     {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  </button>
+                  </div>
                   
-                  <label 
-                    className="flex items-center gap-2 flex-1 cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <div className="flex items-center gap-2 flex-1">
                     <input
                       type="checkbox"
                       checked={groupChecked}
                       onChange={(e) => handleGroupCheck(group.id, e.target.checked)}
+                      onClick={(e) => e.stopPropagation()}
                       className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                     <span className={`font-medium text-sm ${darkMode ? 'text-slate-200' : 'text-gray-700'}`}>
@@ -172,7 +162,7 @@ export const DiagnosticSection = ({ diagnostic = {}, updateDiagnostic, darkMode 
                         </span>
                       )}
                     </span>
-                  </label>
+                  </div>
                 </div>
               </div>
 
