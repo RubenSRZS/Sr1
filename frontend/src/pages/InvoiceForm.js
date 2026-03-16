@@ -383,7 +383,19 @@ const InvoiceForm = () => {
                 </div>
               </div>
               <div>
-                <Label className="text-xs text-gray-500">Notes</Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-xs text-gray-500">Notes</Label>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-6 text-xs" 
+                    onClick={() => setShowNotesCatalog(true)}
+                    data-testid="notes-catalog-btn"
+                  >
+                    <BookOpen className="h-3 w-3 mr-1" /> Catalogue
+                  </Button>
+                </div>
                 <Textarea value={formData.notes} onChange={e => updateField('notes', e.target.value)} rows={2} placeholder="Remarques, conditions..." className="text-sm resize-none" data-testid="notes-input" />
               </div>
             </Card>
