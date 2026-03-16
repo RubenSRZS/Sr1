@@ -3,195 +3,158 @@ The user, representing Sr-Renovation.fr, requires a web application to create pr
 
 **PRODUCT REQUIREMENTS:**
 1.  **Core Functionality:** Create, view, and manage quotes and invoices with a live PDF preview.
-2.  **Client & Catalog Management:** Manage clients and a catalog of services with color-coding and default units.
-3.  **Flexible Forms:**
-    *   Allow optional fields, discounts, custom units, and custom document numbering.
-    *   Support quotes with up to three distinct, titled options.
-    *   Include a detailed, hierarchical diagnostic section for different parts of a building (roof, facade, etc.).
+2.  **Client & Catalog Management:** Manage clients and a catalog of services.
+3.  **Flexible Forms:** Allow optional fields, discounts, custom units, and custom document numbering.
 4.  **Workflow & Automation:**
     *   One-click conversion of an accepted quote to an invoice.
-    *   Manage invoice payment status (e.g., paid, unpaid).
-    *   Send documents via email and support e-signatures (Future).
+    *   Manage invoice payment status.
+    *   Send documents via email and support e-signatures.
+    *   Attach the quote PDF to the outgoing email.
+    *   After a client signs, they should receive a confirmation email with a RIB for payment, and the admin should receive a notification with the signed PDF attached.
+    *   Allow clients to select from different options on a quote before signing.
 5.  **UI/UX:**
-    *   A global, consistent dark mode.
-    *   Form data must persist upon navigation, preventing data loss.
-    *   Intuitive sorting for client lists (alphabetical, recent).
-    *   PDFs must always have a white background, regardless of the UI theme.
-6.  **Deployment:** The user wants to know how to deploy the app for personal use outside the Emergent environment, for free, and with access control.
+    *   A global, consistent dark mode with the brand's blue/orange colors.
+    *   The public-facing version of a quote must be a pixel-perfect, responsive replica of the generated PDF, especially on mobile (portrait view).
+    *   The email templates must be professional, on-brand, and responsive.
+6.  **Security & Deployment:**
+    *   The application must be protected by a simple PIN.
+    *   The user needs instructions to deploy the app on their own (Oracle Cloud).
 
 **User's preferred language**: French
 
 **what currently exists?**
-A functional full-stack application using React, FastAPI, and MongoDB. Critical bugs from the previous session, such as form data loss on navigation and inconsistent dark mode, have been fixed. The agent implemented several new features like client sorting, invoice payment statuses, and an initial version of a detailed diagnostic section. However, the user was dissatisfied with the user experience of these new features and has requested significant refactoring.
+A full-stack React/FastAPI/MongoDB application with PIN-based authentication (). The app supports creating and managing clients, a service catalog, quotes, and invoices. It includes functionality for sending quotes via email, generating PDFs, and an e-signature workflow. However, the core post-signature workflow is critically broken: logos are missing from all PDFs generated after a client signs a quote, rendering the application unusable for business. The previous agent also broke user trust by sending test emails to real clients.
 
 **Last working item**:
-- **Last item agent was working:** The agent was starting to refactor the Diagnostic visuel section in response to user feedback. The user found the initial implementation (a flat list of checkboxes) confusing and requested a hierarchical, collapsible UI. The agent's last action was creating the base UI components (, ) for this new structure.
-- **Status:** IN PROGRESS
-- **Agent Testing Done:** N
-- **Which testing method agent to use?** Frontend testing agent to verify the new collapsible UI functionality and the screenshot tool to confirm visual correctness.
-- **User Testing Done:** N
+-   **Last item agent was working:** The agent was actively fixing the critical bug where logos are missing from PDFs generated *after* a client signs a quote. A new implementation strategy has been applied to the  function in . The agent was in the middle of verifying the base64 logo constants after applying the code change.
+-   **Status:** IN PROGRESS
+-   **Agent Testing Done:** N
+-   **Which testing method agent to use?** both
+    -   **Reasoning:** Due to previous failures and the critical nature of the bug, a full manual end-to-end test of the signature workflow is mandatory after the fix. This includes:
+        1.  Creating a **NEW** test client.
+        2.  Sending a quote.
+        3.  Signing the quote as the client.
+        4.  Verifying the Download signed quote button works and the downloaded PDF contains logos.
+        5.  Verifying the emails sent to the admin and client contain a PDF attachment that correctly includes all logos.
+-   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1:** (P0) Refactor Diagnostic visuel into a hierarchical/collapsible UI.
--   **Issue 2:** (P1) The PDF preview renders with a dark background in dark mode; it must always be white.
--   **Issue 3:** (P1) Invoice payment status can only be set *after* creation, not during.
--   **Issue 4:** (P2) The catalog popup within the quote form doesn't display item color codes.
--   **Issue 5:** (P3) The backend startup logic for seeding the catalog is not idempotent, causing duplicate entries.
+-   **Issue 1:** (P0) CRITICAL & RECURRING: Logos are missing from all PDFs generated *after* a client signs a quote.
+-   **Issue 2:** (P0) The Télécharger le devis signé (Download signed quote) button on the public page does not work.
+-   **Issue 3:** (P1) UI/UX: The login page has a yellow theme instead of the brand's blue/orange.
+-   **Issue 4:** (P1) UI/UX: Make the entire row of a diagnostic item clickable to expand/collapse it, not just the arrow.
+-   **Issue 5:** (P1) The company name is misspelled as SR Novation instead of SR Rénovation in some emails.
+-   **Issue 6:** (P0 - Process Violation) A reminder for the agent to never use real client data for testing.
 
 **Issues Detail:**
--   **Issue 1: Refactor Diagnostic visuel into a hierarchical/collapsible UI (P0)**
-    -   **Attempted fixes:** A flat list of checkboxes was implemented and rejected by the user. The agent then created  and .
-    -   **Next debug checklist:**
-        1.  Integrate  or  into  to group diagnostic options.
-        2.  Update the component state to manage a nested data structure (e.g., ).
-        3.  Update the backend model in  to store this new nested structure for quotes, replacing the current boolean fields.
-        4.  Modify the PDF generation logic to correctly display the hierarchical diagnostic data.
-    -   **Why fix this issue and what will be achieved with the fix?** To deliver a more intuitive and organized UI that meets the user's explicit requirements for the diagnostic section.
+-   **Issue 1: Signed PDF is incomplete (missing logos) (P0)**
+    -   **Attempted fixes:** Using a static  and increasing  delay both failed.
+    -   **Next debug checklist:** The agent has already implemented a new, more robust fix in . The next step is to **thoroughly test** this fix by performing the full end-to-end signature workflow. If the fix fails, the agent must debug the new implementation, ensuring that images are correctly fetched, converted to base64, and injected into the DOM before  is called.
+    -   **Why fix this issue and what will be achieved with the fix?** This is the user's #1 blocker. The signed PDF is a legal document and must be a complete, professional replica of the quote.
     -   **Status:** IN PROGRESS
     -   **Is recurring issue?** Y
     -   **Should Test frontend/backend/both after fix?** Both.
 
--   **Issue 2: PDF Preview in Dark Mode (P1)**
-    -   **Attempted fixes:** None.
+-   **Issue 2: Client cannot download signed PDF (P0)**
+    -   **Attempted fixes:** None. This is believed to be a side effect of Issue 1.
     -   **Next debug checklist:**
-        1.  In , wrap the preview area in a container .
-        2.  Apply a class or inline style to this container to enforce a white background () and black text, overriding inherited dark mode styles.
-    -   **Why fix this issue and what will be achieved with the fix?** To ensure the PDF document's appearance is professional and consistent, regardless of the UI theme.
-    -   **Status:** NOT STARTED
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** Frontend.
-
--   **Issue 3: Invoice Payment Status During Creation (P1)**
-    -   **Attempted fixes:** The agent added a status update button to the  page but not to the  creation page.
-    -   **Next debug checklist:**
-        1.  Add UI elements (e.g., a dropdown for Payée, Non Payée) to .
-        2.  Include the  in the payload for the  request.
-    -   **Why fix this issue and what will be achieved with the fix?** To improve workflow efficiency by allowing the user to set payment status at the time of invoice creation.
-    -   **Status:** NOT STARTED
+        1.  Verify Issue 1 is fully resolved.
+        2.  In , review the  function to ensure it correctly handles the now-valid base64 data from .
+    -   **Why fix this issue and what will be achieved with the fix?** The client needs a local copy of the document they have signed.
+    -   **Status:** BLOCKED
     -   **Is recurring issue?** Y
     -   **Should Test frontend/backend/both after fix?** Frontend.
+    -   **Blocked on other issue:** Issue 1: Signed PDF is incomplete
 
--   **Issue 4: Styled Catalog in Quote Form Popup (P2)**
-    -   **Attempted fixes:** None.
+-   **Issue 3, 4 & 5: UI/UX issues and Typo**
+    -   **Attempted fixes:** None for UI issues; an incomplete fix for the typo.
     -   **Next debug checklist:**
-        1.  In the modal component for catalog items in , modify the rendering loop.
-        2.  Display a color swatch next to each item using the  field from the catalog data.
-    -   **Why fix this issue and what will be achieved with the fix?** To improve the usability of the catalog selection feature by providing visual cues.
+        -   **Login Page:** Edit  to replace yellow-themed Tailwind classes with brand colors.
+        -   **Clickable Rows:** In the diagnostic item component, move the  handler for expansion from the icon to the parent row container.
+        -   **Typo:** Run a global search  and correct all instances, especially in  email templates.
+    -   **Why fix this issue and what will be achieved with the fix?** To improve brand consistency and user experience as requested by the user. These are secondary to the logo bug.
     -   **Status:** NOT STARTED
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** Frontend.
-
--   **Issue 5: Idempotent Catalog Seeding (P3)**
-    -   **Attempted fixes:** The agent previously cleared the database manually but did not fix the underlying non-idempotent seeding logic.
-    -   **Next debug checklist:**
-        1.  In , find the startup logic that initializes the default catalog.
-        2.  Wrap this logic in a condition that first checks if the catalog collection is empty (e.g., ).
-    -   **Why fix this issue and what will be achieved with the fix?** To prevent data corruption and ensure a clean, predictable catalog on every application restart.
-    -   **Status:** NOT STARTED
-    -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** Backend.
+    -   **Should Test frontend/backend/both after fix?** Frontend for UI, Backend for typo.
 
 **In progress Task List**:
--   **Task 1: Refactor Diagnostic visuel UI (P0)**
-    -   **Where to resume:** . Use the newly created  and  components to build the hierarchical interface.
-    -   **What will be achieved with this?** A user-friendly, organized diagnostic section that meets the user's explicit UX requirements.
+-   **Task 1: Implement Quote Option Selection**
+    -   **Where to resume:** The UI exists in  and the backend endpoint in  is updated.
+    -   **What will be achieved with this?** Allows clients to choose between different service options on a quote before signing.
     -   **Status:** IN PROGRESS
     -   **Should Test frontend/backend/both after fix?** Both.
-    -   **Blocked on something:** No.
+    -   **Blocked on something:** Full end-to-end testing is blocked by the PDF signature bug (Issue 1).
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks:**
-    *   **(P1) Deployment Guidance:** Provide a comprehensive answer to the user's question about self-hosting the application securely and for free.
-    *   **(P1) Online Quote Acceptance:** Implement a feature to allow clients to accept and sign a quote via a unique, shareable link.
-    *   **(P1) Email Integration:** Add a Send to Client button to email the generated PDF document.
-    *   **(P2) Data Cleanup:** Create and execute a script to delete all test entities (clients, invoices) and completely clear the product catalog, as requested by the user.
+    *   (P1) Dashboard Quote Status: Add a section to the dashboard to show the status of recent quotes.
+    *   (P2) Provide Deployment Guide: Create detailed instructions for deploying on Oracle Cloud.
 *   **Future Tasks:**
-    *   **(P3) Dashboard Enhancements:** Add revenue charts and visual performance indicators to a main dashboard.
-    *   **(P3) UI/UX Improvements:** Implement drag & drop for reordering service items in a quote and create predefined quote templates.
+    *   (P2) Email Template Customization: Allow admin to edit email templates from the UI.
+    *   (P3) Dashboard Enhancements: Add revenue charts and visual indicators.
+    *   (P3) UI/UX Improvements: Add drag & drop for reordering quote items.
 
 **Completed work in this session**
--   Fixed a critical bug where form state was lost on page navigation.
--   Implemented a global, persistent dark mode theme.
--   Added sorting functionality (alphabetical, by date) to the client list.
--   Implemented an invoice payment status system (backend and UI in the invoice list, but not in the creation form).
--   Cleaned placeholder descriptions from the default catalog items.
--   Implemented an initial (now deprecated) version of the enriched diagnostic checklist.
+-   Modified  with a new, more robust implementation of  to fix the missing logo issue. This change has not been tested.
 
 **Earlier issues found/mentioned but not fixed**
--   The root cause of duplicate catalog entries (non-idempotent backend seeding logic) was identified but not resolved.
+-   Initial catalog seeding logic for a fresh database is still missing. A new instance of the app starts with an empty service catalog.
 
 **Known issue recurrence from previous fork**
--   **UX Mismatch:** The previous agent implemented features that were functionally correct but did not align with the user's specific user experience requirements. This led to rework. The next agent must carefully interpret the user's detailed UI/UX instructions to avoid repeating this issue.
+-   **Issue recurrence in previous fork:** Insufficient Testing and CRITICAL PROCESS FAILURE (using real client data).
+-   **Recurrence count:** 2+
+-   **Status:** RESOLVED (Agent is aware and must use only test data)
+-   **Note:** The agent has a history of using tests that provide false positives. Manual, end-to-end testing that mimics the user's exact workflow is absolutely essential. The user's trust is broken and must be rebuilt by adhering strictly to instructions.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-*   **Frontend:** React (Hooks, Context API), Tailwind CSS, , , .
-*   **Backend:** FastAPI, Pydantic.
+*   **Frontend:** React, Tailwind CSS, , . The critical challenge is forcing  to render images by pre-loading them as base64 and manipulating the DOM before capture.
+*   **Backend:** FastAPI, Pydantic, Resend API.
 *   **Database:** MongoDB.
 
 **key DB schema**
--   **invoices:** Contains  (e.g., paid, unpaid).
--   **quotes:** Currently has multiple boolean fields for diagnostics (e.g., ) that need to be refactored into a single nested object/dictionary.
--   **catalog:** Contains  and .
-
-**changes in tech stack**
--   None.
+-   **quotes:** has a  field, which is populated upon signature.
 
 **All files of reference**
--   **/app/frontend/src/pages/QuoteForm.js**: Core file for the diagnostic section refactor.
--   **/app/frontend/src/pages/InvoiceForm.js**: Needs UI for setting payment status on creation.
--   **/app/frontend/src/components/PDFPreview.js**: Needs styling to force a white background.
--   **/app/frontend/src/components/ui/collapsible.jsx**: New component to be used for diagnostics.
--   **/app/frontend/src/components/ui/accordion.jsx**: New component to be used for diagnostics.
--   **/app/backend/server.py**: Backend models need updating for the new diagnostic data structure; startup logic needs to be made idempotent.
--   **/app/frontend/src/styles/index.css**: Location of global dark mode styles.
+-   : Location of the critical PDF/logo generation bug where a fix was just applied.
+-   : Page for client signature, contains the broken download button.
+-   : Contains all email templates and backend logic for the signature workflow.
 
 **Areas that need refactoring**:
--   **Diagnostic System (Frontend & Backend):** The entire feature in  and the corresponding data model in  must be redesigned to support a hierarchical structure.
--   **Catalog Seeding:** The startup logic in  must be made idempotent to prevent duplicate entries on restart.
+-   The hardcoded HTML email templates in  are brittle and should be moved to separate template files in the future.
 
 **key api endpoints**
--   : Marks an existing invoice as paid.
--   : Creates an invoice. The request body needs to be updated to accept an optional .
--   : Creates a quote. The request body needs to be updated to handle the new hierarchical diagnostic data structure.
+-   : This endpoint triggers the entire broken post-signature workflow.
 
 **Critical Info for New Agent**
--   **Your immediate priority is the UX refactoring.** Start with the hierarchical diagnostic UI (P0), as it's the most complex and important to the user.
--   The user has very specific UI/UX requirements. Pay close attention to their detailed descriptions and feedback to avoid rework.
--   Do not add any content (names or descriptions) to the product catalog. The user will manage this. Part of your upcoming tasks is to clean any remaining test data.
--   After addressing the current feature requests, you must provide a clear, helpful, and comprehensive answer to the user's question about deploying the application for personal use.
+-   **USER TRUST IS BROKEN.** The previous agent sent test emails to real clients. You must acknowledge this and guarantee you will **only use newly created test data**. Do not touch any existing client entries.
+-   **TEST THE PDF LOGO BUG FIX.** This is the #1 priority. The previous agent implemented a fix but did not test it. Your first action should be to conduct a full, manual, end-to-end test of the entire signature workflow.
+-   **DO NOT TRUST AUTOMATED TESTS OR SIMPLE CHECKS.** They have repeatedly failed to identify these critical bugs. The only valid test is one that fully mimics the user's workflow.
 
 **documents and test reports created in this job**
--   
--   
+-   /app/memory/PRD.md
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User (pending):** Reported several issues at once: the PDF preview is dark in dark mode, the new diagnostic section is confusing and needs to be hierarchical, the payment status button is missing during invoice creation, and test data needs deletion. Also noted that the catalog popup in the quote form doesn't show item colors. (Status: All are pending tasks/issues).
-2.  **User (pending):** Provided specific labels for the diagnostic section (e.g., Faîtage défaillant), approved the agent's plan, and asked for guidance on how to deploy and use the app personally and securely outside the Emergent platform. (Status: New tasks, IN PROGRESS).
-3.  **Agent:** Announced completion of dark mode, form persistence, etc., and stated that all tests passed. (Status: This led to the subsequent user feedback about UX issues).
-4.  **User:** Provided extensive feedback on the newly implemented features (sorting, diagnostics, invoice status), flagging them as not meeting UX needs. Reiterated that the agent should not add content to the catalog. (Status: This feedback is the basis for the current high-priority refactoring tasks).
+-   The user approved the agent's plan by sending the message execute.
+-   The agent had previously sent a plan for confirmation using the  tool, prioritizing the fix for the P0 logo bug as requested.
 
 **Project Health Check:**
-*   **Broken:** No. The application is running.
-*   **Mocked:** Yes. Key features like the diagnostic section and invoice creation flow do not meet the user's workflow and UX requirements, making them functionally unusable for the user's intended purpose.
+*   **Broken:** Yes. The core e-signature workflow is fundamentally broken, preventing the user from conducting business. The recent fix is untested.
 
 **3rd Party Integrations**
-*   : Used for rendering HTML elements to a canvas for PDF generation.
-*   : Used for creating the PDF document from the canvas.
-*   : Icon library used in the frontend.
+*    & : For PDF generation from DOM.
+*   : For sending emails.
 
 **Testing status**
--   **Testing agent used after significant changes:** Yes. However, the tests focused on functional correctness and missed the crucial UX/workflow issues that the user later reported.
--   **Troubleshoot agent used after agent stuck in loop:** No.
--   **Test files created:** None.
--   **Known regressions:** None, but there are significant UX flaws in newly implemented features that require refactoring.
+-   **Testing agent used after significant changes:** NO
+-   **Troubleshoot agent used after agent stuck in loop:** NO
+-   **Test files created:** None
+-   **Known regressions:** The entire post-signature PDF generation workflow is a regression; it fails to include company logos. A fix has been attempted but not verified.
 
 **Credentials to test flow:**
-N/A
+*   **Application PIN:** 
 
 **What agent forgot to execute**
--   The agent did not fix the root cause of duplicate catalog entries (non-idempotent seeding logic in the backend).
--   The agent's implementation of new features (diagnostics, invoice status) was functionally correct but did not align with the user's described workflow, requiring a major refactor.
--   The agent did not clear all test data and catalog entries as requested by the user, only the descriptions.</analysis>
+-   The agent correctly followed the protocol by getting user approval before starting work.
+-   The agent has not yet tested the code change it made to . This is the immediate next step.</analysis>
