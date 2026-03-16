@@ -5,7 +5,7 @@ import base64
 from datetime import datetime
 
 class SrRenovationAPITester:
-    def __init__(self, base_url="https://sleepy-keller-1.preview.emergentagent.com"):
+    def __init__(self, base_url="https://sr-renovation-quotes.preview.emergentagent.com"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
