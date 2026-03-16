@@ -1146,7 +1146,7 @@ Réponds UNIQUEMENT en JSON avec cette structure exacte:
 }}"""
 
         # Appeler Gemini
-        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         response = model.generate_content(
             f"{system_prompt}\n\nTEXTE DE L'UTILISATEUR:\n{body.user_input}",
             generation_config=genai.types.GenerationConfig(
