@@ -62,20 +62,21 @@ const CatalogManager = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Auto-assign color from category
+      // Auto-assign color and type from category
       const catDef = CATEGORIES.find(c => c.name === form.category);
       const payload = { 
         ...form, 
         default_price: form.default_price ? parseFloat(form.default_price) : null,
         color: catDef ? catDef.color : null,
+        item_type: catDef ? catDef.type : 'service',
       };
       
       if (editingItem) {
         await axios.put(`${API}/catalog/${editingItem.id}`, payload);
-        toast.success('Service modifié');
+        toast.success(catDef?.type === 'note_condition' ? 'Note modifiée' : 'Service modifié');
       } else {
         await axios.post(`${API}/catalog`, payload);
-        toast.success('Service ajouté');
+        toast.success(catDef?.type === 'note_condition' ? 'Note ajoutée' : 'Service ajouté');
       }
       setShowDialog(false);
       setEditingItem(null);
