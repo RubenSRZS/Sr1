@@ -1147,10 +1147,10 @@ Réponds UNIQUEMENT en JSON avec cette structure exacte:
 }}"""
 
         # Appeler Gemini
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content(
-            f"{system_prompt}\n\nTEXTE DE L'UTILISATEUR:\n{body.user_input}",
-            generation_config=genai.types.GenerationConfig(
+        response = gemini_client.models.generate_content(
+            model='gemini-2.0-flash-exp',
+            contents=f"{system_prompt}\n\nTEXTE DE L'UTILISATEUR:\n{body.user_input}",
+            config=types.GenerateContentConfig(
                 temperature=0.3,
                 response_mime_type="application/json"
             )
