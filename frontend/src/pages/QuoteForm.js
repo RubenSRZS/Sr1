@@ -881,6 +881,45 @@ const QuoteForm = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog Notes & Conditions Catalogue */}
+      <Dialog open={showNotesCatalog} onOpenChange={setShowNotesCatalog}>
+        <DialogContent className="sm:max-w-[700px] max-h-[80vh]" data-testid="notes-catalog-dialog">
+          <DialogHeader>
+            <DialogTitle>Notes & Conditions préenregistrées</DialogTitle>
+          </DialogHeader>
+          <div className="overflow-y-auto space-y-2 max-h-[60vh] px-1">
+            {catalog.filter(item => item.item_type === 'note_condition').length === 0 ? (
+              <div className="text-center py-8 text-gray-400">
+                <p className="text-sm">Aucune note dans le catalogue</p>
+                <p className="text-xs mt-2">Ajoutez des notes depuis la page Catalogue → NOTES & CONDITIONS</p>
+              </div>
+            ) : (
+              catalog.filter(item => item.item_type === 'note_condition').map(note => (
+                <div 
+                  key={note.id} 
+                  onClick={() => {
+                    // Ajouter la note au champ notes (avec séparateur si déjà du contenu)
+                    const currentNotes = formData.notes.trim();
+                    const separator = currentNotes ? '\n\n' : '';
+                    updateField('notes', currentNotes + separator + note.description);
+                    setShowNotesCatalog(false);
+                    toast.success(`Note "${note.service_name}" ajoutée`);
+                  }}
+                  className="p-3 rounded-lg border border-slate-200 hover:border-slate-400 hover:shadow-sm cursor-pointer transition-all bg-slate-50"
+                  data-testid={`note-item-${note.id}`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-5 h-5 rounded-md border-2 shadow-sm flex-shrink-0 bg-slate-500 border-slate-500" />
+                    <span className="font-semibold text-sm flex-1">{note.service_name}</span>
+                  </div>
+                  <p className="text-xs text-gray-600 ml-7 line-clamp-2">{note.description}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
