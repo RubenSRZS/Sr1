@@ -201,6 +201,16 @@ const QuotesList = () => {
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={() => handleDuplicate(q)}
+                  className="h-8 text-xs text-slate-600 border-slate-200 hover:bg-slate-50"
+                  title="Dupliquer ce devis"
+                  data-testid={`duplicate-quote-${q.id}`}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => setSendQuote(q)}
                   className="h-8 text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
                   data-testid={`send-quote-${q.id}`}
