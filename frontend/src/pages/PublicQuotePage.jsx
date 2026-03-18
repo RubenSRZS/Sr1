@@ -53,8 +53,14 @@ const PublicQuotePage = () => {
       const res = await axios.post(`${API}/quotes/public/${token}/sign`, payload);
       setQuote(res.data);
       setAlreadySigned(true);
+      
+      // Si pas d'email client, on ne dit rien sur l'email (affichage RIB directement)
       if (!alreadySigned) {
-        alert('✅ Devis signé ! Vous allez recevoir un email de confirmation.');
+        if (quote.client?.email) {
+          alert('✅ Devis signé ! Vous allez recevoir un email de confirmation.');
+        } else {
+          alert('✅ Devis signé ! Consultez les informations de paiement ci-dessous.');
+        }
       }
     } catch (err) {
       console.error(err);
