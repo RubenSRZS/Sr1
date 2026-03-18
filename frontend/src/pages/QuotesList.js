@@ -54,6 +54,28 @@ const QuotesList = () => {
     }
   };
 
+  const handleDuplicate = async (quote) => {
+    try {
+      const newQuote = {
+        ...quote,
+        quote_number: '',
+        status: 'draft',
+        is_signed: false,
+        signed_at: null,
+        public_token: null,
+        created_at: undefined,
+        updated_at: undefined,
+        id: undefined,
+      };
+      const res = await axios.post(`${API}/quotes`, newQuote);
+      toast.success('Devis dupliqué ! Redirection...');
+      navigate(`/quotes/edit/${res.data.id}`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur lors de la duplication');
+    }
+  };
+
   const openConvertModal = (quote) => {
     setSelectedQuote(quote);
     setMarkAsPaid(true);
