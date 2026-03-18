@@ -21,7 +21,7 @@ const PublicQuotePage = () => {
   useEffect(() => {
     const fetchQuote = async () => {
       try {
-        const res = await axios.get(`${API}/quotes/public/${token}`);
+        const res = await axios.get(`${API}/public/quote/${token}`);
         setQuote(res.data);
         if (res.data.is_signed) {
           setAlreadySigned(true);
@@ -50,7 +50,7 @@ const PublicQuotePage = () => {
     setSigning(true);
     try {
       const payload = quote.has_multiple_options && !alreadySigned ? { selected_option: selectedOption } : {};
-      const res = await axios.post(`${API}/quotes/public/${token}/sign`, payload);
+      const res = await axios.post(`${API}/public/quote/${token}/sign`, payload);
       setQuote(res.data);
       setAlreadySigned(true);
       
