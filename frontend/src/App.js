@@ -68,7 +68,7 @@ function AppContent() {
   return (
     <div className={`App min-h-screen transition-colors duration-300 ${darkMode ? 'bg-slate-900 text-slate-100' : 'bg-[var(--sr-cream)] text-gray-900'}`}>
       <DesktopNav />
-      <div className="pb-16 lg:pb-0">
+      <div className="lg:pb-0" style={{ paddingBottom: 'calc(64px + env(safe-area-inset-bottom))' }}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/quotes" element={<QuotesList />} />
