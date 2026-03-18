@@ -122,10 +122,24 @@ const PublicQuotePage = () => {
     setDownloading(true);
     try {
       const { base64, filename } = await generatePDFBase64(quote, 'quote');
-      const link = document.createElement('a');
-      link.href = `data:application/pdf;base64,${base64}`;
-      link.download = filename;
-      link.click();
+      const byteCharacters = atob(base64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        window.open(url, '_blank');
+      } else {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
     } catch (err) {
       console.error('Download error:', err);
     }

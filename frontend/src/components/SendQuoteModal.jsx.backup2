@@ -174,23 +174,6 @@ const SendQuoteModal = ({ quote, onClose, onSent }) => {
             )}
           </Button>
         </div>
-
-        {/* WhatsApp */}
-        <div className="px-5 pb-5 -mt-2">
-          <button
-            onClick={() => {
-              const phone = (quote?.client_phone || '').replace(/[^0-9]/g, '');
-              const frPhone = phone.startsWith('0') ? '33' + phone.slice(1) : phone;
-              const text = encodeURIComponent('Bonjour ' + (quote?.client_name || '') + ',\n\nSuite à notre échange, j\'ai le plaisir de vous transmettre votre devis personnalisé n°' + (quote?.quote_number || '') + ' pour votre projet de rénovation.\n\nConsultez, téléchargez et signez votre devis en ligne ici :\n' + window.location.origin + '/devis/public/' + (quote?.public_token || '') + '\n\nN\'hésitez pas à me contacter pour toute question.\n\nRuben — SR Rénovation\n06 80 33 45 46');
-              window.open('https://wa.me/' + frPhone + '?text=' + text, '_blank');
-            }}
-            className="w-full py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2"
-            style={{ backgroundColor: '#25D366', color: 'white' }}
-            disabled={!quote?.client_phone}
-          >
-            Envoyer par WhatsApp
-          </button>
-        </div>
       </div>
     </div>
   );

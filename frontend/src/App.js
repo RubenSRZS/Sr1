@@ -49,7 +49,7 @@ function AppRouter() {
 }
 
 function ProtectedApp() {
-  const [authenticated, setAuthenticated] = useState(() => sessionStorage.getItem('sr_auth') === 'true');
+  const [authenticated, setAuthenticated] = useState(() => localStorage.getItem('sr_auth') === 'true');
 
   if (!authenticated) {
     return (

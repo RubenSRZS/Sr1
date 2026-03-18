@@ -401,17 +401,6 @@ async def create_quote(input: QuoteCreate):
         option_2_total_net=opt2_total_net,
         option_2_acompte_30=opt2_acompte_30,
         notes=input.notes or "",
-        quote_title=input.quote_title or "",
-        option_1_title=input.option_1_title or "",
-        option_2_title=input.option_2_title or "",
-        option_3_title=input.option_3_title or "",
-        option_3_services=input.option_3_services or [],
-        option_3_total_brut=sum(s.total for s in (input.option_3_services or [])),
-        option_3_remise_percent=input.option_3_remise_percent,
-        option_3_remise_montant=input.option_3_remise_montant,
-        option_3_remise=round(sum(s.total for s in (input.option_3_services or [])) * input.option_3_remise_percent / 100, 2) if input.option_3_remise_percent > 0 else round(input.option_3_remise_montant, 2),
-        option_3_total_net=round(sum(s.total for s in (input.option_3_services or [])) - (round(sum(s.total for s in (input.option_3_services or [])) * input.option_3_remise_percent / 100, 2) if input.option_3_remise_percent > 0 else round(input.option_3_remise_montant, 2)), 2),
-        option_3_acompte_30=round((sum(s.total for s in (input.option_3_services or [])) - (round(sum(s.total for s in (input.option_3_services or [])) * input.option_3_remise_percent / 100, 2) if input.option_3_remise_percent > 0 else round(input.option_3_remise_montant, 2))) * 0.30, 2),
         status="draft",
     )
     doc = quote.model_dump()
@@ -480,17 +469,6 @@ async def update_quote(quote_id: str, input: QuoteCreate):
         "option_2_total_net": opt2_total_net,
         "option_2_acompte_30": opt2_acompte_30,
         "notes": input.notes or "",
-        "quote_title": input.quote_title or "",
-        "option_1_title": input.option_1_title or "",
-        "option_2_title": input.option_2_title or "",
-        "option_3_title": input.option_3_title or "",
-        "option_3_services": [s.model_dump() for s in (input.option_3_services or [])],
-        "option_3_total_brut": sum(s.total for s in (input.option_3_services or [])),
-        "option_3_remise_percent": input.option_3_remise_percent,
-        "option_3_remise_montant": input.option_3_remise_montant,
-        "option_3_remise": round(sum(s.total for s in (input.option_3_services or [])) * input.option_3_remise_percent / 100, 2) if input.option_3_remise_percent > 0 else round(input.option_3_remise_montant, 2),
-        "option_3_total_net": round(sum(s.total for s in (input.option_3_services or [])) - (round(sum(s.total for s in (input.option_3_services or [])) * input.option_3_remise_percent / 100, 2) if input.option_3_remise_percent > 0 else round(input.option_3_remise_montant, 2)), 2),
-        "option_3_acompte_30": round((sum(s.total for s in (input.option_3_services or [])) - (round(sum(s.total for s in (input.option_3_services or [])) * input.option_3_remise_percent / 100, 2) if input.option_3_remise_percent > 0 else round(input.option_3_remise_montant, 2))) * 0.30, 2),
     }
     await db.quotes.update_one({"id": quote_id}, {"$set": update_data})
     updated = await db.quotes.find_one({"id": quote_id}, {"_id": 0})

@@ -39,7 +39,7 @@ const PinScreen = ({ onSuccess }) => {
         body: JSON.stringify({ pin: code }),
       });
       if (res.ok) {
-        sessionStorage.setItem('sr_auth', 'true');
+        localStorage.setItem('sr_auth', 'true');
         onSuccess();
       } else {
         toast.error('Code incorrect');
