@@ -148,12 +148,45 @@ const PublicQuotePage = () => {
     <div className="min-h-screen bg-slate-50 p-4">
       <div className="max-w-4xl mx-auto">
         {alreadySigned && (
-          <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-            <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
-            <div className="text-green-800 text-sm">
-              <strong>✅ Devis signé électroniquement</strong>
-              <p className="text-xs mt-1">Un email de confirmation vous a été envoyé avec les prochaines étapes.</p>
+          <div className="mb-4 space-y-4">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+              <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
+              <div className="text-green-800 text-sm">
+                <strong>✅ Devis signé électroniquement</strong>
+                {quote.client?.email ? (
+                  <p className="text-xs mt-1">Un email de confirmation vous a été envoyé avec les prochaines étapes.</p>
+                ) : (
+                  <p className="text-xs mt-1">Consultez les informations de paiement ci-dessous.</p>
+                )}
+              </div>
             </div>
+            
+            {!quote.client?.email && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                  Informations de paiement
+                </h3>
+                <div className="space-y-2 text-sm text-blue-900">
+                  <div>
+                    <span className="font-medium">Bénéficiaire :</span> SR RÉNOVATION
+                  </div>
+                  <div>
+                    <span className="font-medium">IBAN :</span> FR76 XXXX XXXX XXXX XXXX XXXX XXX
+                  </div>
+                  <div>
+                    <span className="font-medium">BIC :</span> XXXXXXXX
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-blue-200">
+                    <p className="font-medium">Modalités de paiement :</p>
+                    <p className="text-xs mt-1">• Acompte de 30% à la signature</p>
+                    <p className="text-xs">• Solde à la fin des travaux</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
