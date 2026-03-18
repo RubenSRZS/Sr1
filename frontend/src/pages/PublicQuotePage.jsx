@@ -218,6 +218,27 @@ const PublicQuotePage = () => {
                   <Download className="w-4 h-4 mr-1.5" /> {downloading ? 'Génération...' : 'Télécharger le devis signé'}
                 </Button>
               </div>
+              
+              {!quote.client?.email && (
+                <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
+                  <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2 text-sm">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    Informations de paiement
+                  </h4>
+                  <div className="space-y-1.5 text-xs text-blue-900">
+                    <div><span className="font-medium">Bénéficiaire :</span> SR RÉNOVATION</div>
+                    <div><span className="font-medium">IBAN :</span> FR76 XXXX XXXX XXXX XXXX XXXX XXX</div>
+                    <div><span className="font-medium">BIC :</span> XXXXXXXX</div>
+                    <div className="mt-2.5 pt-2.5 border-t border-blue-200">
+                      <p className="font-medium">Modalités :</p>
+                      <p className="mt-0.5">• Acompte 30% à la signature</p>
+                      <p>• Solde à la fin des travaux</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="p-5">
