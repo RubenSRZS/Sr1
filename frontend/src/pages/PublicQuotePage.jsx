@@ -129,11 +129,25 @@ const PublicQuotePage = () => {
       }
       const byteArray = new Uint8Array(byteNumbers);
       const blob = new Blob([byteArray], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
+      
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      if (isIOS) {
-        window.open(url, '_blank');
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      
+      if (isIOS || isSafari) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => {
+          window.open(url, '_blank');
+        }, 100);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
       } else {
+        const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
         link.download = filename;
@@ -142,6 +156,7 @@ const PublicQuotePage = () => {
       }
     } catch (err) {
       console.error('Download error:', err);
+      alert('Erreur lors du téléchargement. Veuillez réessayer.');
     }
     setDownloading(false);
   }, [quote]);
