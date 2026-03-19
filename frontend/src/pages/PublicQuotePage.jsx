@@ -225,14 +225,15 @@ const PublicQuotePage = () => {
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                     </svg>
-                    Informations de paiement
+                    Coordonnées bancaires (RIB)
                   </h4>
                   <div className="space-y-1.5 text-xs text-blue-900">
-                    <div><span className="font-medium">Bénéficiaire :</span> SR RÉNOVATION</div>
-                    <div><span className="font-medium">IBAN :</span> FR76 XXXX XXXX XXXX XXXX XXXX XXX</div>
-                    <div><span className="font-medium">BIC :</span> XXXXXXXX</div>
+                    <div><span className="font-medium">Titulaire :</span> M RUBEN SUAREZ-SAR</div>
+                    <div><span className="font-medium">Banque :</span> Banque Populaire BFC</div>
+                    <div><span className="font-medium">IBAN :</span> FR76 1080 7000 1312 3197 7296 321</div>
+                    <div><span className="font-medium">BIC :</span> CCBPFRPPDJN</div>
                     <div className="mt-2.5 pt-2.5 border-t border-blue-200">
-                      <p className="font-medium">Modalités :</p>
+                      <p className="font-medium">Modalités de paiement :</p>
                       <p className="mt-0.5">• Acompte 30% à la signature</p>
                       <p>• Solde à la fin des travaux</p>
                     </div>
