@@ -213,9 +213,15 @@ const PublicQuotePage = () => {
                   <img src={quote.signature_data} alt="Signature" className="h-20" />
                 </div>
               )}
-              <div className="mt-4">
-                <Button onClick={handleDownloadPDF} size="sm" variant="outline" disabled={downloading} style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }} data-testid="download-signed-pdf-btn">
-                  <Download className="w-4 h-4 mr-1.5" /> {downloading ? 'Génération...' : 'Télécharger le devis signé'}
+              <div className="mt-4 flex gap-2">
+                <Button onClick={handleDownloadPDF} size="sm" variant="outline" disabled={downloading} style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }} data-testid="download-signed-pdf-btn" className="flex-1">
+                  <Download className="w-4 h-4 mr-1.5" /> {downloading ? 'Génération...' : 'Télécharger'}
+                </Button>
+                <Button onClick={() => window.print()} size="sm" variant="outline" style={{ borderColor: BRAND_ORANGE, color: BRAND_ORANGE }} className="flex-1">
+                  <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  Imprimer
                 </Button>
               </div>
               
