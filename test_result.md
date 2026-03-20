@@ -178,7 +178,23 @@ backend:
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test PDF generation flow for invoices. Create new invoice with Client Test PDF, add 2 services (Nettoyage réalisé: 100×30€, Traitement anti-mousse: 50×15€), 5% discount, 1000€ advance payment, verify 'Reste à payer' display and PDF download functionality."
+user_problem_statement: "Test the new invoice sending feature with both email types (Avec avis and Simple). Verify navigation to /invoices page, send invoice modal functionality, email type selection, form fields, and button behaviors."
+
+frontend:
+  - task: "Invoice Sending Feature with Email Types"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/SendInvoiceModal.jsx, /app/frontend/src/pages/InvoicesList.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Starting comprehensive test of invoice sending feature with email type selection (Avec avis vs Simple). Testing: 1) Navigation to /invoices page, 2) Send invoice modal opening, 3) Email type switching, 4) Form fields validation, 5) Button behaviors"
+        - working: true
+          agent: "testing"
+          comment: "✅ INVOICE SENDING FEATURE WITH EMAIL TYPES FULLY FUNCTIONAL. Comprehensive testing completed with all tests passed: 1) PIN authentication (0330) works perfectly with individual digit inputs, 2) Successfully navigated to /invoices page with 'Mes Factures' title and FACT-01 invoice card visible, 3) Send invoice modal opens correctly with title 'Envoyer la facture' and displays invoice info (FACT-01 — LECOMTE JOCELYNE) with 'PDF joint automatiquement' message, 4) Email type selection works perfectly - 'Avec avis' selected by default with emerald border, switching to 'Simple' changes border color and reduces message from 558 to 274 characters while removing 'Google' keyword, switching back to 'Avec avis' restores longer message with 'Google' keyword, 5) Form fields verified - email pre-filled (shoplecomte@sfr.fr), subject contains 'Votre facture', message textarea is editable, 'Réinitialiser' button resets message correctly, 6) Buttons work correctly - 'Envoyer' button enabled when email filled and disabled when empty, 'Annuler' button closes modal successfully, 7) No console errors detected. All UI elements are clean, professional, and responsive. Feature is production-ready."
 
 frontend:
   - task: "PDF Generation and Preview for Quotes"
@@ -222,7 +238,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Complete Signature Workflow with Corrections"
+    - "Invoice Sending Feature with Email Types"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -274,3 +290,5 @@ agent_communication:
       message: "✅ SR-RENOVATION COMPREHENSIVE FRONTEND TESTING COMPLETED - All requested functionality verified: 1) PIN authentication (0330) works perfectly on desktop and mobile, 2) TEST CLIENT exists with email test@example.com as requested, 3) Quote creation form fully functional with multiple option support (Option 1, 2, 3), 4) Public quote page structure implemented with option selection UI ('Choisissez l'option que vous souhaitez accepter'), 5) Mobile responsiveness perfect in portrait mode (375x812px) - no horizontal scrolling, all elements properly sized, 6) All core workflows (authentication, client management, quote creation, public viewing) working as expected. Application is production-ready for the requested use cases."
     - agent: "testing"
       message: "✅ SIGNATURE WORKFLOW TESTING COMPLETED SUCCESSFULLY - Comprehensive testing of the complete signature workflow as requested in French review completed with 4/5 tests passed (only email rate limit issue). Key achievements: 1) Successfully found and used unsigned quote for testing signature flow, 2) Public quote retrieval working perfectly with all required fields (GET /api/public/quote/{token}), 3) Quote signature with PDF attachment fully functional (POST /api/public/quote/{token}/sign) - quote correctly marked as 'accepted' with selected_option: 2, signature_data stored, and signed_at timestamp recorded, 4) Email sending functionality verified (POST /api/quotes/{quote_id}/send-email) - quote status updated to 'sent' with recipient email stored and public token generated, 5) All critical verifications completed: quote acceptance, option selection, signature storage, email notifications. The signature workflow with corrections is fully functional and production-ready. Minor: One email test failed due to rate limiting (2 requests/second limit), but functionality is confirmed working."
+    - agent: "testing"
+      message: "✅ INVOICE SENDING FEATURE WITH EMAIL TYPES TESTING COMPLETED SUCCESSFULLY - Comprehensive testing of the new invoice sending feature completed with all tests passed (7/7). Key achievements: 1) PIN authentication (0330) works perfectly with individual digit inputs, 2) Successfully navigated to /invoices page with 'Mes Factures' title and FACT-01 invoice card visible, 3) Send invoice modal opens correctly displaying invoice info (FACT-01 — LECOMTE JOCELYNE) with 'PDF joint automatiquement' message, 4) Email type selection fully functional - 'Avec avis' selected by default, switching to 'Simple' reduces message from 558 to 274 characters and removes 'Google' keyword, switching back restores full message with review request, 5) All form fields verified - email pre-filled (shoplecomte@sfr.fr), subject contains 'Votre facture', message textarea editable, reset button works, 6) Button behaviors correct - 'Envoyer' button enabled/disabled based on email presence, 'Annuler' closes modal, 7) No console errors. UI is clean, professional, and responsive. Feature is production-ready."

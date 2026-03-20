@@ -1063,6 +1063,136 @@ async def send_quote_email(quote_id: str, body: SendQuoteEmail):
         logger.error(f"Erreur envoi devis: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur d'envoi: {str(e)}")
 
+# ==================== SEND INVOICE EMAIL ====================
+
+class SendInvoiceEmail(BaseModel):
+    subject: str
+    message: str
+    recipient_email: str
+    email_type: str = "simple"  # 'with_review' | 'simple'
+    pdf_base64: str | None = None
+    pdf_filename: str | None = None
+
+@api_router.post("/invoices/{invoice_id}/send-email")
+async def send_invoice_email(invoice_id: str, body: SendInvoiceEmail):
+    inv = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    if not inv:
+        raise HTTPException(status_code=404, detail="Facture non trouvée")
+
+    # Convert newlines in message to <br>
+    message_html = body.message.replace('\n', '<br>')
+
+    # GMB review link
+    gmb_review_link = "https://g.page/r/CeQWOZZ9f7xAEBM/review"
+
+    # Build review button HTML if email_type is 'with_review'
+    review_button_html = ""
+    if body.email_type == "with_review":
+        review_button_html = f"""
+  <!-- Review CTA Button -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;">
+  <tr><td align="center" style="padding:8px 0 24px;">
+    <a href="{gmb_review_link}" target="_blank" style="display:inline-block;background-color:#10b981;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:50px;font-weight:700;font-size:15px;letter-spacing:0.3px;mso-padding-alt:0;text-align:center;font-family:'Segoe UI',Arial,sans-serif;">
+      <!--[if mso]><i style="mso-font-width:300%;mso-text-raise:30px" hidden>&emsp;</i><![endif]-->
+      ⭐ Laisser un avis Google
+      <!--[if mso]><i style="mso-font-width:300%;" hidden>&emsp;&#8203;</i><![endif]-->
+    </a>
+  </td></tr>
+  </table>
+  <p style="color:#475569;font-size:13px;text-align:center;margin:0 0 8px;line-height:1.6;">
+    Votre avis compte énormément pour nous et aide d'autres clients à nous découvrir.
+  </p>
+"""
+
+    html_content = f"""<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+<title>Facture SR R&eacute;novation</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:'Segoe UI',Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f5;">
+<tr><td align="center" style="padding:24px 12px;">
+
+<!-- Main container -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:580px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+
+<!-- Header with gradient -->
+<tr><td style="background:linear-gradient(135deg,#059669 0%,#10b981 40%,#34d399 100%);padding:36px 28px;text-align:center;">
+  <h1 style="color:#ffffff;margin:0;font-size:26px;font-weight:800;letter-spacing:1px;font-family:'Montserrat',sans-serif;">SR RÉNOVATION</h1>
+  <p style="color:rgba(255,255,255,0.9);margin:4px 0 0;font-size:13px;font-weight:600;letter-spacing:0.5px;line-height:1.5;">Nettoyage <span style="background:linear-gradient(90deg,#10b981,#34d399,#6ee7b7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">Professionnel</span><br>Toitures &bull; Fa&ccedil;ades &bull; Terrasses</p>
+</td></tr>
+
+<!-- Body -->
+<tr><td style="padding:32px 28px 24px;">
+  <p style="color:#1e293b;font-size:15px;line-height:1.75;margin:0 0 24px;">{message_html}</p>
+
+  {review_button_html}
+
+  {'<p style="color:#475569;font-size:13px;text-align:center;margin:8px 0 0;line-height:1.6;">Votre facture est jointe &agrave; cet email en pi&egrave;ce jointe PDF.</p>' if body.pdf_base64 else ''}
+</td></tr>
+
+<!-- Divider -->
+<tr><td style="padding:0 28px;"><div style="border-top:1px solid #e5e7eb;"></div></td></tr>
+
+<!-- Footer signature -->
+<tr><td style="padding:24px 28px 28px;text-align:center;">
+  <p style="color:#1e293b;font-size:16px;font-weight:700;margin:0 0 14px;font-family:Georgia,'Times New Roman',serif;">SR R&eacute;novation</p>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+    <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
+      &#9742; 06 80 33 45 46
+    </td></tr>
+    <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
+      &#9993; <a href="mailto:SrRenovation03@gmail.com" style="color:#10b981;text-decoration:none;">SrRenovation03@gmail.com</a>
+    </td></tr>
+    <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
+      &#127968; Jura (39) &mdash; Artisan local &amp; certifi&eacute;
+    </td></tr>
+    <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
+      &#127760; <a href="https://sr-renovation.fr" style="color:#10b981;text-decoration:none;">sr-renovation.fr</a>
+    </td></tr>
+  </table>
+</td></tr>
+
+</table>
+<!-- End main container -->
+
+</td></tr>
+</table>
+</body>
+</html>"""
+
+    try:
+        sender = f"SR Renovation <{SENDER_EMAIL}>"
+        params = {
+            "from": sender,
+            "to": [body.recipient_email],
+            "reply_to": REPLY_TO_EMAIL,
+            "subject": body.subject,
+            "html": html_content,
+        }
+        # Attach PDF if provided
+        if body.pdf_base64 and body.pdf_filename:
+            params["attachments"] = [{
+                "filename": body.pdf_filename,
+                "content": body.pdf_base64,
+            }]
+        email_result = await asyncio.to_thread(resend.Emails.send, params)
+        now = datetime.now(timezone.utc).isoformat()
+        await db.invoices.update_one(
+            {"id": invoice_id},
+            {"$set": {
+                "sent_at": now,
+                "sent_to_email": body.recipient_email,
+            }}
+        )
+        return {"status": "success", "email_id": email_result.get("id")}
+    except Exception as e:
+        logger.error(f"Erreur envoi facture: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur d'envoi: {str(e)}")
+
 # ==================== STATS ====================
 
 @api_router.get("/stats")
