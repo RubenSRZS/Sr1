@@ -1092,7 +1092,7 @@ async def send_invoice_email(invoice_id: str, body: SendInvoiceEmail):
   <!-- Review CTA Button -->
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;">
   <tr><td align="center" style="padding:8px 0 24px;">
-    <a href="{gmb_review_link}" target="_blank" style="display:inline-block;background-color:#10b981;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:50px;font-weight:700;font-size:15px;letter-spacing:0.3px;mso-padding-alt:0;text-align:center;font-family:'Segoe UI',Arial,sans-serif;">
+    <a href="{gmb_review_link}" target="_blank" style="display:inline-block;background-color:#F9A825;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:50px;font-weight:700;font-size:15px;letter-spacing:0.3px;mso-padding-alt:0;text-align:center;font-family:'Segoe UI',Arial,sans-serif;">
       <!--[if mso]><i style="mso-font-width:300%;mso-text-raise:30px" hidden>&emsp;</i><![endif]-->
       ⭐ Laisser un avis Google
       <!--[if mso]><i style="mso-font-width:300%;" hidden>&emsp;&#8203;</i><![endif]-->
@@ -1120,9 +1120,9 @@ async def send_invoice_email(invoice_id: str, body: SendInvoiceEmail):
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:580px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
 
 <!-- Header with gradient -->
-<tr><td style="background:linear-gradient(135deg,#059669 0%,#10b981 40%,#34d399 100%);padding:36px 28px;text-align:center;">
+<tr><td style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 40%,#f97316 100%);padding:36px 28px;text-align:center;">
   <h1 style="color:#ffffff;margin:0;font-size:26px;font-weight:800;letter-spacing:1px;font-family:'Montserrat',sans-serif;">SR RÉNOVATION</h1>
-  <p style="color:rgba(255,255,255,0.9);margin:4px 0 0;font-size:13px;font-weight:600;letter-spacing:0.5px;line-height:1.5;">Nettoyage <span style="background:linear-gradient(90deg,#10b981,#34d399,#6ee7b7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">Professionnel</span><br>Toitures &bull; Fa&ccedil;ades &bull; Terrasses</p>
+  <p style="color:rgba(255,255,255,0.9);margin:4px 0 0;font-size:13px;font-weight:600;letter-spacing:0.5px;line-height:1.5;">Nettoyage <span style="background:linear-gradient(90deg,#3b82f6,#8b5cf6,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">Professionnel</span><br>Toitures &bull; Fa&ccedil;ades &bull; Terrasses</p>
 </td></tr>
 
 <!-- Body -->
@@ -1145,13 +1145,13 @@ async def send_invoice_email(invoice_id: str, body: SendInvoiceEmail):
       &#9742; 06 80 33 45 46
     </td></tr>
     <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
-      &#9993; <a href="mailto:SrRenovation03@gmail.com" style="color:#10b981;text-decoration:none;">SrRenovation03@gmail.com</a>
+      &#9993; <a href="mailto:SrRenovation03@gmail.com" style="color:#3b82f6;text-decoration:none;">SrRenovation03@gmail.com</a>
     </td></tr>
     <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
       &#127968; Jura (39) &mdash; Artisan local &amp; certifi&eacute;
     </td></tr>
     <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
-      &#127760; <a href="https://sr-renovation.fr" style="color:#10b981;text-decoration:none;">sr-renovation.fr</a>
+      &#127760; <a href="https://sr-renovation.fr" style="color:#3b82f6;text-decoration:none;">sr-renovation.fr</a>
     </td></tr>
   </table>
 </td></tr>
