@@ -66,7 +66,7 @@ const Dashboard = () => {
       <div style={{ background: darkMode ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #ea580c 100%)' : 'linear-gradient(135deg, #1e40af 0%, #3b82f6 60%, #f97316 100%)' }} className="text-white">
         <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8 flex items-center justify-between">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Tableau de bord v2.2</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Tableau de bord</h1>
             <p className="text-xs sm:text-sm text-white/60">Gestion devis & factures</p>
           </div>
           <button
@@ -83,19 +83,16 @@ const Dashboard = () => {
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" data-testid="stats-grid">
           {[
-            { label: 'Clients', value: stats?.total_clients || 0, icon: Users, color: '#f59e0b', link: '/clients' },
-            { label: 'Devis', value: stats?.total_quotes || 0, icon: FileText, color: '#3b82f6', link: '/quotes' },
-            { label: 'Factures', value: stats?.total_invoices || 0, icon: Receipt, color: '#10b981', link: '/invoices' },
-            { label: "Chiffre d'affaires", value: `${(stats?.revenue?.total || 0).toFixed(0)}€`, icon: null, color: '#3b82f6', link: null },
-          ].map((s, i) => {
-            const CardContent = (
-              <Card key={i} className={`p-4 border-0 shadow-sm transition-all hover:scale-[1.02] hover:shadow-md ${darkMode ? 'bg-slate-800' : 'bg-white'} ${s.link ? 'cursor-pointer' : ''}`}>
-                <div className={`text-xs mb-1 ${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>{s.label}</div>
-                <div className="text-2xl font-bold" style={{ color: s.color }}>{s.value}</div>
-              </Card>
-            );
-            return s.link ? <Link key={i} to={s.link}>{CardContent}</Link> : CardContent;
-          })}
+            { label: 'Clients', value: stats?.total_clients || 0, icon: Users, color: '#f59e0b' },
+            { label: 'Devis', value: stats?.total_quotes || 0, icon: FileText, color: '#3b82f6' },
+            { label: 'Factures', value: stats?.total_invoices || 0, icon: Receipt, color: '#10b981' },
+            { label: "Chiffre d'affaires", value: `${(stats?.revenue?.total || 0).toFixed(0)}€`, icon: null, color: '#3b82f6' },
+          ].map((s, i) => (
+            <Card key={i} className={`p-4 border-0 shadow-sm transition-all hover:scale-[1.02] hover:shadow-md ${darkMode ? 'bg-slate-800' : 'bg-white'}`}>
+              <div className={`text-xs mb-1 ${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>{s.label}</div>
+              <div className="text-2xl font-bold" style={{ color: s.color }}>{s.value}</div>
+            </Card>
+          ))}
         </div>
 
         {/* Quick actions */}

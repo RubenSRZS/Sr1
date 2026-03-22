@@ -112,8 +112,8 @@ const SendInvoiceModal = ({ invoice, onClose, onSent }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" data-testid="send-invoice-modal">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" data-testid="send-invoice-modal">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[70vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
           <div className="flex items-center gap-2">
@@ -242,6 +242,39 @@ const SendInvoiceModal = ({ invoice, onClose, onSent }) => {
               <><Send className="w-4 h-4 mr-1.5" /> Envoyer</>
             )}
           </Button>
+
+        </div>
+
+        {/* WhatsApp */}
+        <div className="px-5 pb-5 -mt-2">
+          <button
+            onClick={() => {
+              const phone = (invoice?.client_phone || "").replace(/[^0-9]/g, "");
+              const frPhone = phone.startsWith("0") ? "33" + phone.slice(1) : phone;
+              let msg = "Bonjour " + (invoice?.client_name || "") + ",";
+              msg += "\n\nNous vous remercions pour votre confiance et pour avoir choisi SR R\u00e9novation pour vos travaux.";
+              msg += "\n\nVotre facture n\u00b0" + (invoice?.invoice_number || "") + " vous a \u00e9t\u00e9 envoy\u00e9e par email.";
+              msg += "\n\nCoordonn\u00e9es bancaires :";
+              msg += "\nIBAN : FR76 1080 7000 1312 3197 7296 321";
+              msg += "\nBIC : CCBPFRPPDJN";
+              msg += "\nTitulaire : M RUBEN SUAREZ-SAR";
+              if (emailType === "with_review") {
+                msg += "\n\nVotre avis compte ! Laissez-nous un avis Google :";
+                msg += "\nhttps://g.page/r/CeQWOZZ9f7xAEBM/review";
+              }
+              msg += "\n\nParrainez & Gagnez jusqu'\u00e0 300\u20ac !";
+              msg += "\nhttps://sr-renovation.fr/parrainage";
+              msg += "\n\nCordialement,";
+              msg += "\nRuben \u2014 SR R\u00e9novation";
+              msg += "\n06 80 33 45 46";
+              window.open("https://wa.me/" + frPhone + "?text=" + encodeURIComponent(msg), "_blank");
+            }}
+            className="w-full py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2"
+            style={{ backgroundColor: "#25D366", color: "white" }}
+            disabled={!invoice?.client_phone}
+          >
+            Envoyer par WhatsApp
+          </button>
         </div>
       </div>
     </div>

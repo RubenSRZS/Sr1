@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Search, FileText, Trash2, Eye, Receipt, ChevronRight, Send, CheckCircle, Clock, FileCheck, SortAsc, Mail, EyeIcon, Copy } from 'lucide-react';
+import { Plus, Search, FileText, Trash2, Eye, Receipt, ChevronRight, Send, CheckCircle, Clock, FileCheck, SortAsc, Mail, EyeIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -51,28 +51,6 @@ const QuotesList = () => {
       fetchQuotes();
     } catch {
       toast.error('Erreur mise à jour statut');
-    }
-  };
-
-  const handleDuplicate = async (quote) => {
-    try {
-      const newQuote = {
-        ...quote,
-        quote_number: '',
-        status: 'draft',
-        is_signed: false,
-        signed_at: null,
-        public_token: null,
-        created_at: undefined,
-        updated_at: undefined,
-        id: undefined,
-      };
-      const res = await axios.post(`${API}/quotes`, newQuote);
-      toast.success('Devis dupliqué ! Redirection...');
-      navigate(`/quotes/edit/${res.data.id}`);
-    } catch (err) {
-      console.error(err);
-      toast.error('Erreur lors de la duplication');
     }
   };
 
@@ -192,22 +170,12 @@ const QuotesList = () => {
                   {q.signed_at && <span className="text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded flex items-center gap-1"><CheckCircle className="w-2.5 h-2.5" /> Signé</span>}
                 </div>
               )}
-              <div className="flex gap-2 overflow-x-auto pb-1">
+              <div className="flex gap-2">
                 <Link to={`/quotes/edit/${q.id}`} className="flex-1">
                   <Button variant="outline" size="sm" className="w-full h-8 text-xs" data-testid={`view-quote-${q.id}`}>
                     <Eye className="h-3.5 w-3.5 mr-1" /> Voir / Éditer
                   </Button>
                 </Link>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDuplicate(q)}
-                  className="h-8 text-xs text-slate-600 border-slate-200 hover:bg-slate-50"
-                  title="Dupliquer ce devis"
-                  data-testid={`duplicate-quote-${q.id}`}
-                >
-                  <Copy className="h-3.5 w-3.5" />
-                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -228,7 +196,7 @@ const QuotesList = () => {
                     <Receipt className="h-3.5 w-3.5 mr-1" /> Facturer
                   </Button>
                 )}
-                <Button variant="ghost" size="sm" onClick={() => handleDelete(q.id)} className="h-8 text-red-500 hover:bg-red-50 flex-shrink-0" data-testid={`delete-quote-${q.id}`}>
+                <Button variant="ghost" size="sm" onClick={() => handleDelete(q.id)} className="h-8 text-red-500 hover:bg-red-50" data-testid={`delete-quote-${q.id}`}>
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>

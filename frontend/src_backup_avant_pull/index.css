@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sr-blue: #0c1829;
+  --sr-blue-light: #1a2d4a;
+  --sr-orange: #e8712a;
+  --sr-orange-light: #f59e4e;
+  --sr-cream: #faf8f5;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  background: var(--sr-cream);
+  color: #1a1a2e;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 24 80% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 24 80% 53%;
+    --radius: 0.625rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.35s ease-out forwards;
+}
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+/* PDF Preview scale */
+.pdf-preview-scale {
+  transform-origin: top left;
+}
+
+/* ===== GLOBAL DARK MODE ===== */
+html.dark body {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+html.dark {
+  --background: 222 47% 11%;
+  --foreground: 213 31% 91%;
+  --card: 222 47% 13%;
+  --card-foreground: 213 31% 91%;
+  --popover: 222 47% 13%;
+  --popover-foreground: 213 31% 91%;
+  --border: 216 34% 22%;
+  --input: 216 34% 22%;
+  --muted: 223 47% 18%;
+  --muted-foreground: 215 20% 60%;
+  --accent: 216 34% 22%;
+  --accent-foreground: 213 31% 91%;
+}
+
+/* Dark mode global backgrounds */
+html.dark .bg-white {
+  background-color: #1e293b !important;
+}
+html.dark .bg-gray-50 {
+  background-color: #1e293b !important;
+}
+html.dark .bg-gray-100 {
+  background-color: #334155 !important;
+}
+html.dark .text-gray-900 {
+  color: #f1f5f9 !important;
+}
+html.dark .text-gray-800 {
+  color: #e2e8f0 !important;
+}
+html.dark .text-gray-700 {
+  color: #cbd5e1 !important;
+}
+html.dark .text-gray-600 {
+  color: #94a3b8 !important;
+}
+html.dark .text-gray-500 {
+  color: #64748b !important;
+}
+html.dark .text-gray-400 {
+  color: #475569 !important;
+}
+html.dark .border-gray-100 {
+  border-color: #334155 !important;
+}
+html.dark .border-gray-200 {
+  border-color: #334155 !important;
+}
+html.dark .divide-gray-50 > * + * {
+  border-color: #334155 !important;
+}
+
+/* Dark mode inputs */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #334155 !important;
+  border-color: #475569 !important;
+  color: #e2e8f0 !important;
+}
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Dark mode cards */
+html.dark .shadow-sm {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important;
+}
+
+/* Dark mode min-h-screen pages */
+html.dark .min-h-screen:not([style]) {
+  background-color: #0f172a;
+}

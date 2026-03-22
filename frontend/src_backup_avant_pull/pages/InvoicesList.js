@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Search, Receipt, Trash2, Eye, CheckCircle, Clock, ArrowUpDown, SortAsc, Send } from 'lucide-react';
+import { Plus, Search, Receipt, Trash2, Eye, CheckCircle, Clock, ArrowUpDown, SortAsc } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
-import SendInvoiceModal from '@/components/SendInvoiceModal';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -18,7 +17,6 @@ const InvoicesList = () => {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [sortMode, setSortMode] = useState('recent'); // 'recent' | 'alpha'
-  const [sendModal, setSendModal] = useState(null); // Invoice to send
 
   useEffect(() => { fetchInvoices(); }, []);
   const fetchInvoices = async () => {
@@ -111,21 +109,12 @@ const InvoicesList = () => {
                 </>
               )}
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-1">
+            <div className="flex gap-2">
               <Link to={`/invoices/edit/${inv.id}`} className="flex-1">
                 <Button variant="outline" size="sm" className="w-full h-8 text-xs" data-testid={`view-invoice-${inv.id}`}>
                   <Eye className="h-3.5 w-3.5 mr-1" /> Voir
                 </Button>
               </Link>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSendModal(inv)}
-                className="h-8 text-xs text-blue-600 border-blue-200 hover:bg-blue-50 px-2"
-                data-testid={`send-invoice-${inv.id}`}
-              >
-                <Send className="h-3.5 w-3.5 mr-1" /> Envoyer
-              </Button>
               {inv.payment_status !== 'paid' ? (
                 <Button
                   variant="outline"
@@ -160,18 +149,6 @@ const InvoicesList = () => {
           </Card>
         )}
       </div>
-
-      {/* Send Invoice Modal */}
-      {sendModal && (
-        <SendInvoiceModal
-          invoice={sendModal}
-          onClose={() => setSendModal(null)}
-          onSent={() => {
-            fetchInvoices();
-            setSendModal(null);
-          }}
-        />
-      )}
     </div>
   );
 };

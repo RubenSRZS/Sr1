@@ -7,8 +7,8 @@ import { generatePDFBase64 } from './PDFPreview';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const getDefaultBody = (clientName) => {
-  const lastName = clientName ? clientName.split(' ').slice(-1)[0] : '';
-  return `Bonjour, Monsieur ${lastName},
+  const lastName = clientName ? clientName.trim().split(' ').filter(Boolean).slice(-1)[0] : '';
+  return `Bonjour, Monsieur/Madame ${lastName},
 
 Suite à notre échange, j'ai le plaisir de vous transmettre votre devis personnalisé pour votre projet de rénovation.
 
@@ -82,8 +82,8 @@ const SendQuoteModal = ({ quote, onClose, onSent }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && onClose()} onTouchMove={(e) => e.stopPropagation()} data-testid="send-quote-modal">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[75vh] overflow-y-auto" style={{overscrollBehavior:"contain"}}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" data-testid="send-quote-modal">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
           <div className="flex items-center gap-2">
@@ -181,7 +181,7 @@ const SendQuoteModal = ({ quote, onClose, onSent }) => {
             onClick={() => {
               const phone = (quote?.client_phone || '').replace(/[^0-9]/g, '');
               const frPhone = phone.startsWith('0') ? '33' + phone.slice(1) : phone;
-              const text = encodeURIComponent('Bonjour ' + (quote?.client_name || '') + ',\n\nSuite à notre échange, voici votre devis n°' + (quote?.quote_number || '') + '.\n\nConsultez et signez-le ici :\n' + window.location.origin + '/devis/public/' + (quote?.public_token || '') + '\n\nRuben — SR Rénovation\n06 80 33 45 46');
+              const text = encodeURIComponent('Bonjour ' + (quote?.client_name || '') + ',\n\nSuite à notre échange, j\'ai le plaisir de vous transmettre votre devis personnalisé n°' + (quote?.quote_number || '') + ' pour votre projet de rénovation.\n\nConsultez, téléchargez et signez votre devis en ligne ici :\n' + window.location.origin + '/devis/public/' + (quote?.public_token || '') + '\n\nN\'hésitez pas à me contacter pour toute question.\n\nRuben — SR Rénovation\n06 80 33 45 46');
               window.open('https://wa.me/' + frPhone + '?text=' + text, '_blank');
             }}
             className="w-full py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2"
