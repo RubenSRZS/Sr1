@@ -7,10 +7,9 @@ const BottomNav = () => {
   const items = [
     { path: '/', icon: Home, label: 'Accueil' },
     { path: '/quotes', icon: FileText, label: 'Devis' },
-    { path: '/invoices', icon: Receipt, label: 'Factures' },
-    { path: '/clients', icon: Users, label: 'Clients' },
-    { path: '/profile', icon: UserCircle, label: 'Profil' },
     { path: '/ai-assistant', icon: Sparkles, label: 'IA' },
+    { path: '/invoices', icon: Receipt, label: 'Factures' },
+    { path: '/catalog', icon: Layers, label: 'Catalogue' },
   ];
 
   return (

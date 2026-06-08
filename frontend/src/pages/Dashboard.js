@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, FileText, Receipt, Users, ArrowRight, Moon, Sun, Send, CheckCircle, Clock, FileCheck } from 'lucide-react';
+import { Plus, FileText, Receipt, Users, ArrowRight, Moon, Sun, Send, CheckCircle, Clock, FileCheck, UserCircle, Settings } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -66,7 +66,7 @@ const Dashboard = () => {
       <div style={{ background: darkMode ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #ea580c 100%)' : 'linear-gradient(135deg, #1e40af 0%, #3b82f6 60%, #f97316 100%)' }} className="text-white">
         <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8 flex items-center justify-between">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Tableau de bord v2.5</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Tableau de bord v2.6</h1>
             <p className="text-xs sm:text-sm text-white/60">Gestion devis & factures</p>
           </div>
           <button
@@ -133,6 +133,24 @@ const Dashboard = () => {
             </div>
           </Link>
         </div>
+
+        {/* Profile Section */}
+        <Card className={`p-5 mb-4 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <UserCircle className={`w-5 h-5 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+              <h3 className={`font-bold text-base ${darkMode ? 'text-white' : 'text-slate-800'}`}>Profil d'Entreprise</h3>
+            </div>
+            <Link to="/profile">
+              <Button size="sm" variant="outline" className={`text-xs ${darkMode ? 'border-slate-600 hover:bg-slate-700 text-slate-300' : ''}`}>
+                <Settings className="w-3.5 h-3.5 mr-1" /> Gérer
+              </Button>
+            </Link>
+          </div>
+          <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+            Gérez les informations sur vos devis/factures : nom, SIRET, RIB, assurances...
+          </p>
+        </Card>
 
         {/* Recent docs */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

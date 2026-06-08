@@ -68,7 +68,63 @@ const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, opti
             className="text-sm mb-2 resize-none"
             data-testid={`service-desc-${optionNum}-${i}`}
           />
-          <div className="overflow-x-auto -mx-3 px-3 pb-2">
+          {/* Mobile: Vertical layout */}
+          <div className="block sm:hidden space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs text-gray-500 mb-1">Quantité</Label>
+                <Input type="number" step="0.01" value={s.quantity} onChange={e => updateSvc(i, 'quantity', e.target.value)} className="h-9 text-sm" />
+              </div>
+              <div>
+                <Label className="text-xs text-gray-500 mb-1">Unité</Label>
+                <select value={s.unit || 'unité'} onChange={e => updateSvc(i, 'unit', e.target.value)}
+                  className="h-9 text-sm w-full border border-input rounded-md px-2 bg-white">
+                  {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs text-gray-500 mb-1">Prix unitaire €</Label>
+                <Input type="number" step="0.01" value={s.unit_price} onChange={e => updateSvc(i, 'unit_price', e.target.value)} className="h-9 text-sm" />
+              </div>
+              <div>
+                <Label className="text-xs text-gray-500 mb-1">Remise %</Label>
+                <Input type="number" min="0" max="100" step="1" value={s.remise_percent || 0} onChange={e => updateSvc(i, 'remise_percent', parseFloat(e.target.value) || 0)} className="h-9 text-sm" />
+              </div>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <Label className="text-xs text-blue-700 font-semibold mb-1">Total</Label>
+              <div className="text-2xl font-bold text-blue-600">{(s.total || 0).toFixed(2)} €</div>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm" 
+                onClick={() => moveSvcUp(i)} 
+                disabled={i === 0}
+                className="h-9"
+              >
+                <ChevronUp className="h-4 w-4" />
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm" 
+                onClick={() => moveSvcDown(i)} 
+                disabled={i === services.length - 1}
+                className="h-9"
+              >
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+              <Button type="button" variant="ghost" size="sm" onClick={() => removeSvc(i)} className="h-9 text-red-500 hover:bg-red-50">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          {/* Desktop: Horizontal layout */}
+          <div className="hidden sm:block overflow-x-auto -mx-3 px-3 pb-2">
             <div className="grid grid-cols-5 gap-1.5 items-end min-w-[600px]">
               <div>
                 <Label className="text-xs text-gray-500">Qté</Label>
