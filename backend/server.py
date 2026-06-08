@@ -42,6 +42,38 @@ logger = logging.getLogger(__name__)
 
 # ==================== MODELS ====================
 
+class Profile(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    company_name: str
+    siret: str = ""
+    email: str
+    phone: str
+    address: str = ""
+    iban: str = ""
+    bic: str = ""
+    account_holder: str = ""
+    bank_name: str = ""
+    insurance_decennale: str = ""
+    insurance_rc_pro: str = ""
+    is_default: bool = False
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class ProfileCreate(BaseModel):
+    name: str
+    company_name: str
+    siret: str = ""
+    email: str
+    phone: str
+    address: str = ""
+    iban: str = ""
+    bic: str = ""
+    account_holder: str = ""
+    bank_name: str = ""
+    insurance_decennale: str = ""
+    insurance_rc_pro: str = ""
+
 class ClientCreate(BaseModel):
     name: str
     address: str
@@ -276,6 +308,78 @@ async def delete_client(client_id: str):
     result = await db.clients.delete_one({"id": client_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Client non trouvé")
+    return {"status": "success"}
+
+# ==================== PROFILES ====================
+
+@api_router.get("/profiles", response_model=List[Profile])
+async def get_profiles():
+    profiles = await db.profiles.find({}, {"_id": 0}).to_list(1000)
+    # Ensure at least one default profile exists
+    if not profiles:
+        default_profile = {
+            "id": str(uuid.uuid4()),
+            "name": "Ruben",
+            "company_name": "SR Rénovation",
+            "siret": "",
+            "email": "Srrenovation03@gmail.com",
+            "phone": "06 80 33 45 46",
+            "address": "Jura (39)",
+            "iban": "FR76 1080 7000 1312 3197 7296 321",
+            "bic": "CCBPFRPPDJN",
+            "account_holder": "M RUBEN SUAREZ-SAR",
+            "bank_name": "Banque Populaire BFC",
+            "insurance_decennale": "",
+            "insurance_rc_pro": "",
+            "is_default": True,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.profiles.insert_one(default_profile)
+        profiles = [default_profile]
+    return profiles
+
+@api_router.post("/profiles", response_model=Profile)
+async def create_profile(profile: ProfileCreate):
+    new_profile = {
+        "id": str(uuid.uuid4()),
+        **profile.model_dump(),
+        "is_default": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.profiles.insert_one(new_profile)
+    return new_profile
+
+@api_router.put("/profiles/{profile_id}", response_model=Profile)
+async def update_profile(profile_id: str, profile: ProfileCreate):
+    updated = {
+        **profile.model_dump(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    result = await db.profiles.update_one({"id": profile_id}, {"$set": updated})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Profil non trouvé")
+    updated_profile = await db.profiles.find_one({"id": profile_id}, {"_id": 0})
+    return updated_profile
+
+@api_router.delete("/profiles/{profile_id}")
+async def delete_profile(profile_id: str):
+    # Check if it's the default profile
+    profile = await db.profiles.find_one({"id": profile_id}, {"_id": 0})
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profil non trouvé")
+    if profile.get("is_default"):
+        raise HTTPException(status_code=400, detail="Impossible de supprimer le profil par défaut")
+    await db.profiles.delete_one({"id": profile_id})
+    return {"status": "success"}
+
+@api_router.patch("/profiles/{profile_id}/set-default")
+async def set_default_profile(profile_id: str):
+    # Unset all defaults
+    await db.profiles.update_many({}, {"$set": {"is_default": False}})
+    # Set new default
+    result = await db.profiles.update_one({"id": profile_id}, {"$set": {"is_default": True}})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Profil non trouvé")
     return {"status": "success"}
 
 # ==================== CATALOG ====================

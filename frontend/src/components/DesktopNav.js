@@ -12,6 +12,7 @@ const DesktopNav = () => {
     { path: '/invoices', icon: Receipt, label: 'Factures' },
     { path: '/clients', icon: Users, label: 'Clients' },
     { path: '/catalog', icon: Layers, label: 'Catalogue' },
+    { path: '/profile', icon: Users, label: 'Profil' },
     { path: '/ai-assistant', icon: Sparkles, label: 'Assistant IA', gradient: true },
   ];
 

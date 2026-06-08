@@ -12,6 +12,7 @@ import InvoiceForm from '@/pages/InvoiceForm';
 import ClientsManager from '@/pages/ClientsManager';
 import CatalogManager from '@/pages/CatalogManager';
 import AIAssistant from '@/pages/AIAssistant';
+import ProfileManager from '@/pages/ProfileManager';
 import PublicQuotePage from '@/pages/PublicQuotePage';
 import PinScreen from '@/components/PinScreen';
 import BottomNav from '@/components/BottomNav';
@@ -79,6 +80,7 @@ function AppContent() {
           <Route path="/invoices/edit/:id" element={<InvoiceForm />} />
           <Route path="/clients" element={<ClientsManager />} />
           <Route path="/catalog" element={<CatalogManager />} />
+          <Route path="/profile" element={<ProfileManager />} />
           <Route path="/ai-assistant" element={<AIAssistant />} />
         </Routes>
       </div>

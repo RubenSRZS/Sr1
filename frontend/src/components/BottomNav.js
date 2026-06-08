@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, FileText, Receipt, Users, Sparkles, Layers } from 'lucide-react';
+import { Home, FileText, Receipt, Users, Sparkles, Layers, UserCircle } from 'lucide-react';
 
 const BottomNav = () => {
   const location = useLocation();
   const items = [
     { path: '/', icon: Home, label: 'Accueil' },
     { path: '/quotes', icon: FileText, label: 'Devis' },
-    { path: '/ai-assistant', icon: Sparkles, label: 'IA' },
     { path: '/invoices', icon: Receipt, label: 'Factures' },
+    { path: '/profile', icon: UserCircle, label: 'Profil' },
     { path: '/catalog', icon: Layers, label: 'Catalogue' },
   ];
 

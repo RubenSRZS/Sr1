@@ -68,58 +68,60 @@ const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, opti
             className="text-sm mb-2 resize-none"
             data-testid={`service-desc-${optionNum}-${i}`}
           />
-          <div className="grid grid-cols-5 gap-1.5 items-end">
-            <div>
-              <Label className="text-xs text-gray-500">Qté</Label>
-              <Input type="number" step="0.01" value={s.quantity} onChange={e => updateSvc(i, 'quantity', e.target.value)} className="h-8 text-sm" />
-            </div>
-            <div>
-              <Label className="text-xs text-gray-500">Unité</Label>
-              <select value={s.unit || 'unité'} onChange={e => updateSvc(i, 'unit', e.target.value)}
-                className="h-8 text-sm w-full border border-input rounded-md px-1 bg-white focus:ring-1 focus:ring-ring">
-                {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-              </select>
-            </div>
-            <div>
-              <Label className="text-xs text-gray-500">Prix unitaire €</Label>
-              <Input type="number" step="0.01" value={s.unit_price} onChange={e => updateSvc(i, 'unit_price', e.target.value)} className="h-8 text-sm" />
-            </div>
-            <div>
-              <Label className="text-xs text-gray-500">Remise %</Label>
-              <Input type="number" min="0" max="100" step="1" value={s.remise_percent || 0} onChange={e => updateSvc(i, 'remise_percent', parseFloat(e.target.value) || 0)} className="h-8 text-sm" />
-            </div>
-            <div className="flex gap-1">
-              <div className="flex-1">
-                <Label className="text-xs text-gray-500">Total €</Label>
-                <Input value={(s.total || 0).toFixed(2)} readOnly className="h-8 text-sm bg-gray-100 font-medium" />
+          <div className="overflow-x-auto -mx-3 px-3 pb-2">
+            <div className="grid grid-cols-5 gap-1.5 items-end min-w-[600px]">
+              <div>
+                <Label className="text-xs text-gray-500">Qté</Label>
+                <Input type="number" step="0.01" value={s.quantity} onChange={e => updateSvc(i, 'quantity', e.target.value)} className="h-8 text-sm" />
               </div>
-              <div className="flex flex-col gap-0.5 mt-4">
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => moveSvcUp(i)} 
-                  disabled={i === 0}
-                  className="h-4 p-0 w-8 text-gray-500 hover:text-blue-600 hover:bg-blue-50 disabled:opacity-30"
-                  title="Déplacer vers le haut"
-                >
-                  <ChevronUp className="h-3.5 w-3.5" />
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => moveSvcDown(i)} 
-                  disabled={i === services.length - 1}
-                  className="h-4 p-0 w-8 text-gray-500 hover:text-blue-600 hover:bg-blue-50 disabled:opacity-30"
-                  title="Déplacer vers le bas"
-                >
-                  <ChevronDown className="h-3.5 w-3.5" />
+              <div>
+                <Label className="text-xs text-gray-500">Unité</Label>
+                <select value={s.unit || 'unité'} onChange={e => updateSvc(i, 'unit', e.target.value)}
+                  className="h-8 text-sm w-full border border-input rounded-md px-1 bg-white focus:ring-1 focus:ring-ring">
+                  {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                </select>
+              </div>
+              <div>
+                <Label className="text-xs text-gray-500">Prix unitaire €</Label>
+                <Input type="number" step="0.01" value={s.unit_price} onChange={e => updateSvc(i, 'unit_price', e.target.value)} className="h-8 text-sm" />
+              </div>
+              <div>
+                <Label className="text-xs text-gray-500">Remise %</Label>
+                <Input type="number" min="0" max="100" step="1" value={s.remise_percent || 0} onChange={e => updateSvc(i, 'remise_percent', parseFloat(e.target.value) || 0)} className="h-8 text-sm" />
+              </div>
+              <div className="flex gap-1">
+                <div className="flex-1">
+                  <Label className="text-xs text-gray-500">Total €</Label>
+                  <Input value={(s.total || 0).toFixed(2)} readOnly className="h-8 text-sm bg-gray-100 font-medium" />
+                </div>
+                <div className="flex flex-col gap-0.5 mt-4">
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => moveSvcUp(i)} 
+                    disabled={i === 0}
+                    className="h-4 p-0 w-8 text-gray-500 hover:text-blue-600 hover:bg-blue-50 disabled:opacity-30"
+                    title="Déplacer vers le haut"
+                  >
+                    <ChevronUp className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => moveSvcDown(i)} 
+                    disabled={i === services.length - 1}
+                    className="h-4 p-0 w-8 text-gray-500 hover:text-blue-600 hover:bg-blue-50 disabled:opacity-30"
+                    title="Déplacer vers le bas"
+                  >
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                <Button type="button" variant="ghost" size="sm" onClick={() => removeSvc(i)} className="h-8 mt-4 text-red-500 hover:bg-red-50" title="Supprimer">
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
-              <Button type="button" variant="ghost" size="sm" onClick={() => removeSvc(i)} className="h-8 mt-4 text-red-500 hover:bg-red-50" title="Supprimer">
-                <Trash2 className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </div>
