@@ -302,6 +302,7 @@ const QuoteForm = () => {
   const [showNewClient, setShowNewClient] = useState(false);
   const [hasOption2, setHasOption2] = useState(false);
   const [hasOption3, setHasOption3] = useState(false);
+  const [additionalOptions, setAdditionalOptions] = useState([]); // Options dynamiques
   const [draftRestored, setDraftRestored] = useState(false);
 
   const initialFormState = {
