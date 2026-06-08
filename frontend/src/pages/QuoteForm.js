@@ -475,15 +475,24 @@ const QuoteForm = () => {
   const updateField = (key, val) => setFormData(prev => ({ ...prev, [key]: val }));
 
   // Option 1 services
-  const addService = () => updateField('services', [...formData.services, { description: '', quantity: 1, unit: 'unité', unit_price: 0, remise_percent: 0, total: 0 }]);
+  const addService = () => updateField('services', [...formData.services, { description: '', quantity: 1, unit: 'unité', unit_price: 0, remise_type: 'percent', remise_percent: 0, remise_montant: 0, total: 0 }]);
   const updateService = (i, field, val) => {
     const s = [...formData.services];
     s[i] = { ...s[i], [field]: val };
-    if (field === 'quantity' || field === 'unit_price' || field === 'remise_percent') {
+    if (field === 'quantity' || field === 'unit_price' || field === 'remise_percent' || field === 'remise_montant' || field === 'remise_type') {
       const qty = parseFloat(s[i].quantity || 0);
       const pu = parseFloat(s[i].unit_price || 0);
-      const remise = parseFloat(s[i].remise_percent || 0);
-      s[i].total = qty * pu * (1 - remise / 100);
+      const lineTotal = qty * pu;
+      
+      // Calculer la remise selon le type
+      let remise = 0;
+      if (s[i].remise_type === 'amount') {
+        remise = parseFloat(s[i].remise_montant || 0);
+      } else {
+        remise = lineTotal * (parseFloat(s[i].remise_percent || 0) / 100);
+      }
+      
+      s[i].total = Math.max(lineTotal - remise, 0);
     }
     updateField('services', s);
   };
@@ -502,15 +511,21 @@ const QuoteForm = () => {
   };
 
   // Option 2 services
-  const addService2 = () => updateField('option_2_services', [...formData.option_2_services, { description: '', quantity: 1, unit: 'unité', unit_price: 0, remise_percent: 0, total: 0 }]);
+  const addService2 = () => updateField('option_2_services', [...formData.option_2_services, { description: '', quantity: 1, unit: 'unité', unit_price: 0, remise_type: 'percent', remise_percent: 0, remise_montant: 0, total: 0 }]);
   const updateService2 = (i, field, val) => {
     const s = [...formData.option_2_services];
     s[i] = { ...s[i], [field]: val };
-    if (field === 'quantity' || field === 'unit_price' || field === 'remise_percent') {
+    if (field === 'quantity' || field === 'unit_price' || field === 'remise_percent' || field === 'remise_montant' || field === 'remise_type') {
       const qty = parseFloat(s[i].quantity || 0);
       const pu = parseFloat(s[i].unit_price || 0);
-      const remise = parseFloat(s[i].remise_percent || 0);
-      s[i].total = qty * pu * (1 - remise / 100);
+      const lineTotal = qty * pu;
+      let remise = 0;
+      if (s[i].remise_type === 'amount') {
+        remise = parseFloat(s[i].remise_montant || 0);
+      } else {
+        remise = lineTotal * (parseFloat(s[i].remise_percent || 0) / 100);
+      }
+      s[i].total = Math.max(lineTotal - remise, 0);
     }
     updateField('option_2_services', s);
   };
@@ -529,15 +544,21 @@ const QuoteForm = () => {
   };
 
   // Option 3 services
-  const addService3 = () => updateField('option_3_services', [...formData.option_3_services, { description: '', quantity: 1, unit: 'unité', unit_price: 0, remise_percent: 0, total: 0 }]);
+  const addService3 = () => updateField('option_3_services', [...formData.option_3_services, { description: '', quantity: 1, unit: 'unité', unit_price: 0, remise_type: 'percent', remise_percent: 0, remise_montant: 0, total: 0 }]);
   const updateService3 = (i, field, val) => {
     const s = [...formData.option_3_services];
     s[i] = { ...s[i], [field]: val };
-    if (field === 'quantity' || field === 'unit_price' || field === 'remise_percent') {
+    if (field === 'quantity' || field === 'unit_price' || field === 'remise_percent' || field === 'remise_montant' || field === 'remise_type') {
       const qty = parseFloat(s[i].quantity || 0);
       const pu = parseFloat(s[i].unit_price || 0);
-      const remise = parseFloat(s[i].remise_percent || 0);
-      s[i].total = qty * pu * (1 - remise / 100);
+      const lineTotal = qty * pu;
+      let remise = 0;
+      if (s[i].remise_type === 'amount') {
+        remise = parseFloat(s[i].remise_montant || 0);
+      } else {
+        remise = lineTotal * (parseFloat(s[i].remise_percent || 0) / 100);
+      }
+      s[i].total = Math.max(lineTotal - remise, 0);
     }
     updateField('option_3_services', s);
   };
