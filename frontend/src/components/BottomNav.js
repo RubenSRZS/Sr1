@@ -8,8 +8,9 @@ const BottomNav = () => {
     { path: '/', icon: Home, label: 'Accueil' },
     { path: '/quotes', icon: FileText, label: 'Devis' },
     { path: '/invoices', icon: Receipt, label: 'Factures' },
+    { path: '/clients', icon: Users, label: 'Clients' },
     { path: '/profile', icon: UserCircle, label: 'Profil' },
-    { path: '/catalog', icon: Layers, label: 'Catalogue' },
+    { path: '/ai-assistant', icon: Sparkles, label: 'IA' },
   ];
 
   return (
