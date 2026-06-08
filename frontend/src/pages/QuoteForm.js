@@ -436,10 +436,29 @@ const QuoteForm = () => {
     if (id) {
       axios.get(`${API}/quotes/${id}`).then(r => {
         const q = r.data;
-        const has2 = q.option_2_services && q.option_2_services.length > 0;
-        const has3 = q.option_3_services && q.option_3_services.length > 0;
-        setHasOption2(has2);
-        setHasOption3(has3);
+        
+        // Charger les options existantes dans le nouveau système
+        const loadedOptions = [];
+        if (q.option_2_services && q.option_2_services.length > 0) {
+          loadedOptions.push({
+            title: q.option_2_title || '',
+            services: q.option_2_services || [],
+            remise_type: q.option_2_remise_percent > 0 ? 'percent' : 'percent',
+            remise_percent: q.option_2_remise_percent || 0,
+            remise_montant: q.option_2_remise_montant || 0,
+          });
+        }
+        if (q.option_3_services && q.option_3_services.length > 0) {
+          loadedOptions.push({
+            title: q.option_3_title || '',
+            services: q.option_3_services || [],
+            remise_type: q.option_3_remise_percent > 0 ? 'percent' : 'percent',
+            remise_percent: q.option_3_remise_percent || 0,
+            remise_montant: q.option_3_remise_montant || 0,
+          });
+        }
+        setAdditionalOptions(loadedOptions);
+        
         setFormData({
           client_id: q.client_id,
           client_name: q.client_name || '',
@@ -457,16 +476,16 @@ const QuoteForm = () => {
           remise_montant: q.remise_montant || 0,
           payment_plan: q.payment_plan || 'acompte_solde',
           show_line_numbers: q.show_line_numbers !== false,
-          option_2_title: q.option_2_title || '',
-          option_2_services: q.option_2_services || [],
-          option_2_remise_type: q.option_2_remise_percent > 0 ? 'percent' : 'percent',
-          option_2_remise_percent: q.option_2_remise_percent || 0,
-          option_2_remise_montant: q.option_2_remise_montant || 0,
-          option_3_title: q.option_3_title || '',
-          option_3_services: q.option_3_services || [],
-          option_3_remise_type: q.option_3_remise_percent > 0 ? 'percent' : 'percent',
-          option_3_remise_percent: q.option_3_remise_percent || 0,
-          option_3_remise_montant: q.option_3_remise_montant || 0,
+          option_2_title: '',
+          option_2_services: [],
+          option_2_remise_type: 'percent',
+          option_2_remise_percent: 0,
+          option_2_remise_montant: 0,
+          option_3_title: '',
+          option_3_services: [],
+          option_3_remise_type: 'percent',
+          option_3_remise_percent: 0,
+          option_3_remise_montant: 0,
           notes: q.notes || '',
         });
       }).catch(() => toast.error('Erreur chargement devis'));

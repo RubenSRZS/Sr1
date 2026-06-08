@@ -1,152 +1,165 @@
-<analysis>**original_problem_statement:**
-The user, representing Sr-Renovation.fr, requires a web application to create professional, highly customized quotes and invoices. The key is a unique, brand-aligned design and a mobile-first, user-friendly workflow.
+<analysis><problem_statement>
+The user initially requested an invoice sending system similar to the quote system, with two email options (one including a Google My Business review link, and one simple thank you). 
+Mid-session, the user revealed that the agent's codebase and database were severely outdated because the user had made manual updates to their production server and GitHub repository. The scope expanded to:
+1. Syncing the codebase with the user's GitHub (commit v2.2) and importing a production MongoDB dump.
+2. Creating a Company Profile management system accessible from the Dashboard.
+3. Improving the mobile UI of the Quote Form (making service prices highly visible).
+4. Fixing the discount system (allowing € fixed amounts, changing HT to TTC, and showing a total discount summary).
+5. Refactoring the Options system in the Quote Form from hardcoded Options 2 & 3 to a dynamic Add Option system.
 
-**PRODUCT REQUIREMENTS:**
-1.  **Core Functionality:** Create, view, and manage quotes and invoices with a live PDF preview.
-2.  **Client & Catalog Management:** Manage clients and a catalog of services.
-3.  **Flexible Forms:** Allow optional fields, discounts, custom units, and custom document numbering.
-4.  **Workflow & Automation:**
-    *   One-click conversion of an accepted quote to an invoice.
-    *   Manage invoice payment status.
-    *   Send documents via email and support e-signatures.
-    *   Attach the quote PDF to the outgoing email.
-    *   After a client signs, they should receive a confirmation email with a RIB for payment, and the admin should receive a notification with the signed PDF attached.
-    *   Allow clients to select from different options on a quote before signing.
-5.  **UI/UX:**
-    *   A global, consistent dark mode with the brand's blue/orange colors.
-    *   The public-facing version of a quote must be a pixel-perfect, responsive replica of the generated PDF, especially on mobile (portrait view).
-    *   The email templates must be professional, on-brand, and responsive.
-6.  **Security & Deployment:**
-    *   The application must be protected by a simple PIN.
-    *   The user needs instructions to deploy the app on their own (Oracle Cloud).
+**CRITICAL CONSTRAINT:** The imported database contains REAL CLIENTS. The user strictly forbade sending any test emails.
+</problem_statement>
 
-**User's preferred language**: French
+**User's preferred language**: French. (You MUST automatically detect the user's primary language from their messages inside the <trajectory> tag and INSTRUCT next agent to respond in the user's preferred language only). -> **RESPOND IN FRENCH ONLY.**
 
-**what currently exists?**
-A full-stack React/FastAPI/MongoDB application with PIN-based authentication (). The app supports creating and managing clients, a service catalog, quotes, and invoices. It includes functionality for sending quotes via email, generating PDFs, and an e-signature workflow. However, the core post-signature workflow is critically broken: logos are missing from all PDFs generated *after* a client signs a quote. A previous agent applied a potential fix in , but this fix remains untested. User trust was previously broken when an agent sent test emails to real clients.
+**what currently exists?** 
+A full-stack React/FastAPI/MongoDB quoting and invoicing application. The codebase is now synced with the user's latest GitHub commit (v2.2+). The database contains production data (30 clients, 34 quotes). The dashboard includes a new Company Profile section. The mobile view of the Quote Form uses vertical cards to display large numbers. HT has been universally changed to TTC. The client name disappearing bug during quote edits is fixed. The invoice email system with 2 template choices is fully functional.
 
 **Last working item**:
--   **Last item agent was working:** The agent was about to test the critical bug fix for missing logos in signed PDFs. The agent had just formulated a plan to use the testing sub-agent to perform a full end-to-end test of the signature workflow to validate the fix implemented by a previous agent.
--   **Status:** NOT STARTED
--   **Agent Testing Done:** N
--   **Which testing method agent to use?** both
-    - **Reasoning:** As stated by the agent, the plan is to use the  to test the entire signature workflow. This is necessary due to the critical and recurring nature of the logo bug and previous testing failures.
--   **User Testing Done:** N
+- **Last item agent was working:** Refactoring the Options system in . The user was unhappy that Option 2 and Option 3 were hardcoded and had to be deleted together. The agent was in the middle of replacing the static ,  states with a dynamic array-based options system.
+- **Status:** IN PROGRESS
+- **Agent Testing Done:** N
+- **Which testing method agent to use?** Frontend testing agent (to verify adding, modifying, and deleting dynamic options in the Quote Form without crashing).
+- **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1:** (P0) CRITICAL & RECURRING: Logos are missing from all PDFs generated *after* a client signs a quote.
--   **Issue 2:** (P0) The Télécharger le devis signé (Download signed quote) button on the public page does not work.
--   **Issue 3:** (P1) UI/UX: The login page has a yellow theme instead of the brand's blue/orange.
--   **Issue 4:** (P1) UI/UX: Make the entire row of a diagnostic item clickable to expand/collapse it, not just the arrow.
--   **Issue 5:** (P1) The company name is misspelled as SR Novation instead of SR Rénovation in some emails.
--   **Issue 6:** (P0 - Process Violation) A reminder for the agent to never use real client data for testing.
+  - Issue 1: Dynamic Options in Quote Form implementation is half-finished (P0)
+     - Attempted fixes: The agent started a  to remove / but was interrupted. The file  is likely in an intermediate, broken state regarding options.
+     - Next debug checklist: Check  state variables. Replace legacy , , etc., with an array of objects . Update the rendering logic, the  payload, and ensure  endpoints can handle the new array format.
+     - Why fix this issue and what will be achieved with the fix? The user explicitly demanded the ability to add unlimited options and delete them individually. If not fixed, the quote form will likely crash.
+     - Status: IN PROGRESS
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? Both (Frontend UI + Backend saving/PDF generation).
+     - Blocked on other issue: None.
 
-**Issues Detail:**
--   **Issue 1: Signed PDF is incomplete (missing logos) (P0)**
-    -   **Attempted fixes:** Using a static , increasing  delay, and a new implementation in  (this last one is untested).
-    -   **Next debug checklist:** Execute the plan to call the . The test must cover the full e-signature workflow: create a new test client, send a quote, sign as the client, and verify that all generated/downloaded PDFs (for both client and admin) contain the logos.
-    -   **Why fix this issue and what will be achieved with the fix?** This is the user's #1 blocker. The signed PDF is a legal document and must be complete.
-    -   **Status:** IN PROGRESS
-    -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** both
+  - Issue 2: Fixed amount (€) discounts on line items do not recalculate totals (P0)
+     - Attempted fixes: Agent updated  to handle  and , but the user reported that entering a € discount does not update the line item total or the final total.
+     - Next debug checklist: Check the   hook in . Verify how  is subtracted from . Ensure  is properly recalculated when .
+     - Why fix this issue and what will be achieved with the fix? Crucial financial logic for the user to offer flat discounts (e.g., -50€) instead of percentages.
+     - Status: NOT STARTED (Agent abandoned this to focus on Issue 1)
+     - Is recurring issue? Y (Agent failed to fix it twice).
+     - Should Test frontend/backend/both after fix? Frontend.
+     - Blocked on other issue: None.
 
--   **Issue 2: Client cannot download signed PDF (P0)**
-    -   **Attempted fixes:** None. Believed to be a side effect of Issue 1.
-    -   **Next debug checklist:** Verify after Issue 1 is resolved. Check the  function in .
-    -   **Why fix this issue and what will be achieved with the fix?** The client needs a local copy of the document they have signed.
-    -   **Status:** BLOCKED
-    -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** Frontend.
-    -   **Blocked on other issue:** Issue 1: Signed PDF is incomplete
-
--   **Issue 3, 4 & 5: UI/UX issues and Typo**
-    -   **Attempted fixes:** None for UI; incomplete fix for the typo.
-    -   **Next debug checklist:**
-        -   **Login Page:** Edit  to replace yellow-themed Tailwind classes.
-        -   **Clickable Rows:** In the relevant component, move the  handler to the parent row container.
-        -   **Typo:** Run a global search /app/.emergent/summary.txt:-   **Issue 5:** (P1) The company name is misspelled as SR Novation instead of SR Rénovation in some emails. and correct all instances in .
-    -   **Why fix this issue and what will be achieved with the fix?** To improve brand consistency and user experience.
-    -   **Status:** NOT STARTED
-    -   **Should Test frontend/backend/both after fix?** Frontend for UI, Backend for typo.
+  - Issue 3: Push changes to GitHub (P1)
+     - Attempted fixes: None in this session, but was blocked in the previous fork.
+     - Next debug checklist: Ensure the git state is clean, commit the new v3.1 changes, and push to . Ask user for authentication if needed.
+     - Why fix this issue and what will be achieved with the fix? User relies on GitHub to deploy to their Google Cloud production server.
+     - Status: NOT STARTED
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? NA.
 
 **In progress Task List**:
--   **Task 1: Implement Quote Option Selection**
-    -   **Where to resume:** The UI exists in  and the backend endpoint in  is updated.
-    -   **What will be achieved with this?** Allows clients to choose between different service options on a quote before signing.
-    -   **Status:** IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?** Both.
-    -   **Blocked on something:** Full end-to-end testing is blocked by the PDF signature bug (Issue 1).
+  - Task 1: Refactor QuoteForm Options to be dynamic
+     - Where to resume:  state management and UI rendering for options.
+     - What will be achieved with this? User can add/remove standalone option blocks freely.
+     - Status: IN PROGRESS
+     - Should Test frontend/backend/both after fix? Both
+     - Blocked on something: None
 
 **Upcoming and Future Tasks**
-*   **Upcoming Tasks:**
-    *   (P1) Dashboard Quote Status: Add a section to the dashboard to show the status of recent quotes.
-    *   (P2) Provide Deployment Guide: Create detailed instructions for deploying on Oracle Cloud.
-*   **Future Tasks:**
-    *   (P2) Email Template Customization: Allow admin to edit email templates from the UI.
-    *   (P3) Dashboard Enhancements: Add revenue charts and visual indicators.
-    *   (P3) UI/UX Improvements: Add drag & drop for reordering quote items.
+  Upcoming Tasks:
+  - (P1) Profile Selection inside Quote Creation: The user asked for a discreet button on the side during quote creation to select which Company Profile to use. Currently, profiles can only be managed in the Dashboard, but not selected per-quote. Update  and backend to attach  to quotes.
+
+  Future Tasks:
+  - None explicitly remaining from this session's scope.
 
 **Completed work in this session**
--   None. The agent only analyzed the situation and formulated a plan to test a previous agent's fix.
+- Invoice email sending with 2 options (Review vs Simple) (, , ) (DONE)
+- Reverted email template to Blue/Orange theme (DONE)
+- Git pulled latest production code (v2.2) (DONE)
+- Restored production MongoDB dump (DONE)
+- Created Company Profile Manager (, , ) (DONE)
+- Improved mobile QuoteForm layout (vertical cards instead of table) (DONE)
+- Changed HT to TTC globally (DONE)
+- Fixed bug where client name disappeared when editing a quote ( missing API fields) (DONE)
 
 **Earlier issues found/mentioned but not fixed**
--   Initial catalog seeding logic for a fresh database is missing. A new instance of the app starts with an empty service catalog.
+   Issue 1: Profile Selection in Quote Form
+   - Debug checklist: Add a dropdown/button in  to select a profile from . Ensure the default profile is pre-selected. Pass the selected profile data to the PDF generator.
+   - Why to solve this issue and what will be achieved with this? Fulfills user's requirement to issue quotes under different legal entities/SIRETs.
+   - Should Test frontend/backend/both after fix: Both
+   - Is recurring issue? N
 
 **Known issue recurrence from previous fork**
--   **Issue recurrence in previous fork:** Insufficient Testing and CRITICAL PROCESS FAILURE (using real client data).
--   **Recurrence count:** 2+
--   **Status:** RESOLVED (Agent is aware and must use only test data)
--   **Note:** Past tests have provided false positives. Manual, end-to-end testing that mimics the user's exact workflow is absolutely essential.
+  - Issue recurrence in previous fork: Frontend build fragility ().
+  - Recurrence count: 0 in this session (The restart workaround fixed it previously, and it hasn't crashed in this session).
+  - Status: RESOLVED
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-*   **Frontend:** React, Tailwind CSS, , .
-*   **Backend:** FastAPI, Pydantic, Resend API.
-*   **Database:** MongoDB.
+- Frontend: React, Tailwind CSS, shadcn/ui.
+- Backend: FastAPI, Pydantic, Motor (Async MongoDB).
+- Database: MongoDB (database name: ).
+- Integrations: Resend (Email), Google Gemini (AI).
 
 **key DB schema**
--   **quotes:** has a  field, which is populated upon signature.
+  - profiles: 
+  - quotes: 
+
+**changes in tech stack**
+  - Replaced test database with production database .
 
 **All files of reference**
--   : Location of the critical PDF/logo generation bug where a fix was just applied.
--   : Page for client signature, contains the broken download button.
--   : Contains all email templates and backend logic for the signature workflow.
+  1.  (Currently broken/in-progress for dynamic options).
+  2.  (Created).
+  3.  (Created).
+  4.  (Updated with profile and invoice email routes).
+  5.  (Updated with Profile card).
 
 **Areas that need refactoring**:
--   The hardcoded HTML email templates in  should be moved to separate template files.
+-  is massive (>1300 lines) and contains very complex, repetitive state logic for calculating totals. The transition to dynamic options is highly necessary to clean this up.
 
 **key api endpoints**
--   : This endpoint triggers the entire broken post-signature workflow.
+- : Sends invoice emails.
+- , , : Profile management.
 
 **Critical Info for New Agent**
--   **USER TRUST IS BROKEN.** The previous agent sent test emails to real clients. You must acknowledge this and guarantee you will **only use newly created test data**.
--   **TEST THE PDF LOGO BUG FIX.** This is the #1 priority. Your first action should be to execute the testing plan for the entire signature workflow using the .
--   **DO NOT TRUST SIMPLE CHECKS.** They have repeatedly failed to identify these critical bugs. The only valid test is one that fully mimics the user's workflow.
+- 🚨 **CRITICAL: DO NOT SEND ANY TEST EMAILS.** The database contains real, live clients. If you must test the email flow, rigorously mock the  API call or change the recipient to a safe dummy email in the code temporarily, then revert it.
+- **Version:** The user likes to see the version bumped in the Dashboard UI. It is currently at **v3.1**.
+- **QuoteForm State:** You are inheriting  in the middle of a refactor. The priority is to finish making the Options dynamic (array-based) and ensure € fixed amount discounts work per-line item.
 
 **documents and test reports created in this job**
--   /app/memory/PRD.md
+  - 
 
-**Last 10 User Messages and any pending HUMAN messages**
--   User: () Pointed out where the previous agent had stopped, which was after analyzing the base64 logo map in . Status: Addressed.
--   User: () Prompted the agent to proceed. Status: Addressed.
+**Last 10 User Messages and any pending HUMAN messages** 
+ 1. (Addressed) User wants invoice sending system with 2 email types (Review/Simple).
+ 2. (Addressed) User wants blue/orange theme restored on emails.
+ 3. (Addressed) User points out agent is outdated.
+ 4. (Addressed) User uploads production DB dump.
+ 5. (Addressed) User requests Profile management in Dashboard to change SIRET/details per quote.
+ 6. (Addressed) User complains mobile navigation is missing Profile, and QuoteForm prices are unreadable on mobile.
+ 7. (Addressed) User complains AI assistant was removed from mobile nav.
+ 8. (Addressed) User clarifies Profile should be a section *in* the dashboard, not in the nav bar.
+ 9. (Pending) User wants € fixed discounts to work and reflect on line items and the final total.
+ 10. (Pending) User complains € discounts still don't work, demands the Options system be made dynamic (unlimited blocks, individual deletion).
 
 **Project Health Check:**
-*   **Broken:** Yes. The core e-signature workflow is fundamentally broken, preventing the user from conducting business. The recent fix is untested.
+- Broken:  is likely in a broken state due to interrupted refactoring of the Options logic. Fixed € discounts are not functioning.
 
 **3rd Party Integrations**
-*    & : For PDF generation from DOM.
-*   : For sending emails.
+- Resend (Emails) - User API Key provided via .
+- Google Gemini (AI Quotes) - User API Key provided via .
+- MongoDB (Database) - Local connection, using real production dump.
 
 **Testing status**
--   **Testing agent used after significant changes:** NO
--   **Troubleshoot agent used after agent stuck in loop:** NO
--   **Test files created:** None
--   **Known regressions:** The entire post-signature PDF generation workflow is a regression; it fails to include company logos.
+  - Testing agent used after significant changes: YES (Used for Invoice Email feature).
+  - Troubleshoot agent used after agent stuck in loop: NO.
+  - Test files created: None.
+  - Known regressions:  options logic.
 
 **Credentials to test flow:**
-*   **Application PIN:** 
+- PIN to access frontend: 
 
 **What agent forgot to execute**
--   The agent did not execute its stated plan to call the . This is the immediate next step to be taken.</analysis>
+- The agent forgot to actually fix the € (fixed amount) discount calculation on line items, leading to user frustration.
+- The agent forgot to add the UI in  to actually *select* the newly created Company Profiles during quote generation.
+
+**Debugging checklist for current issue**
+    Issue: Dynamic options and Fixed € Discounts in 
+    Frontend files to check: 
+    -  (Look for  and  calculations in . Look at state for converting  to a dynamic  array).
+    Backend files to check:
+    -  (Ensure the  and  endpoints properly accept and serialize the new dynamic options array).</analysis>
