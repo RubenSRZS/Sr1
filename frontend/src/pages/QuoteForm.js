@@ -212,7 +212,16 @@ const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, opti
     </div>
     {/* Totals */}
     <div className="mt-3 p-3 rounded-lg" style={{ background: optionNum === 1 ? '#eff6ff' : '#fff7ed' }}>
-      {totals.remise > 0 && <div className="flex justify-between text-sm mb-1" style={{ color: BRAND_ORANGE }}><span>Remise</span><span>-{totals.remise.toFixed(2)} €</span></div>}
+      <div className="flex justify-between text-sm mb-1 text-gray-600">
+        <span>Total HT (avant remises)</span>
+        <span>{totals.total_brut.toFixed(2)} €</span>
+      </div>
+      {totals.remise_totale > 0 && (
+        <div className="flex justify-between text-sm mb-1 font-semibold" style={{ color: BRAND_ORANGE }}>
+          <span>Total remises</span>
+          <span>-{totals.remise_totale.toFixed(2)} €</span>
+        </div>
+      )}
       <div className="flex justify-between font-bold text-lg pt-1 border-t" style={{ borderColor: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE, color: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE }}>
         <span>Total Option {optionNum} (TTC)</span><span>{totals.total_net.toFixed(2)} €</span>
       </div>
@@ -514,32 +523,80 @@ const QuoteForm = () => {
 
   // Option 1 totals
   const totals1 = useMemo(() => {
-    const brut = formData.services.reduce((sum, s) => sum + (s.total || 0), 0);
-    const remise = formData.remise_type === 'percent'
-      ? Math.round(brut * (formData.remise_percent || 0) / 100 * 100) / 100
+    // Calculer le total brut AVANT remises de lignes
+    const brutAvantRemises = formData.services.reduce((sum, s) => {
+      const lineTotal = (s.quantity || 0) * (s.unit_price || 0);
+      return sum + lineTotal;
+    }, 0);
+    
+    // Calculer le total des remises de lignes
+    const remisesLignes = formData.services.reduce((sum, s) => {
+      const lineTotal = (s.quantity || 0) * (s.unit_price || 0);
+      const lineRemise = lineTotal * ((s.remise_percent || 0) / 100);
+      return sum + lineRemise;
+    }, 0);
+    
+    // Total après remises de lignes
+    const brutApresRemisesLignes = formData.services.reduce((sum, s) => sum + (s.total || 0), 0);
+    
+    // Remise globale
+    const remiseGlobale = formData.remise_type === 'percent'
+      ? Math.round(brutApresRemisesLignes * (formData.remise_percent || 0) / 100 * 100) / 100
       : Math.round((formData.remise_montant || 0) * 100) / 100;
-    const net = Math.round((brut - remise) * 100) / 100;
-    return { total_brut: brut, remise, total_net: Math.max(net, 0), acompte_30: Math.round(Math.max(net, 0) * 0.3 * 100) / 100 };
+    
+    // Total de TOUTES les remises
+    const remiseTotale = Math.round((remisesLignes + remiseGlobale) * 100) / 100;
+    
+    const net = Math.round((brutApresRemisesLignes - remiseGlobale) * 100) / 100;
+    return { 
+      total_brut: brutAvantRemises, 
+      remises_lignes: remisesLignes,
+      remise_globale: remiseGlobale,
+      remise_totale: remiseTotale,
+      remise: remiseGlobale, // Pour compatibilité
+      total_net: Math.max(net, 0), 
+      acompte_30: Math.round(Math.max(net, 0) * 0.3 * 100) / 100 
+    };
   }, [formData.services, formData.remise_type, formData.remise_percent, formData.remise_montant]);
 
   // Option 2 totals
   const totals2 = useMemo(() => {
-    const brut = formData.option_2_services.reduce((sum, s) => sum + (s.total || 0), 0);
-    const remise = formData.option_2_remise_type === 'percent'
-      ? Math.round(brut * (formData.option_2_remise_percent || 0) / 100 * 100) / 100
+    const brutAvantRemises = formData.option_2_services.reduce((sum, s) => {
+      const lineTotal = (s.quantity || 0) * (s.unit_price || 0);
+      return sum + lineTotal;
+    }, 0);
+    const remisesLignes = formData.option_2_services.reduce((sum, s) => {
+      const lineTotal = (s.quantity || 0) * (s.unit_price || 0);
+      const lineRemise = lineTotal * ((s.remise_percent || 0) / 100);
+      return sum + lineRemise;
+    }, 0);
+    const brutApresRemisesLignes = formData.option_2_services.reduce((sum, s) => sum + (s.total || 0), 0);
+    const remiseGlobale = formData.option_2_remise_type === 'percent'
+      ? Math.round(brutApresRemisesLignes * (formData.option_2_remise_percent || 0) / 100 * 100) / 100
       : Math.round((formData.option_2_remise_montant || 0) * 100) / 100;
-    const net = Math.round((brut - remise) * 100) / 100;
-    return { total_brut: brut, remise, total_net: Math.max(net, 0), acompte_30: Math.round(Math.max(net, 0) * 0.3 * 100) / 100 };
+    const remiseTotale = Math.round((remisesLignes + remiseGlobale) * 100) / 100;
+    const net = Math.round((brutApresRemisesLignes - remiseGlobale) * 100) / 100;
+    return { total_brut: brutAvantRemises, remises_lignes: remisesLignes, remise_globale: remiseGlobale, remise_totale: remiseTotale, remise: remiseGlobale, total_net: Math.max(net, 0), acompte_30: Math.round(Math.max(net, 0) * 0.3 * 100) / 100 };
   }, [formData.option_2_services, formData.option_2_remise_type, formData.option_2_remise_percent, formData.option_2_remise_montant]);
 
   // Option 3 totals
   const totals3 = useMemo(() => {
-    const brut = formData.option_3_services.reduce((sum, s) => sum + (s.total || 0), 0);
-    const remise = formData.option_3_remise_type === 'percent'
-      ? Math.round(brut * (formData.option_3_remise_percent || 0) / 100 * 100) / 100
+    const brutAvantRemises = formData.option_3_services.reduce((sum, s) => {
+      const lineTotal = (s.quantity || 0) * (s.unit_price || 0);
+      return sum + lineTotal;
+    }, 0);
+    const remisesLignes = formData.option_3_services.reduce((sum, s) => {
+      const lineTotal = (s.quantity || 0) * (s.unit_price || 0);
+      const lineRemise = lineTotal * ((s.remise_percent || 0) / 100);
+      return sum + lineRemise;
+    }, 0);
+    const brutApresRemisesLignes = formData.option_3_services.reduce((sum, s) => sum + (s.total || 0), 0);
+    const remiseGlobale = formData.option_3_remise_type === 'percent'
+      ? Math.round(brutApresRemisesLignes * (formData.option_3_remise_percent || 0) / 100 * 100) / 100
       : Math.round((formData.option_3_remise_montant || 0) * 100) / 100;
-    const net = Math.round((brut - remise) * 100) / 100;
-    return { total_brut: brut, remise, total_net: Math.max(net, 0), acompte_30: Math.round(Math.max(net, 0) * 0.3 * 100) / 100 };
+    const remiseTotale = Math.round((remisesLignes + remiseGlobale) * 100) / 100;
+    const net = Math.round((brutApresRemisesLignes - remiseGlobale) * 100) / 100;
+    return { total_brut: brutAvantRemises, remises_lignes: remisesLignes, remise_globale: remiseGlobale, remise_totale: remiseTotale, remise: remiseGlobale, total_net: Math.max(net, 0), acompte_30: Math.round(Math.max(net, 0) * 0.3 * 100) / 100 };
   }, [formData.option_3_services, formData.option_3_remise_type, formData.option_3_remise_percent, formData.option_3_remise_montant]);
 
   // Live preview document
