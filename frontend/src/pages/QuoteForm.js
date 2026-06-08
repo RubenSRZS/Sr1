@@ -89,8 +89,37 @@ const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, opti
                 <Input type="number" step="0.01" value={s.unit_price} onChange={e => updateSvc(i, 'unit_price', e.target.value)} className="h-9 text-sm" />
               </div>
               <div>
-                <Label className="text-xs text-gray-500 mb-1">Remise %</Label>
-                <Input type="number" min="0" max="100" step="1" value={s.remise_percent || 0} onChange={e => updateSvc(i, 'remise_percent', parseFloat(e.target.value) || 0)} className="h-9 text-sm" />
+                <Label className="text-xs text-gray-500 mb-1">Remise</Label>
+                <div className="flex gap-1">
+                  <select 
+                    value={s.remise_type || 'percent'} 
+                    onChange={e => {
+                      const newServices = [...services];
+                      newServices[i] = { ...s, remise_type: e.target.value, remise_montant: 0 };
+                      updateSvc(i, 'remise_type', e.target.value);
+                    }}
+                    className="h-9 text-xs w-16 border border-input rounded-md px-1 bg-white"
+                  >
+                    <option value="percent">%</option>
+                    <option value="amount">€</option>
+                  </select>
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    step={s.remise_type === 'amount' ? '0.01' : '1'}
+                    max={s.remise_type === 'percent' ? '100' : undefined}
+                    value={s.remise_type === 'amount' ? (s.remise_montant || 0) : (s.remise_percent || 0)} 
+                    onChange={e => {
+                      const val = parseFloat(e.target.value) || 0;
+                      if (s.remise_type === 'amount') {
+                        updateSvc(i, 'remise_montant', val);
+                      } else {
+                        updateSvc(i, 'remise_percent', val);
+                      }
+                    }} 
+                    className="h-9 text-sm flex-1" 
+                  />
+                </div>
               </div>
             </div>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
@@ -142,8 +171,33 @@ const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, opti
                 <Input type="number" step="0.01" value={s.unit_price} onChange={e => updateSvc(i, 'unit_price', e.target.value)} className="h-8 text-sm" />
               </div>
               <div>
-                <Label className="text-xs text-gray-500">Remise %</Label>
-                <Input type="number" min="0" max="100" step="1" value={s.remise_percent || 0} onChange={e => updateSvc(i, 'remise_percent', parseFloat(e.target.value) || 0)} className="h-8 text-sm" />
+                <Label className="text-xs text-gray-500">Remise</Label>
+                <div className="flex gap-1">
+                  <select 
+                    value={s.remise_type || 'percent'} 
+                    onChange={e => updateSvc(i, 'remise_type', e.target.value)}
+                    className="h-8 text-xs w-12 border border-input rounded-md px-0.5 bg-white focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="percent">%</option>
+                    <option value="amount">€</option>
+                  </select>
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    step={s.remise_type === 'amount' ? '0.01' : '1'}
+                    max={s.remise_type === 'percent' ? '100' : undefined}
+                    value={s.remise_type === 'amount' ? (s.remise_montant || 0) : (s.remise_percent || 0)} 
+                    onChange={e => {
+                      const val = parseFloat(e.target.value) || 0;
+                      if (s.remise_type === 'amount') {
+                        updateSvc(i, 'remise_montant', val);
+                      } else {
+                        updateSvc(i, 'remise_percent', val);
+                      }
+                    }} 
+                    className="h-8 text-sm flex-1" 
+                  />
+                </div>
               </div>
               <div className="flex gap-1">
                 <div className="flex-1">
@@ -212,15 +266,17 @@ const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, opti
     </div>
     {/* Totals */}
     <div className="mt-3 p-3 rounded-lg" style={{ background: optionNum === 1 ? '#eff6ff' : '#fff7ed' }}>
-      <div className="flex justify-between text-sm mb-1 text-gray-600">
-        <span>Total HT (avant remises)</span>
-        <span>{totals.total_brut.toFixed(2)} €</span>
-      </div>
       {totals.remise_totale > 0 && (
-        <div className="flex justify-between text-sm mb-1 font-semibold" style={{ color: BRAND_ORANGE }}>
-          <span>Total remises</span>
-          <span>-{totals.remise_totale.toFixed(2)} €</span>
-        </div>
+        <>
+          <div className="flex justify-between text-sm mb-1 text-gray-600">
+            <span>Total TTC (avant remises)</span>
+            <span>{totals.total_brut.toFixed(2)} €</span>
+          </div>
+          <div className="flex justify-between text-sm mb-2 font-semibold" style={{ color: BRAND_ORANGE }}>
+            <span>Total remises</span>
+            <span>-{totals.remise_totale.toFixed(2)} €</span>
+          </div>
+        </>
       )}
       <div className="flex justify-between font-bold text-lg pt-1 border-t" style={{ borderColor: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE, color: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE }}>
         <span>Total Option {optionNum} (TTC)</span><span>{totals.total_net.toFixed(2)} €</span>
@@ -529,10 +585,15 @@ const QuoteForm = () => {
       return sum + lineTotal;
     }, 0);
     
-    // Calculer le total des remises de lignes
+    // Calculer le total des remises de lignes (% ou montant fixe)
     const remisesLignes = formData.services.reduce((sum, s) => {
       const lineTotal = (s.quantity || 0) * (s.unit_price || 0);
-      const lineRemise = lineTotal * ((s.remise_percent || 0) / 100);
+      let lineRemise = 0;
+      if (s.remise_type === 'amount') {
+        lineRemise = s.remise_montant || 0;
+      } else {
+        lineRemise = lineTotal * ((s.remise_percent || 0) / 100);
+      }
       return sum + lineRemise;
     }, 0);
     
@@ -903,36 +964,112 @@ const QuoteForm = () => {
                     Ajouter une Option 3
                   </Button>
                 ) : (
-                  <ServicesSection
-                    services={formData.option_3_services}
-                    updateSvc={updateService3}
-                    removeSvc={removeService3}
-                    addSvc={addService3}
-                    openCat={() => openCatalog('option3')}
-                    optionNum={3}
-                    totals={totals3}
-                    remiseType={formData.option_3_remise_type}
-                    remisePercent={formData.option_3_remise_percent}
-                    remiseMontant={formData.option_3_remise_montant}
-                    onRemiseTypeChange={(t) => { updateField('option_3_remise_type', t); if(t === 'percent') updateField('option_3_remise_montant', 0); else updateField('option_3_remise_percent', 0); }}
-                    onRemisePercentChange={(v) => updateField('option_3_remise_percent', v)}
-                    onRemiseMontantChange={(v) => updateField('option_3_remise_montant', v)}
-                    optionTitle={formData.option_3_title}
-                    onTitleChange={(v) => updateField('option_3_title', v)}
-                    moveSvcUp={moveService3Up}
-                    moveSvcDown={moveService3Down}
-                  />
+                  <>
+                    <ServicesSection
+                      services={formData.option_3_services}
+                      updateSvc={updateService3}
+                      removeSvc={removeService3}
+                      addSvc={addService3}
+                      openCat={() => openCatalog('option3')}
+                      optionNum={3}
+                      totals={totals3}
+                      remiseType={formData.option_3_remise_type}
+                      remisePercent={formData.option_3_remise_percent}
+                      remiseMontant={formData.option_3_remise_montant}
+                      onRemiseTypeChange={(t) => { updateField('option_3_remise_type', t); if(t === 'percent') updateField('option_3_remise_montant', 0); else updateField('option_3_remise_percent', 0); }}
+                      onRemisePercentChange={(v) => updateField('option_3_remise_percent', v)}
+                      onRemiseMontantChange={(v) => updateField('option_3_remise_montant', v)}
+                      optionTitle={formData.option_3_title}
+                      onTitleChange={(v) => updateField('option_3_title', v)}
+                      moveSvcUp={moveService3Up}
+                      moveSvcDown={moveService3Down}
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="w-full h-9 text-red-600 border-red-300 hover:bg-red-50 text-sm"
+                      onClick={() => {
+                        if (window.confirm('Supprimer l\'option 3 ?')) {
+                          setHasOption3(false);
+                          updateField('option_3_services', []);
+                          updateField('option_3_title', '');
+                        }
+                      }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                      Supprimer l'option 3
+                    </Button>
+                  </>
                 )}
                 
                 <Button 
                   type="button" 
-                  variant="ghost" 
-                  className="w-full text-red-500 hover:bg-red-50"
-                  onClick={() => { setHasOption2(false); setHasOption3(false); updateField('option_2_services', []); updateField('option_3_services', []); }}
-                  data-testid="remove-option-2-btn"
+                  variant="outline" 
+                  className="w-full h-9 text-red-600 border-red-300 hover:bg-red-50 text-sm"
+                  onClick={() => {
+                    if (window.confirm('Supprimer l\'option 2 ?')) {
+                      setHasOption2(false);
+                      updateField('option_2_services', []);
+                      updateField('option_2_title', '');
+                    }
+                  }}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Supprimer les options supplémentaires
+                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                  Supprimer l'option 2
+                </Button>
+              </>
+            )}
+
+            {/* Toggle Option 3 standalone */}
+            {!hasOption2 && !hasOption3 && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full h-12 border-dashed border-2"
+                style={{ borderColor: '#d97706', color: '#d97706' }}
+                onClick={() => setHasOption3(true)}
+                data-testid="add-standalone-option-3-btn"
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Ajouter une Option 3 (alternative)
+              </Button>
+            )}
+
+            {!hasOption2 && hasOption3 && (
+              <>
+                <ServicesSection
+                  services={formData.option_3_services}
+                  updateSvc={updateService3}
+                  removeSvc={removeService3}
+                  addSvc={addService3}
+                  openCat={() => openCatalog('option3')}
+                  optionNum={3}
+                  totals={totals3}
+                  remiseType={formData.option_3_remise_type}
+                  remisePercent={formData.option_3_remise_percent}
+                  remiseMontant={formData.option_3_remise_montant}
+                  onRemiseTypeChange={(t) => { updateField('option_3_remise_type', t); if(t === 'percent') updateField('option_3_remise_montant', 0); else updateField('option_3_remise_percent', 0); }}
+                  onRemisePercentChange={(v) => updateField('option_3_remise_percent', v)}
+                  onRemiseMontantChange={(v) => updateField('option_3_remise_montant', v)}
+                  optionTitle={formData.option_3_title}
+                  onTitleChange={(v) => updateField('option_3_title', v)}
+                  moveSvcUp={moveService3Up}
+                  moveSvcDown={moveService3Down}
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="w-full h-9 text-red-600 border-red-300 hover:bg-red-50 text-sm"
+                  onClick={() => {
+                    if (window.confirm('Supprimer l\'option 3 ?')) {
+                      setHasOption3(false);
+                      updateField('option_3_services', []);
+                      updateField('option_3_title', '');
+                    }
+                  }}
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                  Supprimer l'option 3
                 </Button>
               </>
             )}

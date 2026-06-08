@@ -66,7 +66,7 @@ const Dashboard = () => {
       <div style={{ background: darkMode ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #ea580c 100%)' : 'linear-gradient(135deg, #1e40af 0%, #3b82f6 60%, #f97316 100%)' }} className="text-white">
         <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8 flex items-center justify-between">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Tableau de bord v2.7</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Tableau de bord v2.8</h1>
             <p className="text-xs sm:text-sm text-white/60">Gestion devis & factures</p>
           </div>
           <button
