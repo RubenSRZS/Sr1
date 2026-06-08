@@ -266,7 +266,7 @@ const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, opti
     </div>
     {/* Totals */}
     <div className="mt-3 p-3 rounded-lg" style={{ background: optionNum === 1 ? '#eff6ff' : '#fff7ed' }}>
-      {totals.remise_totale > 0 && (
+      {(totals.remise_totale > 0 || totals.remises_lignes > 0 || totals.remise_globale > 0) && (
         <>
           <div className="flex justify-between text-sm mb-1 text-gray-600">
             <span>Total TTC (avant remises)</span>
