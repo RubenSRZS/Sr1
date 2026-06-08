@@ -441,6 +441,10 @@ const QuoteForm = () => {
         setHasOption3(has3);
         setFormData({
           client_id: q.client_id,
+          client_name: q.client_name || '',
+          client_email: q.client_email || '',
+          client_phone: q.client_phone || '',
+          client_address: q.client_address || '',
           custom_quote_number: q.quote_number || '',
           quote_title: q.quote_title || '',
           work_location: q.work_location,
