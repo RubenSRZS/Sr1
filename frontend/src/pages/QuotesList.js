@@ -101,6 +101,8 @@ const QuotesList = () => {
       fetchQuotes();
     } catch { toast.error('Erreur restauration'); }
   };
+
+  const handleMarkLost = async (e, quote) => {
     e.stopPropagation();
     if (!window.confirm(`Marquer le devis ${quote.quote_number} comme perdu ?`)) return;
     try {
