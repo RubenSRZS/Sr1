@@ -64,6 +64,129 @@ DEFAULT_RELANCE_TEMPLATES = {
 
 def build_relance_html(body_html: str, public_link: str, relance_day: int,
                        quote_number: str = "", total_net: str = "", work_location: str = "") -> str:
+    wa_link = "https://wa.me/33680334546"
+    tel_link = "tel:0680334546"
+    mail_link = "mailto:SrRenovation03@gmail.com"
+
+    quote_card = ""
+    if quote_number or total_net or work_location:
+        quote_card = f"""
+<tr><td style="padding:0 28px 20px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr><td style="border-left:4px solid #f97316;background:#fff7ed;border-radius:0 8px 8px 0;padding:12px 16px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td style="font-size:12px;color:#9a3412;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Devis en attente de signature</td>
+      <td align="right" style="font-size:20px;font-weight:800;color:#ea580c;white-space:nowrap;">{total_net}&nbsp;€</td>
+    </tr>
+    <tr>
+      <td colspan="2" style="font-size:13px;font-weight:700;color:#1c1917;padding-top:2px;">{quote_number}{("&nbsp;·&nbsp;" + work_location) if work_location else ""}</td>
+    </tr>
+    </table>
+  </td></tr>
+  </table>
+</td></tr>"""
+
+    return f"""<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:'Inter',Arial,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f3f4f6">
+<tr><td align="center" style="padding:20px 12px 28px;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:580px;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10);">
+
+  <!-- HEADER — gradient site exact -->
+  <tr><td style="background:linear-gradient(to right,#2563eb,#f97316);padding:20px 28px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td>
+        <p style="margin:0;font-size:20px;font-weight:800;color:#fff;letter-spacing:0.5px;">SR Rénovation</p>
+        <p style="margin:3px 0 0;font-size:11px;color:rgba(255,255,255,0.75);">Toiture &bull; Façade &bull; Zinguerie &bull; Jura (39)</p>
+      </td>
+      <td align="right">
+        <a href="{tel_link}" style="display:inline-block;background:rgba(255,255,255,0.2);color:#fff;text-decoration:none;font-size:12px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.3);">06 80 33 45 46</a>
+      </td>
+    </tr>
+    </table>
+  </td></tr>
+
+  <!-- BODY — fond blanc -->
+  <tr><td style="background:#ffffff;padding:28px 28px 8px;">
+
+    <!-- Message -->
+    <p style="margin:0 0 20px;color:#1f2937;font-size:15px;line-height:1.8;">{body_html}</p>
+
+  </td></tr>
+
+  <!-- QUOTE CARD -->
+  {quote_card}
+
+  <!-- PRIMARY CTA -->
+  <tr><td style="background:#fff;padding:0 28px 20px;text-align:center;">
+    <a href="{public_link}" style="display:inline-block;background:linear-gradient(to right,#f97316,#ea580c);color:#fff;text-decoration:none;padding:14px 40px;border-radius:8px;font-size:15px;font-weight:700;">
+      Voir mon devis &rarr;
+    </a>
+  </td></tr>
+
+  <!-- DIVIDER -->
+  <tr><td style="background:#fff;padding:0 28px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td style="border-top:1px solid #e5e7eb;"></td>
+      <td style="padding:0 10px;white-space:nowrap;font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Me contacter directement</td>
+      <td style="border-top:1px solid #e5e7eb;"></td>
+    </tr>
+    </table>
+  </td></tr>
+
+  <!-- 3 BOUTONS — style site -->
+  <tr><td style="background:#fff;padding:12px 28px 28px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td width="32%" align="center" style="padding-right:5px;">
+        <a href="{tel_link}" style="display:block;border:2px solid #2563eb;color:#2563eb;text-decoration:none;padding:10px 0;border-radius:8px;font-size:13px;font-weight:700;text-align:center;">Appeler</a>
+      </td>
+      <td width="36%" align="center" style="padding:0 2px;">
+        <a href="{wa_link}" style="display:block;background:linear-gradient(to right,#22c55e,#16a34a);color:#fff;text-decoration:none;padding:10px 0;border-radius:8px;font-size:13px;font-weight:700;text-align:center;">WhatsApp</a>
+      </td>
+      <td width="32%" align="center" style="padding-left:5px;">
+        <a href="{mail_link}" style="display:block;border:2px solid #e5e7eb;color:#6b7280;text-decoration:none;padding:10px 0;border-radius:8px;font-size:13px;font-weight:700;text-align:center;">Email</a>
+      </td>
+    </tr>
+    </table>
+  </td></tr>
+
+  <!-- FOOTER — gradient site -->
+  <tr><td style="background:linear-gradient(to right,#2563eb,#f97316);padding:14px 28px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td style="text-align:center;color:#fff;font-size:10px;font-weight:700;">Entreprise<br><span style="font-weight:400;opacity:0.8;">locale française</span></td>
+      <td style="text-align:center;color:#fff;font-size:10px;font-weight:700;">10 ans<br><span style="font-weight:400;opacity:0.8;">d&apos;expérience</span></td>
+      <td style="text-align:center;color:#fff;font-size:10px;font-weight:700;">+500<br><span style="font-weight:400;opacity:0.8;">chantiers</span></td>
+      <td style="text-align:center;color:#fff;font-size:10px;font-weight:700;">Intervention<br><span style="font-weight:400;opacity:0.8;">rapide</span></td>
+    </tr>
+    </table>
+  </td></tr>
+
+  <!-- BOTTOM LINK -->
+  <tr><td style="background:#f9fafb;padding:12px 28px;text-align:center;border-top:1px solid #e5e7eb;">
+    <p style="margin:0;font-size:11px;color:#9ca3af;">
+      <a href="{tel_link}" style="color:#6b7280;text-decoration:none;">06 80 33 45 46</a>
+      &nbsp;&bull;&nbsp;
+      <a href="{mail_link}" style="color:#6b7280;text-decoration:none;">SrRenovation03@gmail.com</a>
+      &nbsp;&bull;&nbsp;
+      <a href="https://sr-renovation.fr" style="color:#6b7280;text-decoration:none;">sr-renovation.fr</a>
+    </p>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>"""
     badge_labels = {3: "1er rappel", 7: "2ème rappel", 14: "3ème rappel", 30: "Dernière chance"}
     badge = badge_labels.get(relance_day, f"Relance J+{relance_day}")
     wa_link = "https://wa.me/33680334546"
@@ -1559,7 +1682,7 @@ async def trigger_relances_now():
 async def send_preview_emails(body: dict = Body(...)):
     """Envoie les 4 templates de relance en aperçu à l'adresse spécifiée."""
     to_email = body.get("email", "rubensrzs03@gmail.com")
-    base_url = os.environ.get("PUBLIC_APP_URL", "https://quote-v3-release.preview.emergentagent.com")
+    base_url = os.environ.get("PUBLIC_APP_URL", "https://email-design-test.preview.emergentagent.com")
     public_link = f"{base_url}/devis/public/preview"
     fmt = dict(quote_number="D-2025-042", client_name="Ruben Suarez", total_net="3 250.00", work_location="Votre chantier test")
     sent = []
@@ -1587,7 +1710,7 @@ async def send_single_preview(day: int, body: dict = Body(...)):
     if day not in [3, 7, 14, 30]:
         raise HTTPException(status_code=400, detail="Jour invalide")
     to_email = body.get("email", "rubensrzs03@gmail.com")
-    base_url = os.environ.get("PUBLIC_APP_URL", "https://quote-v3-release.preview.emergentagent.com")
+    base_url = os.environ.get("PUBLIC_APP_URL", "https://email-design-test.preview.emergentagent.com")
     public_link = f"{base_url}/devis/public/preview"
     fmt = dict(quote_number="D-2025-042", client_name="Ruben Suarez", total_net="3 250.00", work_location="Votre chantier test")
     tmpl = await db.relance_templates.find_one({"day": day}, {"_id": 0})

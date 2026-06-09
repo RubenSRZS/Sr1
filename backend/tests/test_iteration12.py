@@ -15,7 +15,7 @@ import requests
 import os
 import re
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://quote-v3-release.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://email-design-test.preview.emergentagent.com').rstrip('/')
 PUBLIC_TOKEN = "tM8t9k-StPu8nM8KVvJqjwunRjap8D5ldAIOlZKWnAc"
 
 # ==================== API TESTS ====================
