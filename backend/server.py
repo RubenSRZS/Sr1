@@ -68,344 +68,84 @@ def build_relance_html(body_html: str, public_link: str, relance_day: int,
     tel_link = "tel:0680334546"
     mail_link = "mailto:SrRenovation03@gmail.com"
 
-    quote_card = ""
+    quote_info = ""
     if quote_number or total_net or work_location:
-        quote_card = f"""
-<tr><td style="padding:0 28px 20px;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr><td style="border-left:4px solid #f97316;background:#fff7ed;border-radius:0 8px 8px 0;padding:12px 16px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr>
-      <td style="font-size:12px;color:#9a3412;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Devis en attente de signature</td>
-      <td align="right" style="font-size:20px;font-weight:800;color:#ea580c;white-space:nowrap;">{total_net}&nbsp;€</td>
-    </tr>
-    <tr>
-      <td colspan="2" style="font-size:13px;font-weight:700;color:#1c1917;padding-top:2px;">{quote_number}{("&nbsp;·&nbsp;" + work_location) if work_location else ""}</td>
-    </tr>
-    </table>
-  </td></tr>
-  </table>
-</td></tr>"""
-
-    return f"""<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-</head>
-<body style="margin:0;padding:0;background:#f3f4f6;font-family:'Inter',Arial,sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f3f4f6">
-<tr><td align="center" style="padding:20px 12px 28px;">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:580px;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10);">
-
-  <!-- HEADER — gradient site exact -->
-  <tr><td style="background:linear-gradient(to right,#2563eb,#f97316);padding:20px 28px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr>
-      <td>
-        <p style="margin:0;font-size:20px;font-weight:800;color:#fff;letter-spacing:0.5px;">SR Rénovation</p>
-        <p style="margin:3px 0 0;font-size:11px;color:rgba(255,255,255,0.75);">Nettoyage Toiture &amp; Habitat</p>
-      </td>
-      <td align="right">
-        <a href="{tel_link}" style="display:inline-block;background:rgba(255,255,255,0.2);color:#fff;text-decoration:none;font-size:12px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.3);">06 80 33 45 46</a>
-      </td>
-    </tr>
-    </table>
-  </td></tr>
-
-  <!-- BODY — fond blanc -->
-  <tr><td style="background:#ffffff;padding:28px 28px 8px;">
-
-    <!-- Message -->
-    <p style="margin:0 0 20px;color:#1f2937;font-size:15px;line-height:1.8;">{body_html}</p>
-
-  </td></tr>
-
-  <!-- QUOTE CARD -->
-  {quote_card}
-
-  <!-- PRIMARY CTA -->
-  <tr><td style="background:#fff;padding:0 28px 20px;text-align:center;">
-    <a href="{public_link}" style="display:inline-block;background:linear-gradient(to right,#f97316,#ea580c);color:#fff;text-decoration:none;padding:14px 40px;border-radius:8px;font-size:15px;font-weight:700;">
-      Voir mon devis &rarr;
-    </a>
-  </td></tr>
-
-  <!-- DIVIDER -->
-  <tr><td style="background:#fff;padding:0 28px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr>
-      <td style="border-top:1px solid #e5e7eb;"></td>
-      <td style="padding:0 10px;white-space:nowrap;font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Me contacter directement</td>
-      <td style="border-top:1px solid #e5e7eb;"></td>
-    </tr>
-    </table>
-  </td></tr>
-
-  <!-- 3 BOUTONS — style site -->
-  <tr><td style="background:#fff;padding:12px 28px 28px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr>
-      <td width="32%" align="center" style="padding-right:5px;">
-        <a href="{tel_link}" style="display:block;border:2px solid #2563eb;color:#2563eb;text-decoration:none;padding:10px 0;border-radius:8px;font-size:13px;font-weight:700;text-align:center;">Appeler</a>
-      </td>
-      <td width="36%" align="center" style="padding:0 2px;">
-        <a href="{wa_link}" style="display:block;background:linear-gradient(to right,#22c55e,#16a34a);color:#fff;text-decoration:none;padding:10px 0;border-radius:8px;font-size:13px;font-weight:700;text-align:center;">WhatsApp</a>
-      </td>
-      <td width="32%" align="center" style="padding-left:5px;">
-        <a href="{mail_link}" style="display:block;border:2px solid #e5e7eb;color:#6b7280;text-decoration:none;padding:10px 0;border-radius:8px;font-size:13px;font-weight:700;text-align:center;">Email</a>
-      </td>
-    </tr>
-    </table>
-  </td></tr>
-
-  <!-- BOTTOM LINK -->
-  <tr><td style="background:#f9fafb;padding:12px 28px;text-align:center;border-top:1px solid #e5e7eb;">
-    <p style="margin:0;font-size:11px;color:#9ca3af;">
-      <a href="{tel_link}" style="color:#6b7280;text-decoration:none;">06 80 33 45 46</a>
-      &nbsp;&bull;&nbsp;
-      <a href="{mail_link}" style="color:#6b7280;text-decoration:none;">SrRenovation03@gmail.com</a>
-      &nbsp;&bull;&nbsp;
-      <a href="https://sr-renovation.fr" style="color:#6b7280;text-decoration:none;">sr-renovation.fr</a>
-    </p>
-  </td></tr>
-
-</table>
-</td></tr>
-</table>
-</body>
-</html>"""
-    badge_labels = {3: "1er rappel", 7: "2ème rappel", 14: "3ème rappel", 30: "Dernière chance"}
-    badge = badge_labels.get(relance_day, f"Relance J+{relance_day}")
-    wa_link = "https://wa.me/33680334546"
-    tel_link = "tel:0680334546"
-    mail_link = "mailto:SrRenovation03@gmail.com"
-
-    quote_card = ""
-    if quote_number or total_net or work_location:
-        quote_card = f"""
-<tr><td style="padding:0 32px 24px;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr><td style="background:#eff6ff;border:1px solid #bfdbfe;border-left:5px solid #1e40af;border-radius:8px;padding:16px 20px;">
-    <p style="margin:0 0 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#3b82f6;">Votre devis en attente de signature</p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr>
-      <td style="font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;color:#1e293b;">{quote_number}{(" &nbsp;·&nbsp; " + work_location) if work_location else ""}</td>
-      <td align="right" style="font-family:'Montserrat',sans-serif;font-size:22px;font-weight:900;color:#1e40af;white-space:nowrap;">{total_net}&nbsp;€</td>
-    </tr>
-    </table>
-  </td></tr>
-  </table>
-</td></tr>"""
-
-    return f"""<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-</head>
-<body style="margin:0;padding:0;background:#f1f5f9;font-family:'Inter',Arial,sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f1f5f9">
-<tr><td align="center" style="padding:20px 12px 28px;">
-
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 20px rgba(0,0,0,0.08);">
-
-  <!-- TOP BAR bleu site -->
-  <tr><td style="background:#1e40af;padding:10px 24px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr>
-      <td style="font-family:'Montserrat',sans-serif;font-size:15px;font-weight:900;color:#fff;letter-spacing:1px;">&#9651;&nbsp;SR RÉNOVATION</td>
-      <td align="right"><a href="{tel_link}" style="color:#fff;text-decoration:none;font-size:12px;font-weight:600;background:rgba(255,255,255,0.15);padding:4px 10px;border-radius:20px;">&#128222;&nbsp;06 80 33 45 46</a></td>
-    </tr>
-    </table>
-  </td></tr>
-
-  <!-- LIGNE ORANGE (comme le site) -->
-  <tr><td style="background:#f97316;height:4px;line-height:4px;font-size:4px;">&nbsp;</td></tr>
-
-  <!-- BADGE RELANCE -->
-  <tr><td style="padding:20px 32px 4px;text-align:center;">
-    <span style="display:inline-block;background:#fff7ed;border:1.5px solid #fed7aa;color:#f97316;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">{badge}</span>
-  </td></tr>
-
-  <!-- QUOTE CARD -->
-  {quote_card}
-
-  <!-- BODY MESSAGE -->
-  <tr><td style="padding:0 32px 28px;">
-    <div style="color:#374151;font-size:15px;line-height:1.85;font-family:'Inter',sans-serif;">{body_html}</div>
-  </td></tr>
-
-  <!-- PRIMARY CTA -->
-  <tr><td style="padding:0 32px 16px;text-align:center;">
-    <a href="{public_link}" style="display:inline-block;background:#f97316;color:#fff;text-decoration:none;padding:15px 48px;border-radius:6px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:15px;letter-spacing:0.3px;">
-      Voir mon devis &rarr;
-    </a>
-  </td></tr>
-
-  <!-- SÉPARATEUR "ou" -->
-  <tr><td style="padding:4px 32px 12px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr>
-      <td style="border-top:1px solid #e5e7eb;width:40%;"></td>
-      <td style="text-align:center;padding:0 10px;font-size:11px;color:#9ca3af;white-space:nowrap;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">ou contactez-moi</td>
-      <td style="border-top:1px solid #e5e7eb;width:40%;"></td>
-    </tr>
-    </table>
-  </td></tr>
-
-  <!-- SECONDARY CTAs (3 boutons) -->
-  <tr><td style="padding:0 32px 32px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr>
-      <td width="32%" align="center" style="padding-right:6px;">
-        <a href="{tel_link}" style="display:block;border:2px solid #1e40af;color:#1e40af;text-decoration:none;padding:10px 4px;border-radius:6px;font-size:13px;font-weight:700;text-align:center;font-family:'Montserrat',sans-serif;">&#128222; Appeler</a>
-      </td>
-      <td width="36%" align="center" style="padding:0 3px;">
-        <a href="{wa_link}" style="display:block;background:#25d366;color:#fff;text-decoration:none;padding:10px 4px;border-radius:6px;font-size:13px;font-weight:700;text-align:center;font-family:'Montserrat',sans-serif;">&#128172; WhatsApp</a>
-      </td>
-      <td width="32%" align="center" style="padding-left:6px;">
-        <a href="{mail_link}" style="display:block;border:2px solid #e5e7eb;color:#6b7280;text-decoration:none;padding:10px 4px;border-radius:6px;font-size:13px;font-weight:700;text-align:center;font-family:'Montserrat',sans-serif;">&#9993; Email</a>
-      </td>
-    </tr>
-    </table>
-  </td></tr>
-
-  <!-- BARRE STATS bleu→orange (comme le site) -->
-  <tr><td style="background:linear-gradient(90deg,#1e40af 0%,#3b82f6 50%,#f97316 100%);padding:14px 20px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr>
-      <td style="color:#fff;text-align:center;font-size:10px;font-weight:700;font-family:'Montserrat',sans-serif;padding:0 2px;">&#128205;<br>Artisan local<br><span style="font-weight:400;opacity:0.8;">Jura (39)</span></td>
-      <td style="color:#fff;text-align:center;font-size:10px;font-weight:700;font-family:'Montserrat',sans-serif;padding:0 2px;">&#10004;<br>RC-PRO<br><span style="font-weight:400;opacity:0.8;">Assuré</span></td>
-      <td style="color:#fff;text-align:center;font-size:10px;font-weight:700;font-family:'Montserrat',sans-serif;padding:0 2px;">&#9889;<br>Intervention<br><span style="font-weight:400;opacity:0.8;">Rapide</span></td>
-      <td style="color:#fff;text-align:center;font-size:10px;font-weight:700;font-family:'Montserrat',sans-serif;padding:0 2px;">&#128203;<br>Devis<br><span style="font-weight:400;opacity:0.8;">Sous 24h</span></td>
-    </tr>
-    </table>
-  </td></tr>
-
-  <!-- FOOTER -->
-  <tr><td style="padding:16px 24px;text-align:center;background:#f8fafc;border-top:1px solid #e5e7eb;">
-    <p style="margin:0 0 4px;font-size:12px;color:#64748b;">
-      <a href="{tel_link}" style="color:#1e40af;text-decoration:none;font-weight:600;">06 80 33 45 46</a>
-      &nbsp;&bull;&nbsp;
-      <a href="{mail_link}" style="color:#1e40af;text-decoration:none;font-weight:600;">SrRenovation03@gmail.com</a>
-      &nbsp;&bull;&nbsp;
-      <a href="https://sr-renovation.fr" style="color:#1e40af;text-decoration:none;font-weight:600;">sr-renovation.fr</a>
-    </p>
-    <p style="margin:0;font-size:11px;color:#94a3b8;">SR Rénovation &mdash; Toiture &middot; Fa&ccedil;ade &middot; Zinguerie &middot; Sols &amp; Ext&eacute;rieurs</p>
-  </td></tr>
-
-</table>
-</td></tr>
-</table>
-</body>
-</html>"""
-    badge_labels = {3: "1er rappel", 7: "2ème rappel", 14: "3ème rappel", 30: "Dernier rappel"}
-    badge = badge_labels.get(relance_day, f"Relance J+{relance_day}")
-    wa_link = "https://wa.me/33680334546"
-    tel_link = "tel:0680334546"
-    mail_link = "mailto:SrRenovation03@gmail.com"
-
-    quote_card = ""
-    if quote_number or total_net or work_location:
-        quote_card = f"""
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;">
-<tr><td style="background:#f8faff;border:1px solid #dbeafe;border-left:4px solid #3b82f6;border-radius:10px;padding:14px 18px;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr>
-    <td style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Votre devis en attente</td>
-    <td align="right" style="font-size:20px;font-weight:800;color:#1e40af;">{total_net} €</td>
-  </tr>
-  <tr>
-    <td colspan="2" style="padding-top:4px;font-size:13px;color:#374151;">
-      <span style="font-weight:700;color:#1e40af;">{quote_number}</span>
-      {"&nbsp;·&nbsp;" + work_location if work_location else ""}
-    </td>
-  </tr>
-  </table>
-</td></tr>
-</table>"""
+        parts = []
+        if quote_number:
+            parts.append(quote_number)
+        if work_location:
+            parts.append(work_location)
+        label = " &nbsp;&middot;&nbsp; ".join(parts)
+        quote_info = f"""
+<p style="margin:0 0 20px;color:#475569;font-size:13px;border-left:3px solid #3b82f6;padding-left:12px;line-height:1.7;">
+  {label}{(f'<br><strong style="color:#1e293b;font-size:15px;">{total_net}&nbsp;€</strong>') if total_net else ""}
+</p>"""
 
     return f"""<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<title>SR Rénovation</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+<title>Devis SR R&eacute;novation</title>
 </head>
-<body style="margin:0;padding:0;background:#f1f5f9;font-family:'Inter',Arial,sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f1f5f9">
-<tr><td align="center" style="padding:24px 12px 32px;">
+<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:'Segoe UI',Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f5;">
+<tr><td align="center" style="padding:24px 12px;">
 
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
+<!-- Main container -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:580px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
 
-    <!-- HEADER -->
-    <tr><td style="background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 50%,#1d4ed8 100%);border-radius:16px 16px 0 0;padding:32px 36px 28px;text-align:center;">
-      <p style="margin:0 0 6px;font-family:'Montserrat',sans-serif;font-size:28px;font-weight:900;color:#ffffff;letter-spacing:1.5px;text-transform:uppercase;">SR Rénovation</p>
-      <p style="margin:0 0 14px;font-size:12px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;">Toiture · Façade · Zinguerie</p>
-      <span style="display:inline-block;background:rgba(249,115,22,0.9);color:#fff;font-size:11px;font-weight:700;padding:5px 16px;border-radius:20px;letter-spacing:0.5px;">{badge}</span>
-    </td></tr>
+<!-- Header with gradient -->
+<tr><td style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 40%,#f97316 100%);padding:36px 28px;text-align:center;">
+  <h1 style="color:#ffffff;margin:0;font-size:26px;font-weight:800;letter-spacing:1px;font-family:'Montserrat',sans-serif;">SR RÉNOVATION</h1>
+  <p style="color:rgba(255,255,255,0.9);margin:6px 0 0;font-size:13px;font-weight:500;line-height:1.5;">Nettoyage Toiture &amp; Habitat</p>
+</td></tr>
 
-    <!-- BODY -->
-    <tr><td style="background:#ffffff;padding:36px 36px 28px;">
-      {quote_card}
-      <p style="color:#1e293b;font-size:15px;line-height:1.9;margin:0 0 28px;font-family:'Inter',sans-serif;">{body_html}</p>
+<!-- Body -->
+<tr><td style="padding:32px 28px 24px;">
+  {quote_info}
+  <p style="color:#1e293b;font-size:15px;line-height:1.75;margin:0 0 24px;">{body_html}</p>
 
-      <!-- PRIMARY CTA -->
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
-      <tr><td align="center">
-        <a href="{public_link}" style="display:inline-block;background:linear-gradient(135deg,#f97316,#ea580c);color:#ffffff;text-decoration:none;padding:16px 44px;border-radius:50px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:16px;letter-spacing:0.3px;box-shadow:0 4px 15px rgba(249,115,22,0.35);">
-          Voir mon devis &rarr;
-        </a>
-      </td></tr>
-      </table>
-
-      <!-- DIVIDER -->
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0;">
-      <tr>
-        <td style="border-top:1px solid #e2e8f0;"></td>
-        <td style="padding:0 12px;font-size:11px;color:#94a3b8;white-space:nowrap;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Ou contactez-moi directement</td>
-        <td style="border-top:1px solid #e2e8f0;"></td>
-      </tr>
-      </table>
-
-      <!-- SECONDARY CTAs -->
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td width="33%" style="padding:0 5px 0 0;" align="center">
-          <a href="{tel_link}" style="display:block;background:#f0fdf4;border:1.5px solid #bbf7d0;color:#15803d;text-decoration:none;padding:12px 8px;border-radius:12px;font-size:13px;font-weight:700;text-align:center;">
-            &#128222; Appeler
-          </a>
-        </td>
-        <td width="33%" style="padding:0 2px;" align="center">
-          <a href="{wa_link}" style="display:block;background:#f0fdf4;border:1.5px solid #bbf7d0;color:#15803d;text-decoration:none;padding:12px 8px;border-radius:12px;font-size:13px;font-weight:700;text-align:center;">
-            &#128172; WhatsApp
-          </a>
-        </td>
-        <td width="33%" style="padding:0 0 0 5px;" align="center">
-          <a href="{mail_link}" style="display:block;background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;text-decoration:none;padding:12px 8px;border-radius:12px;font-size:13px;font-weight:700;text-align:center;">
-            &#9993; R&eacute;pondre
-          </a>
-        </td>
-      </tr>
-      </table>
-    </td></tr>
-
-    <!-- FOOTER -->
-    <tr><td style="background:#0f172a;border-radius:0 0 16px 16px;padding:24px 36px;text-align:center;">
-      <p style="color:#f8fafc;font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;margin:0 0 6px;">Ruben Suarez &mdash; SR R&eacute;novation</p>
-      <p style="color:#64748b;font-size:12px;margin:0 0 14px;line-height:1.8;">
-        <a href="{tel_link}" style="color:#94a3b8;text-decoration:none;">06 80 33 45 46</a>
-        &nbsp;&bull;&nbsp;
-        <a href="{mail_link}" style="color:#94a3b8;text-decoration:none;">SrRenovation03@gmail.com</a>
-        &nbsp;&bull;&nbsp;
-        <a href="https://sr-renovation.fr" style="color:#94a3b8;text-decoration:none;">sr-renovation.fr</a>
-      </p>
-      <p style="color:#334155;font-size:11px;margin:0;">Jura (39) &mdash; Toiture &middot; Fa&ccedil;ade &middot; Zinguerie &middot; Sols &amp; Ext&eacute;rieurs</p>
-    </td></tr>
-
+  <!-- CTA Button -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr><td align="center" style="padding:8px 0 24px;">
+    <a href="{public_link}" target="_blank" style="display:inline-block;background-color:#F9A825;color:#ffffff;text-decoration:none;padding:16px 48px;border-radius:50px;font-weight:700;font-size:16px;letter-spacing:0.3px;text-align:center;font-family:'Segoe UI',Arial,sans-serif;">
+      Consulter mon devis
+    </a>
+  </td></tr>
   </table>
+
+  <p style="color:#475569;font-size:13px;text-align:center;margin:0;line-height:1.6;">
+    Ce lien vous permet de consulter votre devis,<br>le t&eacute;l&eacute;charger et le signer &eacute;lectroniquement.
+  </p>
+</td></tr>
+
+<!-- Divider -->
+<tr><td style="padding:0 28px;"><div style="border-top:1px solid #e5e7eb;"></div></td></tr>
+
+<!-- Footer signature -->
+<tr><td style="padding:24px 28px 28px;text-align:center;">
+  <p style="color:#1e293b;font-size:16px;font-weight:700;margin:0 0 14px;font-family:Georgia,'Times New Roman',serif;">SR R&eacute;novation</p>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+    <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
+      &#9742; 06 80 33 45 46
+    </td></tr>
+    <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
+      &#9993; <a href="mailto:SrRenovation03@gmail.com" style="color:#3b82f6;text-decoration:none;">SrRenovation03@gmail.com</a>
+    </td></tr>
+    <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
+      &#127968; Jura (39) &mdash; Artisan local
+    </td></tr>
+    <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
+      &#127760; <a href="https://sr-renovation.fr" style="color:#3b82f6;text-decoration:none;">sr-renovation.fr</a>
+    </td></tr>
+  </table>
+</td></tr>
+
+</table>
+<!-- End main container -->
+
 </td></tr>
 </table>
 </body>
