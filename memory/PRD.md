@@ -60,6 +60,13 @@ Application web pour créer des devis et factures professionnels et personnalis�
 - **Réorganisation du catalogue**: Les catégories sont maintenant triées dans l'ordre défini (TOITURE → FAÇADE → ZINGUERIE & HABILLAGE → SOLS & EXTÉRIEURS → Autres). Avant, l'ordre était aléatoire (ZINGUERIE apparaissait en premier).
 - **Barre de recherche dans le catalogue**: Champ de recherche en haut de la boîte de dialogue pour filtrer en temps réel par nom ou description de prestation. Auto-focus, message "aucun résultat" si rien ne correspond.
 
+## Implémenté le 09/06/2026 (session 3)
+- **Correctif remises sur prestations (PDFPreview + QuoteForm)**: 
+  - Indicateur de remise sur les lignes de service: affiche maintenant `(-100.00 €)` ou `(-10%)` selon le type
+  - TotalsSection PDF: affiche désormais "Total avant remises" + "Remise: -X€" quand remise_totale > 0 (utilise remise_totale = lignes + globale, avant on n'utilisait que la remise globale)
+  - previewDoc des options dynamiques: inclut maintenant remise_totale correctement
+  - Test: 6/6 scénarios PASS (remise €, remise %, sans remise, aperçu PDF, indicateurs lignes)
+
 ## Backlog priorisé
 
 ### P0 — À confirmer avec l'utilisateur
