@@ -1,0 +1,48 @@
+{
+  "summary": "Tested line-level discount (remise) functionality in SR Rénovation QuoteForm. All 5 required scenarios verified: (1) amount discount 100€ on qty=2 x 500€ service → line total 900€, form totals show 'Total TTC (avant remises): 1000€' / 'Total remises: -100€' / 'Total Option 1: 900€', PDF preview shows (-100.00 €) indicator on service row and 'Total avant remises: 1000€' / 'Remise: -100€' / 'TOTAL NET (TTC): 900€'. (2) Percent discount 10% on same service → line total 900€, PDF shows (-10%) indicator with same correct totals. (3) No discount → total displays normally without 'Total avant remises' section in form or PDF. All 3 scenarios PASS.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "TEST_1_amount_discount_line_total": "PASS — qty=2 x 500 - 100 = 900.00 ✓",
+    "TEST_2_form_totals_with_amount_discount": "PASS — 'Total TTC (avant remises): 1000.00 €', 'Total remises: -100.00 €', 'Total Option 1 (TTC): 900.00 €' all shown correctly",
+    "TEST_3_pdf_preview_service_row_indicator_amount": "PASS — '(-100.00 €)' indicator shown on service row in PDF preview",
+    "TEST_4_pdf_preview_totals_section_amount_discount": "PASS — 'Total avant remises: 1000.00 €', 'Remise: -100.00 €', 'TOTAL NET (TTC): 900.00 €' shown in PDF preview",
+    "TEST_5_percent_discount_10pct": "PASS — line total 900.00, PDF shows (-10%) indicator on service row, totals show 'Total avant remises: 1000.00 €', 'Remise: -100.00 €', 'TOTAL NET (TTC): 900.00 €'",
+    "TEST_6_no_discount_normal_display": "PASS — no 'Total avant remises' shown in form or PDF, 'TOTAL NET (TTC): 1000.00 €' displayed correctly"
+  },
+  "features_verified": [
+    "✓ updateService() correctly recalculates s[i].total = qty*price - remise (amount or %) in real time",
+    "✓ totals1 useMemo: total_brut = gross before line discounts, remises_lignes = sum of line discounts, remise_totale = remisesLignes + remiseGlobale, all passed to previewDoc via ...totals1 spread",
+    "✓ PDFPreview.js ServicesTable: remise_type='amount' → shows (-100.00 €); remise_type='percent' → shows (-10%)",
+    "✓ PDFPreview.js TotalsSection: effectiveRemise = remiseTotale (when defined) correctly uses line discounts; 'Total avant remises' + 'Remise' row shown when effectiveRemise > 0",
+    "✓ TotalsSection: No 'Total avant remises' section when effectiveRemise = 0 (no discount scenario)",
+    "✓ QuoteForm form totals: 'Total TTC (avant remises)' and 'Total remises' shown only when remise_totale > 0",
+    "✓ previewDoc spread ...totals1 correctly passes remise_totale and total_brut to PDF renderer"
+  ],
+  "test_report_links": ["/app/test_reports/iteration_14.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "All discount features working correctly. No issues found.",
+    "Note from iteration_13: QuoteForm.js is 1284 lines — exceeds 700-line guideline. Future refactor into ServiceRow, TotalsDisplay, ProfileSelector sub-components would improve maintainability.",
+    "Note: When switching remise_type from 'percent' to 'amount' in the select, the remise_montant resets to 0 on mobile layout (line 98) but desktop layout (line 178) does not reset — minor inconsistency but no functional impact since the visible inputs are the desktop ones."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend-only testing)",
+    "frontend": "100% (6/6 test scenarios PASS)"
+  },
+  "test_credentials": {
+    "pin": "0330"
+  },
+  "seed_data_creation": "None — no data saved (form tested without submitting to avoid test data in production DB)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iteration 14: ALL line-level remise scenarios verified. Amount (€) and percent (%) discounts working end-to-end in form AND PDF preview. Key selectors: service-row-1-0 contains 7 inputs (0-2 hidden mobile, 3=qty visible, 4=unit_price visible, 5=discount visible, 6=readOnly total visible) and 4 selects (0-1 hidden mobile, 2=unit visible, 3=remise_type visible). Test flow: PIN 0330 → /quotes/new → add service → set qty/price → change remise_type select to 'amount' or leave 'percent' → set discount value → verify Total input + form totals section + PDF preview text. No discrepancies found between QuoteForm totals and PDFPreview rendering."
+}

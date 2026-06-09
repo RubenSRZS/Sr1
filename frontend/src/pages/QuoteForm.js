@@ -686,7 +686,7 @@ const QuoteForm = () => {
         return {
           title: o.title || '', services: o.services,
           remise_type: o.remise_type, remise_percent: o.remise_percent, remise_montant: o.remise_montant,
-          total_brut: t.total_brut, remise: t.remise, total_net: t.total_net, acompte_30: t.acompte_30,
+          total_brut: t.total_brut, remise: t.remise, remise_totale: t.remise_totale, total_net: t.total_net, acompte_30: t.acompte_30,
         };
       });
 

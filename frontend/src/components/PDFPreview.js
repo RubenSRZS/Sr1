@@ -125,7 +125,10 @@ const ServicesTable = ({ services, title, compact, showLineNumbers = true }) => 
             )}
             <td style={{ padding: '6px 8px', color: '#374151', verticalAlign: 'top', whiteSpace: 'pre-line' }}>
               {s.description || '—'}
-              {Number(s.remise_percent || 0) > 0 && <span style={{ marginLeft: '4px', fontSize: '9px', color: BRAND_ORANGE }}>(-{s.remise_percent}%)</span>}
+              {s.remise_type === 'amount' && Number(s.remise_montant || 0) > 0
+                ? <span style={{ marginLeft: '4px', fontSize: '9px', color: BRAND_ORANGE }}>(-{Number(s.remise_montant).toFixed(2)} €)</span>
+                : Number(s.remise_percent || 0) > 0 && <span style={{ marginLeft: '4px', fontSize: '9px', color: BRAND_ORANGE }}>(-{s.remise_percent}%)</span>
+              }
             </td>
             <td style={{ padding: '6px 6px', textAlign: 'center', color: '#6b7280', verticalAlign: 'top', borderLeft: '1px solid #f1f5f9' }}>{s.quantity}</td>
             <td style={{ padding: '6px 6px', textAlign: 'center', color: '#6b7280', fontStyle: 'italic', verticalAlign: 'top', borderLeft: '1px solid #f1f5f9' }}>{s.unit || 'unité'}</td>
@@ -140,17 +143,26 @@ const ServicesTable = ({ services, title, compact, showLineNumbers = true }) => 
   </div>
 );
 
-const TotalsSection = ({ remise, remisePercent, totalNet, acompte30, isQuote, label, compact, paymentPlan }) => {
+const TotalsSection = ({ remise, remiseTotale, totalBrut, remisePercent, totalNet, acompte30, isQuote, label, compact, paymentPlan }) => {
+  const effectiveRemise = Number(remiseTotale !== undefined ? remiseTotale : (remise || 0));
   const installments = isQuote ? getPaymentInstallments(totalNet, paymentPlan) : null;
   return (
     <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
       <div style={{ width: compact ? '100%' : '250px' }}>
         {label && <div style={{ fontSize: '9px', fontWeight: 700, color: BRAND_BLUE, marginBottom: '4px' }}>{label}</div>}
-        {Number(remise || 0) > 0 && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 10px', borderRadius: '5px', marginBottom: '4px', background: '#fff7ed', color: BRAND_ORANGE, fontSize: compact ? '9px' : '11px' }}>
-            <span>Remise{Number(remisePercent) > 0 ? ` (${remisePercent}%)` : ''}</span>
-            <span style={{ fontWeight: 600 }}>-{Number(remise).toFixed(2)} €</span>
-          </div>
+        {effectiveRemise > 0 && (
+          <>
+            {Number(totalBrut || 0) > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 10px', borderRadius: '5px', marginBottom: '4px', background: '#f9fafb', color: '#6b7280', fontSize: compact ? '9px' : '11px' }}>
+                <span>Total avant remises</span>
+                <span style={{ fontWeight: 600 }}>{Number(totalBrut).toFixed(2)} €</span>
+              </div>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 10px', borderRadius: '5px', marginBottom: '4px', background: '#fff7ed', color: BRAND_ORANGE, fontSize: compact ? '9px' : '11px' }}>
+              <span>Remise{remiseTotale === undefined && Number(remisePercent) > 0 ? ` (${remisePercent}%)` : ''}</span>
+              <span style={{ fontWeight: 600 }}>-{effectiveRemise.toFixed(2)} €</span>
+            </div>
+          </>
         )}
         {/* TOTAL NET — hero */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: compact ? '8px 10px' : '10px 12px', borderRadius: '8px', background: `linear-gradient(135deg, ${BRAND_BLUE}, ${BRAND_BLUE_LIGHT})`, color: 'white', fontWeight: 700, fontSize: compact ? '12px' : '14px', marginBottom: '3px' }}>
@@ -302,7 +314,7 @@ const PDFDocument = ({ document, type, compact = false }) => {
               </div>
             )}
             <div style={{ flex: 1 }}>
-              <TotalsSection remise={document.remise} remisePercent={document.remise_percent} totalNet={document.total_net} acompte30={document.acompte_30} isQuote={isQuote} label={multipleOptions ? "Total Option 1" : null} compact={compact} paymentPlan={paymentPlan} />
+              <TotalsSection remise={document.remise} remiseTotale={document.remise_totale} totalBrut={document.total_brut} remisePercent={document.remise_percent} totalNet={document.total_net} acompte30={document.acompte_30} isQuote={isQuote} label={multipleOptions ? "Total Option 1" : null} compact={compact} paymentPlan={paymentPlan} />
             </div>
           </div>
         )}
@@ -322,7 +334,7 @@ const PDFDocument = ({ document, type, compact = false }) => {
                 <span style={{ fontSize: '9px', color: '#6b7280' }}>Option {idx + 2}</span>
               </div>
               <div style={{ flex: 1 }}>
-                <TotalsSection remise={opt.remise} remisePercent={opt.remise_percent} totalNet={opt.total_net} acompte30={opt.acompte_30} isQuote={isQuote} label={`Total Option ${idx + 2}`} compact={compact} paymentPlan={paymentPlan} />
+                <TotalsSection remise={opt.remise} remiseTotale={opt.remise_totale} totalBrut={opt.total_brut} remisePercent={opt.remise_percent} totalNet={opt.total_net} acompte30={opt.acompte_30} isQuote={isQuote} label={`Total Option ${idx + 2}`} compact={compact} paymentPlan={paymentPlan} />
               </div>
             </div>
           </React.Fragment>
@@ -343,7 +355,7 @@ const PDFDocument = ({ document, type, compact = false }) => {
                 <span style={{ fontSize: '9px', color: '#6b7280' }}>Option 2</span>
               </div>
               <div style={{ flex: 1 }}>
-                <TotalsSection remise={document.option_2_remise} remisePercent={document.option_2_remise_percent} totalNet={document.option_2_total_net} acompte30={document.option_2_acompte_30} isQuote={isQuote} label="Total Option 2" compact={compact} paymentPlan={paymentPlan} />
+                <TotalsSection remise={document.option_2_remise} totalBrut={document.option_2_total_brut} remisePercent={document.option_2_remise_percent} totalNet={document.option_2_total_net} acompte30={document.option_2_acompte_30} isQuote={isQuote} label="Total Option 2" compact={compact} paymentPlan={paymentPlan} />
               </div>
             </div>
           </>
@@ -364,7 +376,7 @@ const PDFDocument = ({ document, type, compact = false }) => {
                 <span style={{ fontSize: '9px', color: '#6b7280' }}>Option 3</span>
               </div>
               <div style={{ flex: 1 }}>
-                <TotalsSection remise={document.option_3_remise} remisePercent={document.option_3_remise_percent} totalNet={document.option_3_total_net} acompte30={document.option_3_acompte_30} isQuote={isQuote} label="Total Option 3" compact={compact} paymentPlan={paymentPlan} />
+                <TotalsSection remise={document.option_3_remise} totalBrut={document.option_3_total_brut} remisePercent={document.option_3_remise_percent} totalNet={document.option_3_total_net} acompte30={document.option_3_acompte_30} isQuote={isQuote} label="Total Option 3" compact={compact} paymentPlan={paymentPlan} />
               </div>
             </div>
           </>
