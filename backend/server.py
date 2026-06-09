@@ -63,23 +63,26 @@ DEFAULT_RELANCE_TEMPLATES = {
 }
 
 def build_relance_html(body_html: str, public_link: str, relance_day: int,
-                       quote_number: str = "", total_net: str = "", work_location: str = "") -> str:
+                       quote_number: str = "", quote_title: str = "", work_location: str = "", sent_date: str = "") -> str:
     wa_link = "https://wa.me/33680334546"
     tel_link = "tel:0680334546"
     mail_link = "mailto:SrRenovation03@gmail.com"
 
     quote_info = ""
-    if quote_number or total_net or work_location:
-        parts = []
+    if quote_number or quote_title or work_location or sent_date:
+        rows = []
         if quote_number:
-            parts.append(quote_number)
+            rows.append(f'<tr><td style="color:#6b7280;font-size:12px;padding:3px 0;width:90px;">Référence</td><td style="color:#1e293b;font-size:12px;font-weight:600;padding:3px 0;">{quote_number}</td></tr>')
+        if quote_title:
+            rows.append(f'<tr><td style="color:#6b7280;font-size:12px;padding:3px 0;">Titre</td><td style="color:#1e293b;font-size:12px;font-weight:600;padding:3px 0;">{quote_title}</td></tr>')
         if work_location:
-            parts.append(work_location)
-        label = " &nbsp;&middot;&nbsp; ".join(parts)
+            rows.append(f'<tr><td style="color:#6b7280;font-size:12px;padding:3px 0;">Lieu</td><td style="color:#1e293b;font-size:12px;font-weight:600;padding:3px 0;">{work_location}</td></tr>')
+        if sent_date:
+            rows.append(f'<tr><td style="color:#6b7280;font-size:12px;padding:3px 0;">Envoyé le</td><td style="color:#1e293b;font-size:12px;font-weight:600;padding:3px 0;">{sent_date}</td></tr>')
         quote_info = f"""
-<p style="margin:0 0 20px;color:#475569;font-size:13px;border-left:3px solid #3b82f6;padding-left:12px;line-height:1.7;">
-  {label}{(f'<br><strong style="color:#1e293b;font-size:15px;">{total_net}&nbsp;€</strong>') if total_net else ""}
-</p>"""
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;border-left:3px solid #3b82f6;padding-left:12px;">
+  {"".join(rows)}
+</table>"""
 
     return f"""<!DOCTYPE html>
 <html lang="fr">
@@ -206,6 +209,12 @@ async def run_relances():
                 tmpl = DEFAULT_RELANCE_TEMPLATES.get(pending)
             if not tmpl:
                 continue
+            # Format sent_at date in French
+            try:
+                months_fr = ["jan.", "fév.", "mar.", "avr.", "mai", "juin", "juil.", "août", "sep.", "oct.", "nov.", "déc."]
+                sent_date_fmt = f"{sent_at.day} {months_fr[sent_at.month - 1]} {sent_at.year}"
+            except Exception:
+                sent_date_fmt = ""
             fmt = dict(
                 quote_number=q.get("quote_number", ""),
                 client_name=q.get("client_name", ""),
@@ -217,9 +226,10 @@ async def run_relances():
             base_url = os.environ.get("PUBLIC_APP_URL", "")
             public_link = f"{base_url}/devis/public/{q.get('public_token', '')}" if base_url else "#"
             html = build_relance_html(body_html, public_link, pending,
-                                      quote_number=fmt["quote_number"],
-                                      total_net=fmt["total_net"],
-                                      work_location=fmt["work_location"])
+                                      quote_number=q.get("quote_number", ""),
+                                      quote_title=q.get("quote_title", ""),
+                                      work_location=q.get("work_location", ""),
+                                      sent_date=sent_date_fmt)
             client_email = q.get("client_email", "")
             if client_email:
                 params = {
@@ -1454,7 +1464,7 @@ async def send_preview_emails(body: dict = Body(...)):
         try:
             subject = f"[APERÇU J+{day}] " + tmpl["subject"].format(**fmt)
             body_html = tmpl["body"].replace('\n', '<br>').format(**fmt)
-            html = build_relance_html(body_html, public_link, day, **{k: fmt[k] for k in ["quote_number","total_net","work_location"]})
+            html = build_relance_html(body_html, public_link, day, quote_number="D-2025-042", quote_title="Nettoyage toiture principale", work_location="Votre chantier test", sent_date="15 jan. 2025")
             params = {"from": f"SR Renovation <{SENDER_EMAIL}>", "to": [to_email], "reply_to": REPLY_TO_EMAIL, "subject": subject, "html": html}
             await asyncio.to_thread(resend.Emails.send, params)
             sent.append(f"J+{day}")
@@ -1479,7 +1489,7 @@ async def send_single_preview(day: int, body: dict = Body(...)):
     try:
         subject = f"[APERÇU J+{day}] " + tmpl["subject"].format(**fmt)
         body_html = tmpl["body"].replace('\n', '<br>').format(**fmt)
-        html = build_relance_html(body_html, public_link, day, **{k: fmt[k] for k in ["quote_number","total_net","work_location"]})
+        html = build_relance_html(body_html, public_link, day, quote_number="D-2025-042", quote_title="Nettoyage toiture principale", work_location="Votre chantier test", sent_date="15 jan. 2025")
         params = {"from": f"SR Renovation <{SENDER_EMAIL}>", "to": [to_email], "reply_to": REPLY_TO_EMAIL, "subject": subject, "html": html}
         await asyncio.to_thread(resend.Emails.send, params)
         return {"sent": True, "day": day, "to": to_email}
