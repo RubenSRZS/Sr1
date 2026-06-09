@@ -116,9 +116,39 @@ def build_relance_html(body_html: str, public_link: str, relance_day: int,
   </td></tr>
   </table>
 
-  <p style="color:#475569;font-size:13px;text-align:center;margin:0;line-height:1.6;">
+  <p style="color:#475569;font-size:13px;text-align:center;margin:0 0 20px;line-height:1.6;">
     Ce lien vous permet de consulter votre devis,<br>le t&eacute;l&eacute;charger et le signer &eacute;lectroniquement.
   </p>
+
+  <!-- Divider contact -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 12px;">
+  <tr>
+    <td style="border-top:1px solid #e5e7eb;"></td>
+    <td style="padding:0 10px;font-size:11px;color:#9ca3af;white-space:nowrap;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Ou contactez-moi</td>
+    <td style="border-top:1px solid #e5e7eb;"></td>
+  </tr>
+  </table>
+
+  <!-- 3 boutons contact -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td width="33%" style="padding:0 4px 0 0;" align="center">
+      <a href="{tel_link}" style="display:block;background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;text-decoration:none;padding:11px 4px;border-radius:8px;font-size:13px;font-weight:700;text-align:center;">
+        &#128222; Appeler
+      </a>
+    </td>
+    <td width="34%" style="padding:0 2px;" align="center">
+      <a href="{wa_link}" style="display:block;background:#f0fdf4;border:1.5px solid #bbf7d0;color:#15803d;text-decoration:none;padding:11px 4px;border-radius:8px;font-size:13px;font-weight:700;text-align:center;">
+        &#128172; WhatsApp
+      </a>
+    </td>
+    <td width="33%" style="padding:0 0 0 4px;" align="center">
+      <a href="{mail_link}" style="display:block;background:#fafafa;border:1.5px solid #e5e7eb;color:#6b7280;text-decoration:none;padding:11px 4px;border-radius:8px;font-size:13px;font-weight:700;text-align:center;">
+        &#9993; Email
+      </a>
+    </td>
+  </tr>
+  </table>
 </td></tr>
 
 <!-- Divider -->
