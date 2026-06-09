@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Bell, Save, RotateCcw, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { Bell, Save, Info, ChevronDown, ChevronUp, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -20,6 +20,7 @@ const VARIABLES = ['{client_name}', '{quote_number}', '{total_net}', '{work_loca
 const RelanceSettings = () => {
   const [templates, setTemplates] = useState({});
   const [saving, setSaving] = useState({});
+  const [sending, setSending] = useState({});
   const [expanded, setExpanded] = useState({ 3: true, 7: false, 14: false, 30: false });
   const [loading, setLoading] = useState(true);
 
@@ -55,6 +56,18 @@ const RelanceSettings = () => {
       toast.error('Erreur sauvegarde');
     } finally {
       setSaving(prev => ({ ...prev, [day]: false }));
+    }
+  };
+
+  const handleSendPreview = async (day) => {
+    setSending(prev => ({ ...prev, [day]: true }));
+    try {
+      await axios.post(`${API}/relances/send-preview/${day}`, { email: 'rubensrzs03@gmail.com' });
+      toast.success(`Aperçu J+${day} envoyé à rubensrzs03@gmail.com`);
+    } catch {
+      toast.error('Erreur envoi aperçu');
+    } finally {
+      setSending(prev => ({ ...prev, [day]: false }));
     }
   };
 
@@ -150,6 +163,17 @@ const RelanceSettings = () => {
                   <p className="text-xs text-gray-400 mt-1">Le lien "Consulter mon devis" est ajouté automatiquement dans l'email.</p>
                 </div>
                 <div className="flex gap-2 justify-end">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleSendPreview(day)}
+                    disabled={sending[day]}
+                    className="h-8 text-xs"
+                    data-testid={`preview-relance-${day}`}
+                  >
+                    <Send className="h-3.5 w-3.5 mr-1" />
+                    {sending[day] ? 'Envoi...' : 'Aperçu email'}
+                  </Button>
                   <Button
                     size="sm"
                     onClick={() => handleSave(day)}
