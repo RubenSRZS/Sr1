@@ -54,13 +54,17 @@ const InvoicesList = () => {
     return new Date(b.created_at) - new Date(a.created_at);
   });
 
-  const byTab = activeTab === 'all' ? sorted : sorted.filter(inv => inv.payment_status === activeTab);
+  const byTab = activeTab === 'all' ? sorted : sorted.filter(inv => {
+    if (activeTab === 'pending') return inv.payment_status === 'pending' || inv.payment_status === 'partial';
+    return inv.payment_status === activeTab;
+  });
   const filtered = search
     ? byTab.filter(inv => inv.client_name.toLowerCase().includes(search.toLowerCase()) || inv.invoice_number.toLowerCase().includes(search.toLowerCase()))
     : byTab;
 
   const counts = { all: invoices.length };
-  TABS.slice(1).forEach(t => { counts[t.key] = invoices.filter(i => i.payment_status === t.key).length; });
+  counts['pending'] = invoices.filter(i => i.payment_status === 'pending' || i.payment_status === 'partial').length;
+  counts['paid'] = invoices.filter(i => i.payment_status === 'paid').length;
 
   // Stats
   const totalPending = invoices.filter(i => i.payment_status !== 'paid').reduce((s, i) => s + (i.reste_a_payer || 0), 0);

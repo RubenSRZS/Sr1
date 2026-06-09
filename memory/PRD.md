@@ -67,6 +67,19 @@ Application web pour créer des devis et factures professionnels et personnalis�
   - previewDoc des options dynamiques: inclut maintenant remise_totale correctement
   - Test: 6/6 scénarios PASS (remise €, remise %, sans remise, aperçu PDF, indicateurs lignes)
 
+## Implémenté le 09/06/2026 (session 4 — Relances automatiques)
+**Système de relances automatiques complet:**
+- APScheduler (8h00 Paris, skip dimanche) envoi emails J+3, J+7, J+14, J+30
+- Relances activées auto quand devis envoyé par email, réinitialisées sur renvoi
+- Toggle ON/OFF par devis (bouton Bell) — arrêt immédiat si client répond par tél
+- Bouton "Marquer perdu" (XCircle) — arrête relances + archive avec statut `lost`
+- Arrêt automatique si devis signé (`status=accepted`)
+- Modèles d'emails éditables sur /relances (4 templates: J+3,7,14,30 avec variables)
+- Redesign QuotesList: onglets Tous/Brouillons/En attente/Signés/Perdus
+- Redesign InvoicesList: onglets Toutes/En attente (pending+partial)/Payées + stats header
+- Carte "Relances Automatiques" dans Dashboard avec lien /relances
+- Tests: 17/17 backend + frontend critical flows OK
+
 ## Backlog priorisé
 
 ### P0 — À confirmer avec l'utilisateur
