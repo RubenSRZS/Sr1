@@ -1,0 +1,84 @@
+{
+  "summary": "Tested two new features for SR Rénovation: (1) Selection of company profile per quote (profile_id snapshot in Quote.company), (2) Unlimited dynamic additional_options with proper line-level € (amount) remise and option-level € remise. Backend 8/8 pytest tests PASSED. Frontend UI verified: profile-select-desktop changes live preview company card (SR Rénovation vs Câble Ethernet Ugreen), add-option-btn creates dynamic-option-{0..N} with renumbered labels (Option 2, 3, 4...), remove-option-0-btn only removes that one option keeping others, save-quote-btn-desktop present.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "QuoteForm live preview (PDFPreview ServicesTable)",
+        "issues": ["React hydration warnings in console: '<span> cannot be a child of <th>/<tr>/<tbody>' — caused by Emergent visual-editor wrapper spans (data-ve-dynamic) injected around <th>/<tr>/<tbody>. Visible only as console warnings, does not affect functionality, but pollutes the console and may cause hydration mismatches in production builds."]
+      }
+    ]
+  },
+  "test_results": {
+    "backend_pytest_results": {
+      "TestProfiles::test_profiles_list_contains_known_ids": "PASS",
+      "TestQuoteCompanySnapshot::test_create_quote_with_sr_profile_snapshots_company": "PASS",
+      "TestQuoteCompanySnapshot::test_create_quote_without_profile_uses_default": "PASS",
+      "TestQuoteCompanySnapshot::test_update_quote_changes_profile_snapshot": "PASS",
+      "TestDynamicOptions::test_remise_amount_on_line_recomputes_correctly": "PASS",
+      "TestDynamicOptions::test_create_quote_with_3_dynamic_options_and_global_amount_remise": "PASS",
+      "TestDynamicOptions::test_line_amount_remise_inside_dynamic_option": "PASS",
+      "TestDynamicOptions::test_edit_quote_preserves_dynamic_options": "PASS"
+    },
+    "frontend_ui_tests": {
+      "pin_auth_0330": "PASS",
+      "quote_new_page_loads": "PASS",
+      "profile_select_desktop_present": "PASS",
+      "profile_switch_updates_live_preview_company_card": "PASS - 'SR Rénovation' appears in PDF preview after switching from default 'Câble Ethernet Ugreen'",
+      "add_option_btn_creates_dynamic_options": "PASS - 3 clicks created dynamic-option-0/1/2 (Option 2, 3, 4)",
+      "remove_option_0_only_removes_that_option": "PASS - after remove, remaining [0,1] kept and renumbered",
+      "add_service_btn_in_dynamic_option": "PASS - add-service-btn-2 present and clickable",
+      "save_quote_btn_desktop_present": "PASS",
+      "edit_quote_reloads_dynamic_options": "Verified via backend GET — additional_options persist with totals"
+    }
+  },
+  "features_verified": [
+    "✓ POST /api/quotes accepts profile_id and snapshots company into Quote.company (company_name = profile.company_name)",
+    "✓ PUT /api/quotes/{id} switches snapshot when profile_id changes",
+    "✓ Default profile fallback works when no profile_id provided (uses is_default=True profile, currently Câble Ethernet Ugreen)",
+    "✓ Service-level remise_type='amount' with remise_montant correctly reduces line total (200 - 30 = 170)",
+    "✓ additional_options array of OptionBlock supports unlimited options (tested 3 options simultaneously)",
+    "✓ compute_option_block correctly computes total_brut, remise (amount or percent), total_net, acompte_30",
+    "✓ Legacy option_2_* / option_3_* fields derived from first two dynamic options for retro-compat",
+    "✓ Frontend profile-select-desktop binds to selectedProfileId and updates previewDoc.company immediately",
+    "✓ Frontend add-option-btn appends to additionalOptions array creating dynamic-option-{idx} with renumbered labels Option N+1",
+    "✓ Frontend remove-option-{idx}-btn calls removeOption(idx) deleting only that option, others stay (verified visually: Option 2 + Option 3 kept after deletion of one)",
+    "✓ Live PDF preview re-renders company card and additional_options on every state change"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_dynamic_options_and_profile.py",
+    "/app/test_reports/pytest/pytest_dynamic_options.xml"
+  ],
+  "action_items": [
+    "Optional: clean console hydration warnings by removing data-ve-dynamic spans from <thead><tr><th> / <tbody> structure in PDFPreview.js ServicesTable (lines ~107-118). These appear to be injected by Emergent visual editor tooling.",
+    "Optional UX: when user clicks 'Enregistrer' with an empty dynamic option (no services), the existing toast warning is good; consider also auto-removing trailing empty options OR adding visible inline error on the empty option block."
+  ],
+  "critical_code_review_comments": [
+    "server.py:537-558 — _legacy_block helper duplicated between create_quote and update_quote (DRY violation, ~20 lines). Extract to a single module-level helper.",
+    "server.py:528 — `remise = remise_from_pct if input.remise_percent > 0 else round(input.remise_montant, 2)` — Option 1 still uses percent-OR-amount conditional. Aligns with frontend totals1 logic, but Service model has remise_type='percent'|'amount' which is clean; consider applying same pattern to Option 1 global remise (introduce remise_type at quote root level for consistency).",
+    "QuoteForm.js (1240 lines) — exceeds 700-line guideline, should be split into smaller components (ServiceRow, DynamicOptionsList, ProfileSelector, PaymentPlanSelector).",
+    "PDFPreview.js — console hydration warning due to visual-editor span wrappers around table elements. Not a logic bug but creates noise; consider guarding behind a build-time flag.",
+    "Both POST and PUT routes correctly call resolve_company(profile_id) and synchronize legacy option_2/option_3 fields. Looks solid."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_dynamic_options_and_profile.py"
+  ],
+  "success_rate": {
+    "backend": "100% (8/8 tests passed)",
+    "frontend": "100% on verified flows (profile switch, dyn options add/remove, key selectors present)"
+  },
+  "test_credentials": {
+    "pin": "0330",
+    "profile_sr_renovation": "e5a4b05f-4811-4e9c-a5e1-408545a10d80",
+    "profile_cable_ugreen_default": "4ecc93d3-f98f-462e-9a8f-88f1cd449b9b"
+  },
+  "seed_data_creation": "Backend tests created ~7 quotes with work_location starting 'TEST QA - a supprimer'. Module-level autouse fixture deletes them via DELETE /api/quotes/{id} after tests finish. No emails sent (no /api/quotes/{id}/send calls).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iteration 13: features (1) profile selection and (2) dynamic additional_options are working end-to-end. Backend test file /app/backend/tests/test_dynamic_options_and_profile.py covers profile snapshot + dynamic option calculations + line-€-remise + edit-preserves. UI selectors confirmed: profile-select-desktop/mobile, profile-select-mobile (hidden), add-option-btn, dynamic-option-{idx}, remove-option-{idx}-btn, add-service-btn-1/2/3..., save-quote-btn-desktop. Window.confirm is used in removeOption — auto-accept needed in Playwright. NO EMAILS SHOULD BE TRIGGERED (production clients)."
+}

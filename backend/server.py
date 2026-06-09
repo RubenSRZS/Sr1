@@ -96,8 +96,17 @@ class Service(BaseModel):
     quantity: float = 1.0
     unit: str = "unité"
     unit_price: float
+    remise_type: Optional[str] = "percent"  # "percent" ou "amount"
     remise_percent: float = 0.0
+    remise_montant: float = 0.0
     total: float
+
+class OptionBlock(BaseModel):
+    title: Optional[str] = ""
+    services: List[Service] = []
+    remise_type: Optional[str] = "percent"
+    remise_percent: float = 0.0
+    remise_montant: float = 0.0
 
 class QuoteCreate(BaseModel):
     client_id: Optional[str] = None
@@ -107,6 +116,7 @@ class QuoteCreate(BaseModel):
     work_location: str
     work_surface: Optional[str] = ""
     diagnostic: Optional[dict] = None
+    profile_id: Optional[str] = None  # Profil entreprise utilisé pour ce devis
     services: List[Service]
     option_1_title: Optional[str] = ""  # Titre Option 1
     remise_percent: float = 0.0
@@ -122,6 +132,7 @@ class QuoteCreate(BaseModel):
     option_3_title: Optional[str] = ""
     option_3_remise_percent: float = 0.0
     option_3_remise_montant: float = 0.0
+    additional_options: Optional[List[OptionBlock]] = []  # Options dynamiques illimitées
     notes: Optional[str] = ""
     selected_option: Optional[int] = None  # Option choisie par le client (1, 2, 3...)
 
@@ -139,6 +150,8 @@ class Quote(BaseModel):
     work_location: str
     work_surface: Optional[str] = ""
     diagnostic: Optional[dict] = None
+    profile_id: Optional[str] = None
+    company: Optional[dict] = None
     services: List[Service]
     option_1_title: Optional[str] = ""
     total_brut: float
@@ -166,6 +179,7 @@ class Quote(BaseModel):
     option_3_remise: float = 0.0
     option_3_total_net: float = 0.0
     option_3_acompte_30: float = 0.0
+    additional_options: Optional[List[dict]] = []  # Options dynamiques illimitées (avec totaux calculés)
     notes: Optional[str] = ""
     status: str = "draft"
     signature_data: Optional[str] = None
@@ -257,6 +271,53 @@ async def get_or_create_client(client_id, new_client_data):
             raise HTTPException(status_code=404, detail="Client non trouvé")
         return c
     raise HTTPException(status_code=400, detail="Client requis")
+
+async def resolve_company(profile_id):
+    """Retourne un snapshot des coordonnées de l'entreprise à partir d'un profil.
+    Si profile_id est absent/introuvable, utilise le profil par défaut, puis le premier profil."""
+    profile = None
+    if profile_id:
+        profile = await db.profiles.find_one({"id": profile_id}, {"_id": 0})
+    if not profile:
+        profile = await db.profiles.find_one({"is_default": True}, {"_id": 0})
+    if not profile:
+        profile = await db.profiles.find_one({}, {"_id": 0})
+    if not profile:
+        return None, None
+    company = {
+        "company_name": profile.get("company_name", ""),
+        "account_holder": profile.get("account_holder", ""),
+        "address": profile.get("address", ""),
+        "phone": profile.get("phone", ""),
+        "email": profile.get("email", ""),
+        "siret": profile.get("siret", ""),
+        "iban": profile.get("iban", ""),
+        "bic": profile.get("bic", ""),
+        "bank_name": profile.get("bank_name", ""),
+    }
+    return profile.get("id"), company
+
+def compute_option_block(opt: OptionBlock) -> dict:
+    """Calcule les totaux d'un bloc d'option dynamique."""
+    services = opt.services or []
+    total_brut = round(sum(s.total for s in services), 2)
+    if opt.remise_type == "amount":
+        remise = round(opt.remise_montant or 0, 2)
+    else:
+        remise = round(total_brut * (opt.remise_percent or 0) / 100, 2)
+    total_net = round(max(total_brut - remise, 0), 2)
+    acompte_30 = round(total_net * 0.30, 2)
+    return {
+        "title": opt.title or "",
+        "services": [s.model_dump() for s in services],
+        "remise_type": opt.remise_type or "percent",
+        "remise_percent": opt.remise_percent or 0,
+        "remise_montant": opt.remise_montant or 0,
+        "total_brut": total_brut,
+        "remise": remise,
+        "total_net": total_net,
+        "acompte_30": acompte_30,
+    }
 
 async def get_next_quote_number(client_id: str) -> str:
     count = await db.quotes.count_documents({"client_id": client_id})
@@ -459,6 +520,7 @@ async def cleanup_test_data():
 async def create_quote(input: QuoteCreate):
     client_data = await get_or_create_client(input.client_id, input.new_client)
     client_id = client_data["id"]
+    resolved_profile_id, company_snapshot = await resolve_company(input.profile_id)
 
     # Option 1 calculations
     total_brut = sum(s.total for s in input.services)
@@ -467,14 +529,42 @@ async def create_quote(input: QuoteCreate):
     total_net = round(total_brut - remise, 2)
     acompte_30 = round(total_net * 0.30, 2)
     
-    # Option 2 calculations
-    opt2_services = input.option_2_services or []
-    opt2_total_brut = sum(s.total for s in opt2_services) if opt2_services else 0
-    opt2_remise_from_pct = round(opt2_total_brut * input.option_2_remise_percent / 100, 2) if input.option_2_remise_percent > 0 else 0
-    opt2_remise = opt2_remise_from_pct if input.option_2_remise_percent > 0 else round(input.option_2_remise_montant, 2)
-    opt2_total_net = round(opt2_total_brut - opt2_remise, 2)
-    opt2_acompte_30 = round(opt2_total_net * 0.30, 2)
-    
+    # Options dynamiques (illimitées) — calcul des totaux
+    computed_additional = [compute_option_block(o) for o in (input.additional_options or [])]
+
+    # Rétro-compatibilité : dérive Option 2 / Option 3 depuis les 2 premières options dynamiques
+    # si elles sont fournies, sinon utilise les anciens champs option_2 / option_3.
+    def _legacy_block(idx, fallback_services, fallback_title, fallback_rtype, fallback_rpct, fallback_rmnt):
+        if idx < len(computed_additional):
+            b = computed_additional[idx]
+            return {
+                "services": [Service(**s) for s in b["services"]],
+                "title": b["title"],
+                "total_brut": b["total_brut"],
+                "remise": b["remise"],
+                "remise_percent": b["remise_percent"] if b["remise_type"] == "percent" else 0,
+                "remise_montant": b["remise_montant"] if b["remise_type"] == "amount" else 0,
+                "total_net": b["total_net"],
+                "acompte_30": b["acompte_30"],
+            }
+        services = fallback_services or []
+        tb = round(sum(s.total for s in services), 2)
+        rem = round(tb * fallback_rpct / 100, 2) if fallback_rpct > 0 else round(fallback_rmnt, 2)
+        tn = round(tb - rem, 2)
+        return {
+            "services": services, "title": fallback_title or "",
+            "total_brut": tb, "remise": rem,
+            "remise_percent": fallback_rpct, "remise_montant": fallback_rmnt,
+            "total_net": tn, "acompte_30": round(tn * 0.30, 2),
+        }
+
+    use_dynamic = len(computed_additional) > 0
+    b2 = _legacy_block(0, input.option_2_services, input.option_2_title, input.option_2_remise_type if hasattr(input, 'option_2_remise_type') else 'percent', input.option_2_remise_percent, input.option_2_remise_montant)
+    b3 = _legacy_block(1, input.option_3_services, input.option_3_title, 'percent', input.option_3_remise_percent, input.option_3_remise_montant)
+    # Si options dynamiques fournies mais moins de 2, vide la 2e/3e legacy non utilisée
+    if use_dynamic and len(computed_additional) < 2:
+        b3 = {"services": [], "title": "", "total_brut": 0, "remise": 0, "remise_percent": 0, "remise_montant": 0, "total_net": 0, "acompte_30": 0}
+
     quote_number = input.custom_quote_number.strip() if input.custom_quote_number and input.custom_quote_number.strip() else await get_next_quote_number(client_id)
 
     quote = Quote(
@@ -488,6 +578,8 @@ async def create_quote(input: QuoteCreate):
         work_location=input.work_location,
         work_surface=input.work_surface or "",
         diagnostic=input.diagnostic,
+        profile_id=resolved_profile_id,
+        company=company_snapshot,
         services=input.services,
         total_brut=total_brut,
         remise_percent=input.remise_percent,
@@ -496,26 +588,28 @@ async def create_quote(input: QuoteCreate):
         total_net=total_net,
         acompte_30=acompte_30,
         payment_plan=input.payment_plan or "acompte_solde",
-        # Option 2
-        option_2_services=opt2_services,
-        option_2_total_brut=opt2_total_brut,
-        option_2_remise_percent=input.option_2_remise_percent,
-        option_2_remise_montant=input.option_2_remise_montant,
-        option_2_remise=opt2_remise,
-        option_2_total_net=opt2_total_net,
-        option_2_acompte_30=opt2_acompte_30,
+        # Option 2 (legacy / dérivé de la 1ère option dynamique)
+        option_2_services=b2["services"],
+        option_2_total_brut=b2["total_brut"],
+        option_2_remise_percent=b2["remise_percent"],
+        option_2_remise_montant=b2["remise_montant"],
+        option_2_remise=b2["remise"],
+        option_2_total_net=b2["total_net"],
+        option_2_acompte_30=b2["acompte_30"],
         notes=input.notes or "",
         quote_title=input.quote_title or "",
         option_1_title=input.option_1_title or "",
-        option_2_title=input.option_2_title or "",
-        option_3_title=input.option_3_title or "",
-        option_3_services=input.option_3_services or [],
-        option_3_total_brut=sum(s.total for s in (input.option_3_services or [])),
-        option_3_remise_percent=input.option_3_remise_percent,
-        option_3_remise_montant=input.option_3_remise_montant,
-        option_3_remise=round(sum(s.total for s in (input.option_3_services or [])) * input.option_3_remise_percent / 100, 2) if input.option_3_remise_percent > 0 else round(input.option_3_remise_montant, 2),
-        option_3_total_net=round(sum(s.total for s in (input.option_3_services or [])) - (round(sum(s.total for s in (input.option_3_services or [])) * input.option_3_remise_percent / 100, 2) if input.option_3_remise_percent > 0 else round(input.option_3_remise_montant, 2)), 2),
-        option_3_acompte_30=round((sum(s.total for s in (input.option_3_services or [])) - (round(sum(s.total for s in (input.option_3_services or [])) * input.option_3_remise_percent / 100, 2) if input.option_3_remise_percent > 0 else round(input.option_3_remise_montant, 2))) * 0.30, 2),
+        option_2_title=b2["title"],
+        # Option 3 (legacy / dérivé de la 2ème option dynamique)
+        option_3_title=b3["title"],
+        option_3_services=b3["services"],
+        option_3_total_brut=b3["total_brut"],
+        option_3_remise_percent=b3["remise_percent"],
+        option_3_remise_montant=b3["remise_montant"],
+        option_3_remise=b3["remise"],
+        option_3_total_net=b3["total_net"],
+        option_3_acompte_30=b3["acompte_30"],
+        additional_options=computed_additional,
         status="draft",
     )
     doc = quote.model_dump()
@@ -542,21 +636,43 @@ async def update_quote(quote_id: str, input: QuoteCreate):
         raise HTTPException(status_code=404, detail="Devis non trouvé")
 
     client_data = await get_or_create_client(input.client_id, input.new_client)
-    
+    resolved_profile_id, company_snapshot = await resolve_company(input.profile_id)
+
     # Option 1 calculations
     total_brut = sum(s.total for s in input.services)
     remise_from_pct = round(total_brut * input.remise_percent / 100, 2) if input.remise_percent > 0 else 0
     remise = remise_from_pct if input.remise_percent > 0 else round(input.remise_montant, 2)
     total_net = round(total_brut - remise, 2)
     acompte_30 = round(total_net * 0.30, 2)
-    
+
     # Option 2 calculations
-    opt2_services = input.option_2_services or []
-    opt2_total_brut = sum(s.total for s in opt2_services) if opt2_services else 0
-    opt2_remise_from_pct = round(opt2_total_brut * input.option_2_remise_percent / 100, 2) if input.option_2_remise_percent > 0 else 0
-    opt2_remise = opt2_remise_from_pct if input.option_2_remise_percent > 0 else round(input.option_2_remise_montant, 2)
-    opt2_total_net = round(opt2_total_brut - opt2_remise, 2)
-    opt2_acompte_30 = round(opt2_total_net * 0.30, 2)
+    computed_additional = [compute_option_block(o) for o in (input.additional_options or [])]
+
+    def _legacy_block_u(idx, fallback_services, fallback_title, fallback_rpct, fallback_rmnt):
+        if idx < len(computed_additional):
+            b = computed_additional[idx]
+            return {
+                "services": [Service(**s).model_dump() for s in b["services"]],
+                "title": b["title"], "total_brut": b["total_brut"], "remise": b["remise"],
+                "remise_percent": b["remise_percent"] if b["remise_type"] == "percent" else 0,
+                "remise_montant": b["remise_montant"] if b["remise_type"] == "amount" else 0,
+                "total_net": b["total_net"], "acompte_30": b["acompte_30"],
+            }
+        services = fallback_services or []
+        tb = round(sum(s.total for s in services), 2)
+        rem = round(tb * fallback_rpct / 100, 2) if fallback_rpct > 0 else round(fallback_rmnt, 2)
+        tn = round(tb - rem, 2)
+        return {
+            "services": [s.model_dump() for s in services], "title": fallback_title or "",
+            "total_brut": tb, "remise": rem, "remise_percent": fallback_rpct, "remise_montant": fallback_rmnt,
+            "total_net": tn, "acompte_30": round(tn * 0.30, 2),
+        }
+
+    use_dynamic = len(computed_additional) > 0
+    b2 = _legacy_block_u(0, input.option_2_services, input.option_2_title, input.option_2_remise_percent, input.option_2_remise_montant)
+    b3 = _legacy_block_u(1, input.option_3_services, input.option_3_title, input.option_3_remise_percent, input.option_3_remise_montant)
+    if use_dynamic and len(computed_additional) < 2:
+        b3 = {"services": [], "title": "", "total_brut": 0, "remise": 0, "remise_percent": 0, "remise_montant": 0, "total_net": 0, "acompte_30": 0}
 
     update_data = {
         "client_id": client_data["id"],
@@ -564,6 +680,8 @@ async def update_quote(quote_id: str, input: QuoteCreate):
         "client_address": client_data["address"],
         "client_phone": client_data["phone"],
         "client_email": client_data.get("email", ""),
+        "profile_id": resolved_profile_id,
+        "company": company_snapshot,
         "work_location": input.work_location,
         "work_surface": input.work_surface or "",
         "diagnostic": input.diagnostic if input.diagnostic else None,
@@ -576,25 +694,26 @@ async def update_quote(quote_id: str, input: QuoteCreate):
         "acompte_30": acompte_30,
         "payment_plan": input.payment_plan or "acompte_solde",
         # Option 2 fields
-        "option_2_services": [s.model_dump() for s in opt2_services],
-        "option_2_total_brut": opt2_total_brut,
-        "option_2_remise_percent": input.option_2_remise_percent,
-        "option_2_remise_montant": input.option_2_remise_montant,
-        "option_2_remise": opt2_remise,
-        "option_2_total_net": opt2_total_net,
-        "option_2_acompte_30": opt2_acompte_30,
+        "option_2_services": b2["services"],
+        "option_2_total_brut": b2["total_brut"],
+        "option_2_remise_percent": b2["remise_percent"],
+        "option_2_remise_montant": b2["remise_montant"],
+        "option_2_remise": b2["remise"],
+        "option_2_total_net": b2["total_net"],
+        "option_2_acompte_30": b2["acompte_30"],
         "notes": input.notes or "",
         "quote_title": input.quote_title or "",
         "option_1_title": input.option_1_title or "",
-        "option_2_title": input.option_2_title or "",
-        "option_3_title": input.option_3_title or "",
-        "option_3_services": [s.model_dump() for s in (input.option_3_services or [])],
-        "option_3_total_brut": sum(s.total for s in (input.option_3_services or [])),
-        "option_3_remise_percent": input.option_3_remise_percent,
-        "option_3_remise_montant": input.option_3_remise_montant,
-        "option_3_remise": round(sum(s.total for s in (input.option_3_services or [])) * input.option_3_remise_percent / 100, 2) if input.option_3_remise_percent > 0 else round(input.option_3_remise_montant, 2),
-        "option_3_total_net": round(sum(s.total for s in (input.option_3_services or [])) - (round(sum(s.total for s in (input.option_3_services or [])) * input.option_3_remise_percent / 100, 2) if input.option_3_remise_percent > 0 else round(input.option_3_remise_montant, 2)), 2),
-        "option_3_acompte_30": round((sum(s.total for s in (input.option_3_services or [])) - (round(sum(s.total for s in (input.option_3_services or [])) * input.option_3_remise_percent / 100, 2) if input.option_3_remise_percent > 0 else round(input.option_3_remise_montant, 2))) * 0.30, 2),
+        "option_2_title": b2["title"],
+        "option_3_title": b3["title"],
+        "option_3_services": b3["services"],
+        "option_3_total_brut": b3["total_brut"],
+        "option_3_remise_percent": b3["remise_percent"],
+        "option_3_remise_montant": b3["remise_montant"],
+        "option_3_remise": b3["remise"],
+        "option_3_total_net": b3["total_net"],
+        "option_3_acompte_30": b3["acompte_30"],
+        "additional_options": computed_additional,
     }
     await db.quotes.update_one({"id": quote_id}, {"$set": update_data})
     updated = await db.quotes.find_one({"id": quote_id}, {"_id": 0})

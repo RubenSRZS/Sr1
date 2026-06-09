@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download, Copy, Moon, Sun, ChevronUp, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download, Copy, Moon, Sun, ChevronUp, ChevronDown, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -297,13 +297,13 @@ const QuoteForm = () => {
   const [catalog, setCatalog] = useState([]);
   const [showCatalog, setShowCatalog] = useState(false);
   const [showNotesCatalog, setShowNotesCatalog] = useState(false);
-  const [catalogTarget, setCatalogTarget] = useState('option1'); // 'option1', 'option2', 'option3'
+  const [catalogTarget, setCatalogTarget] = useState('option1'); // 'option1' ou index numérique d'option dynamique
   const [showPreviewMobile, setShowPreviewMobile] = useState(false);
   const [showNewClient, setShowNewClient] = useState(false);
-  const [hasOption2, setHasOption2] = useState(false);
-  const [hasOption3, setHasOption3] = useState(false);
-  const [additionalOptions, setAdditionalOptions] = useState([]); // Options dynamiques
+  const [additionalOptions, setAdditionalOptions] = useState([]); // Options dynamiques illimitées
   const [draftRestored, setDraftRestored] = useState(false);
+  const [profiles, setProfiles] = useState([]);
+  const [selectedProfileId, setSelectedProfileId] = useState('');
 
   const initialFormState = {
     client_id: '',
@@ -341,8 +341,7 @@ const QuoteForm = () => {
       const restored = quoteFormData.data;
       if (restored) {
         setFormData(prev => ({ ...prev, ...restored }));
-        if (quoteFormData.options?.hasOption2) setHasOption2(true);
-        if (quoteFormData.options?.hasOption3) setHasOption3(true);
+        if (quoteFormData.options?.additionalOptions) setAdditionalOptions(quoteFormData.options.additionalOptions);
         if (quoteFormData.options?.newClient) setNewClient(quoteFormData.options.newClient);
         if (quoteFormData.options?.showNewClient) setShowNewClient(true);
         setDraftRestored(true);
@@ -359,9 +358,9 @@ const QuoteForm = () => {
     if (id) return; // Don't auto-save when editing existing quote
     const hasContent = formData.services.length > 0 || formData.work_location || formData.quote_title || formData.client_id;
     if (hasContent) {
-      saveQuoteForm(formData, { hasOption2, hasOption3, newClient, showNewClient });
+      saveQuoteForm(formData, { additionalOptions, newClient, showNewClient });
     }
-  }, [formData, hasOption2, hasOption3, newClient, showNewClient, id, saveQuoteForm]);
+  }, [formData, additionalOptions, newClient, showNewClient, id, saveQuoteForm]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -373,6 +372,18 @@ const QuoteForm = () => {
         
         setClients(clientsRes.data);
         setCatalog(catalogRes.data);
+
+        // Charger les profils entreprise
+        try {
+          const profilesRes = await axios.get(`${API}/profiles`);
+          setProfiles(profilesRes.data || []);
+          if (!id) {
+            const def = (profilesRes.data || []).find(p => p.is_default) || (profilesRes.data || [])[0];
+            if (def) setSelectedProfileId(prev => prev || def.id);
+          }
+        } catch (e) {
+          console.error('Erreur chargement profils:', e);
+        }
         
         // Charger les données générées par l'IA si présentes
         const aiData = sessionStorage.getItem('ai_generated_quote');
@@ -436,26 +447,38 @@ const QuoteForm = () => {
     if (id) {
       axios.get(`${API}/quotes/${id}`).then(r => {
         const q = r.data;
+        if (q.profile_id) setSelectedProfileId(q.profile_id);
         
-        // Charger les options existantes dans le nouveau système
-        const loadedOptions = [];
-        if (q.option_2_services && q.option_2_services.length > 0) {
-          loadedOptions.push({
-            title: q.option_2_title || '',
-            services: q.option_2_services || [],
-            remise_type: q.option_2_remise_percent > 0 ? 'percent' : 'percent',
-            remise_percent: q.option_2_remise_percent || 0,
-            remise_montant: q.option_2_remise_montant || 0,
-          });
-        }
-        if (q.option_3_services && q.option_3_services.length > 0) {
-          loadedOptions.push({
-            title: q.option_3_title || '',
-            services: q.option_3_services || [],
-            remise_type: q.option_3_remise_percent > 0 ? 'percent' : 'percent',
-            remise_percent: q.option_3_remise_percent || 0,
-            remise_montant: q.option_3_remise_montant || 0,
-          });
+        // Charger les options dynamiques : priorité au nouveau format additional_options,
+        // sinon rétro-compatibilité avec les anciens champs option_2 / option_3.
+        let loadedOptions = [];
+        if (Array.isArray(q.additional_options) && q.additional_options.length > 0) {
+          loadedOptions = q.additional_options.map(o => ({
+            title: o.title || '',
+            services: o.services || [],
+            remise_type: o.remise_type || (o.remise_montant > 0 ? 'amount' : 'percent'),
+            remise_percent: o.remise_percent || 0,
+            remise_montant: o.remise_montant || 0,
+          }));
+        } else {
+          if (q.option_2_services && q.option_2_services.length > 0) {
+            loadedOptions.push({
+              title: q.option_2_title || '',
+              services: q.option_2_services || [],
+              remise_type: q.option_2_remise_montant > 0 ? 'amount' : 'percent',
+              remise_percent: q.option_2_remise_percent || 0,
+              remise_montant: q.option_2_remise_montant || 0,
+            });
+          }
+          if (q.option_3_services && q.option_3_services.length > 0) {
+            loadedOptions.push({
+              title: q.option_3_title || '',
+              services: q.option_3_services || [],
+              remise_type: q.option_3_remise_montant > 0 ? 'amount' : 'percent',
+              remise_percent: q.option_3_remise_percent || 0,
+              remise_montant: q.option_3_remise_montant || 0,
+            });
+          }
         }
         setAdditionalOptions(loadedOptions);
         
@@ -476,16 +499,6 @@ const QuoteForm = () => {
           remise_montant: q.remise_montant || 0,
           payment_plan: q.payment_plan || 'acompte_solde',
           show_line_numbers: q.show_line_numbers !== false,
-          option_2_title: '',
-          option_2_services: [],
-          option_2_remise_type: 'percent',
-          option_2_remise_percent: 0,
-          option_2_remise_montant: 0,
-          option_3_title: '',
-          option_3_services: [],
-          option_3_remise_type: 'percent',
-          option_3_remise_percent: 0,
-          option_3_remise_montant: 0,
           notes: q.notes || '',
         });
       }).catch(() => toast.error('Erreur chargement devis'));
@@ -530,71 +543,51 @@ const QuoteForm = () => {
     updateField('services', s);
   };
 
-  // Option 2 services
-  const addService2 = () => updateField('option_2_services', [...formData.option_2_services, { description: '', quantity: 1, unit: 'unité', unit_price: 0, remise_type: 'percent', remise_percent: 0, remise_montant: 0, total: 0 }]);
-  const updateService2 = (i, field, val) => {
-    const s = [...formData.option_2_services];
-    s[i] = { ...s[i], [field]: val };
-    if (field === 'quantity' || field === 'unit_price' || field === 'remise_percent' || field === 'remise_montant' || field === 'remise_type') {
-      const qty = parseFloat(s[i].quantity || 0);
-      const pu = parseFloat(s[i].unit_price || 0);
-      const lineTotal = qty * pu;
-      let remise = 0;
-      if (s[i].remise_type === 'amount') {
-        remise = parseFloat(s[i].remise_montant || 0);
-      } else {
-        remise = lineTotal * (parseFloat(s[i].remise_percent || 0) / 100);
-      }
-      s[i].total = Math.max(lineTotal - remise, 0);
-    }
-    updateField('option_2_services', s);
-  };
-  const removeService2 = (i) => updateField('option_2_services', formData.option_2_services.filter((_, idx) => idx !== i));
-  const moveService2Up = (i) => {
-    if (i === 0) return;
-    const s = [...formData.option_2_services];
-    [s[i-1], s[i]] = [s[i], s[i-1]];
-    updateField('option_2_services', s);
-  };
-  const moveService2Down = (i) => {
-    if (i === formData.option_2_services.length - 1) return;
-    const s = [...formData.option_2_services];
-    [s[i], s[i+1]] = [s[i+1], s[i]];
-    updateField('option_2_services', s);
+  // ─── Options dynamiques (illimitées) ───────────────────────────
+  const computeOptTotals = (opt) => {
+    const services = opt.services || [];
+    const brut = services.reduce((s, x) => s + (parseFloat(x.quantity || 0) * parseFloat(x.unit_price || 0)), 0);
+    const remisesLignes = services.reduce((s, x) => {
+      const lt = parseFloat(x.quantity || 0) * parseFloat(x.unit_price || 0);
+      return s + (x.remise_type === 'amount' ? parseFloat(x.remise_montant || 0) : lt * (parseFloat(x.remise_percent || 0) / 100));
+    }, 0);
+    const apres = services.reduce((s, x) => s + (x.total || 0), 0);
+    const remiseGlobale = opt.remise_type === 'percent'
+      ? Math.round(apres * (opt.remise_percent || 0) / 100 * 100) / 100
+      : Math.round((opt.remise_montant || 0) * 100) / 100;
+    const remiseTotale = Math.round((remisesLignes + remiseGlobale) * 100) / 100;
+    const net = Math.max(Math.round((apres - remiseGlobale) * 100) / 100, 0);
+    return {
+      total_brut: brut, remises_lignes: remisesLignes, remise_globale: remiseGlobale,
+      remise_totale: remiseTotale, remise: remiseGlobale, total_net: net,
+      acompte_30: Math.round(net * 0.3 * 100) / 100,
+    };
   };
 
-  // Option 3 services
-  const addService3 = () => updateField('option_3_services', [...formData.option_3_services, { description: '', quantity: 1, unit: 'unité', unit_price: 0, remise_type: 'percent', remise_percent: 0, remise_montant: 0, total: 0 }]);
-  const updateService3 = (i, field, val) => {
-    const s = [...formData.option_3_services];
+  const addOption = () => setAdditionalOptions(prev => [...prev, { title: '', services: [], remise_type: 'percent', remise_percent: 0, remise_montant: 0 }]);
+  const removeOption = (idx) => setAdditionalOptions(prev => prev.filter((_, i) => i !== idx));
+  const updateOptionField = (idx, key, val) => setAdditionalOptions(prev => prev.map((o, i) => i === idx ? { ...o, [key]: val } : o));
+  const addOptService = (idx) => setAdditionalOptions(prev => prev.map((o, i) => i === idx ? { ...o, services: [...o.services, { description: '', quantity: 1, unit: 'unité', unit_price: 0, remise_type: 'percent', remise_percent: 0, remise_montant: 0, total: 0 }] } : o));
+  const updateOptService = (idx, i, field, val) => setAdditionalOptions(prev => prev.map((o, oi) => {
+    if (oi !== idx) return o;
+    const s = [...o.services];
     s[i] = { ...s[i], [field]: val };
-    if (field === 'quantity' || field === 'unit_price' || field === 'remise_percent' || field === 'remise_montant' || field === 'remise_type') {
-      const qty = parseFloat(s[i].quantity || 0);
-      const pu = parseFloat(s[i].unit_price || 0);
-      const lineTotal = qty * pu;
-      let remise = 0;
-      if (s[i].remise_type === 'amount') {
-        remise = parseFloat(s[i].remise_montant || 0);
-      } else {
-        remise = lineTotal * (parseFloat(s[i].remise_percent || 0) / 100);
-      }
-      s[i].total = Math.max(lineTotal - remise, 0);
+    if (['quantity', 'unit_price', 'remise_percent', 'remise_montant', 'remise_type'].includes(field)) {
+      const lt = parseFloat(s[i].quantity || 0) * parseFloat(s[i].unit_price || 0);
+      const rem = s[i].remise_type === 'amount' ? parseFloat(s[i].remise_montant || 0) : lt * (parseFloat(s[i].remise_percent || 0) / 100);
+      s[i].total = Math.max(lt - rem, 0);
     }
-    updateField('option_3_services', s);
-  };
-  const removeService3 = (i) => updateField('option_3_services', formData.option_3_services.filter((_, idx) => idx !== i));
-  const moveService3Up = (i) => {
-    if (i === 0) return;
-    const s = [...formData.option_3_services];
-    [s[i-1], s[i]] = [s[i], s[i-1]];
-    updateField('option_3_services', s);
-  };
-  const moveService3Down = (i) => {
-    if (i === formData.option_3_services.length - 1) return;
-    const s = [...formData.option_3_services];
-    [s[i], s[i+1]] = [s[i+1], s[i]];
-    updateField('option_3_services', s);
-  };
+    return { ...o, services: s };
+  }));
+  const removeOptService = (idx, i) => setAdditionalOptions(prev => prev.map((o, oi) => oi === idx ? { ...o, services: o.services.filter((_, k) => k !== i) } : o));
+  const moveOptServiceUp = (idx, i) => setAdditionalOptions(prev => prev.map((o, oi) => {
+    if (oi !== idx || i === 0) return o;
+    const s = [...o.services]; [s[i - 1], s[i]] = [s[i], s[i - 1]]; return { ...o, services: s };
+  }));
+  const moveOptServiceDown = (idx, i) => setAdditionalOptions(prev => prev.map((o, oi) => {
+    if (oi !== idx || i === o.services.length - 1) return o;
+    const s = [...o.services]; [s[i], s[i + 1]] = [s[i + 1], s[i]]; return { ...o, services: s };
+  }));
 
   // Catalog handler
   const addFromCatalog = (item) => {
@@ -603,13 +596,13 @@ const QuoteForm = () => {
       quantity: 1, 
       unit: item.default_unit || 'unité', 
       unit_price: item.default_price || 0, 
+      remise_type: 'percent',
       remise_percent: 0, 
+      remise_montant: 0,
       total: item.default_price || 0 
     };
-    if (catalogTarget === 'option2') {
-      updateField('option_2_services', [...formData.option_2_services, newService]);
-    } else if (catalogTarget === 'option3') {
-      updateField('option_3_services', [...formData.option_3_services, newService]);
+    if (typeof catalogTarget === 'number') {
+      setAdditionalOptions(prev => prev.map((o, i) => i === catalogTarget ? { ...o, services: [...o.services, newService] } : o));
     } else {
       updateField('services', [...formData.services, newService]);
     }
@@ -665,46 +658,6 @@ const QuoteForm = () => {
     };
   }, [formData.services, formData.remise_type, formData.remise_percent, formData.remise_montant]);
 
-  // Option 2 totals
-  const totals2 = useMemo(() => {
-    const brutAvantRemises = formData.option_2_services.reduce((sum, s) => {
-      const lineTotal = (s.quantity || 0) * (s.unit_price || 0);
-      return sum + lineTotal;
-    }, 0);
-    const remisesLignes = formData.option_2_services.reduce((sum, s) => {
-      const lineTotal = (s.quantity || 0) * (s.unit_price || 0);
-      const lineRemise = lineTotal * ((s.remise_percent || 0) / 100);
-      return sum + lineRemise;
-    }, 0);
-    const brutApresRemisesLignes = formData.option_2_services.reduce((sum, s) => sum + (s.total || 0), 0);
-    const remiseGlobale = formData.option_2_remise_type === 'percent'
-      ? Math.round(brutApresRemisesLignes * (formData.option_2_remise_percent || 0) / 100 * 100) / 100
-      : Math.round((formData.option_2_remise_montant || 0) * 100) / 100;
-    const remiseTotale = Math.round((remisesLignes + remiseGlobale) * 100) / 100;
-    const net = Math.round((brutApresRemisesLignes - remiseGlobale) * 100) / 100;
-    return { total_brut: brutAvantRemises, remises_lignes: remisesLignes, remise_globale: remiseGlobale, remise_totale: remiseTotale, remise: remiseGlobale, total_net: Math.max(net, 0), acompte_30: Math.round(Math.max(net, 0) * 0.3 * 100) / 100 };
-  }, [formData.option_2_services, formData.option_2_remise_type, formData.option_2_remise_percent, formData.option_2_remise_montant]);
-
-  // Option 3 totals
-  const totals3 = useMemo(() => {
-    const brutAvantRemises = formData.option_3_services.reduce((sum, s) => {
-      const lineTotal = (s.quantity || 0) * (s.unit_price || 0);
-      return sum + lineTotal;
-    }, 0);
-    const remisesLignes = formData.option_3_services.reduce((sum, s) => {
-      const lineTotal = (s.quantity || 0) * (s.unit_price || 0);
-      const lineRemise = lineTotal * ((s.remise_percent || 0) / 100);
-      return sum + lineRemise;
-    }, 0);
-    const brutApresRemisesLignes = formData.option_3_services.reduce((sum, s) => sum + (s.total || 0), 0);
-    const remiseGlobale = formData.option_3_remise_type === 'percent'
-      ? Math.round(brutApresRemisesLignes * (formData.option_3_remise_percent || 0) / 100 * 100) / 100
-      : Math.round((formData.option_3_remise_montant || 0) * 100) / 100;
-    const remiseTotale = Math.round((remisesLignes + remiseGlobale) * 100) / 100;
-    const net = Math.round((brutApresRemisesLignes - remiseGlobale) * 100) / 100;
-    return { total_brut: brutAvantRemises, remises_lignes: remisesLignes, remise_globale: remiseGlobale, remise_totale: remiseTotale, remise: remiseGlobale, total_net: Math.max(net, 0), acompte_30: Math.round(Math.max(net, 0) * 0.3 * 100) / 100 };
-  }, [formData.option_3_services, formData.option_3_remise_type, formData.option_3_remise_percent, formData.option_3_remise_montant]);
-
   // Live preview document
   const previewDoc = useMemo(() => {
     const client = clients.find(c => c.id === formData.client_id);
@@ -712,10 +665,33 @@ const QuoteForm = () => {
     const cAddr = showNewClient ? newClient.address : client?.address || '';
     const cPhone = showNewClient ? newClient.phone : client?.phone || '';
     const cEmail = showNewClient ? newClient.email : client?.email || '';
-    
+
+    const prof = profiles.find(p => p.id === selectedProfileId);
+    const company = prof ? {
+      company_name: prof.company_name || '',
+      account_holder: prof.account_holder || '',
+      address: prof.address || '',
+      phone: prof.phone || '',
+      email: prof.email || '',
+      siret: prof.siret || '',
+    } : null;
+
+    // Options dynamiques avec totaux calculés
+    const additional_options = additionalOptions
+      .filter(o => (o.services || []).length > 0)
+      .map(o => {
+        const t = computeOptTotals(o);
+        return {
+          title: o.title || '', services: o.services,
+          remise_type: o.remise_type, remise_percent: o.remise_percent, remise_montant: o.remise_montant,
+          total_brut: t.total_brut, remise: t.remise, total_net: t.total_net, acompte_30: t.acompte_30,
+        };
+      });
+
     const doc = {
       quote_number: formData.custom_quote_number || (id ? undefined : 'XX'),
       quote_title: formData.quote_title,
+      company,
       client_name: cName, client_address: cAddr, client_phone: cPhone, client_email: cEmail,
       date: new Date().toLocaleDateString('fr-FR'),
       work_location: formData.work_location,
@@ -727,33 +703,12 @@ const QuoteForm = () => {
       ...totals1,
       remise_percent: formData.remise_type === 'percent' ? formData.remise_percent : 0,
       remise_montant: formData.remise_type === 'amount' ? formData.remise_montant : 0,
+      additional_options,
       notes: formData.notes,
     };
-    
-    // Add option 2 if enabled
-    if (hasOption2 && formData.option_2_services.length > 0) {
-      doc.option_2_services = formData.option_2_services;
-      doc.option_2_title = formData.option_2_title;
-      doc.option_2_total_brut = totals2.total_brut;
-      doc.option_2_remise = totals2.remise;
-      doc.option_2_remise_percent = formData.option_2_remise_type === 'percent' ? formData.option_2_remise_percent : 0;
-      doc.option_2_total_net = totals2.total_net;
-      doc.option_2_acompte_30 = totals2.acompte_30;
-    }
-    
-    // Add option 3 if enabled
-    if (hasOption3 && formData.option_3_services.length > 0) {
-      doc.option_3_services = formData.option_3_services;
-      doc.option_3_title = formData.option_3_title;
-      doc.option_3_total_brut = totals3.total_brut;
-      doc.option_3_remise = totals3.remise;
-      doc.option_3_remise_percent = formData.option_3_remise_type === 'percent' ? formData.option_3_remise_percent : 0;
-      doc.option_3_total_net = totals3.total_net;
-      doc.option_3_acompte_30 = totals3.acompte_30;
-    }
-    
+
     return doc;
-  }, [formData, newClient, showNewClient, clients, id, totals1, totals2, totals3, hasOption2, hasOption3]);
+  }, [formData, newClient, showNewClient, clients, id, totals1, additionalOptions, profiles, selectedProfileId]);
 
   const handleDownloadPDF = useCallback(async () => {
     await downloadPDF(previewDoc, 'quote');
@@ -765,8 +720,8 @@ const QuoteForm = () => {
     const hasNewClient = showNewClient && newClient.name;
     if (!clientId && !hasNewClient) { toast.error('Sélectionnez ou créez un client'); return; }
     if (formData.services.length === 0) { toast.error('Ajoutez au moins un service à l\'option 1'); return; }
-    if (hasOption2 && formData.option_2_services.length === 0) { toast.error('Ajoutez au moins un service à l\'option 2 ou désactivez-la'); return; }
-    if (hasOption3 && formData.option_3_services.length === 0) { toast.error('Ajoutez au moins un service à l\'option 3 ou désactivez-la'); return; }
+    const emptyOption = additionalOptions.find(o => (o.services || []).length === 0);
+    if (emptyOption) { toast.error('Une option supplémentaire est vide. Ajoutez un service ou supprimez-la.'); return; }
     if (showNewClient && (!newClient.name || !newClient.phone || !newClient.address)) {
       toast.error('Nom, téléphone et adresse sont obligatoires'); return;
     }
@@ -778,6 +733,7 @@ const QuoteForm = () => {
         new_client: hasNewClient ? newClient : null,
         custom_quote_number: formData.custom_quote_number || null,
         quote_title: formData.quote_title || '',
+        profile_id: selectedProfileId || null,
         work_location: formData.work_location,
         work_surface: '',
         diagnostic: formData.diagnostic,
@@ -787,16 +743,16 @@ const QuoteForm = () => {
         remise_montant: formData.remise_type === 'amount' ? formData.remise_montant : 0,
         payment_plan: formData.payment_plan || 'acompte_solde',
         notes: formData.notes,
-        // Option 2
-        option_2_services: hasOption2 ? formData.option_2_services : [],
-        option_2_title: hasOption2 ? formData.option_2_title : '',
-        option_2_remise_percent: hasOption2 && formData.option_2_remise_type === 'percent' ? formData.option_2_remise_percent : 0,
-        option_2_remise_montant: hasOption2 && formData.option_2_remise_type === 'amount' ? formData.option_2_remise_montant : 0,
-        // Option 3
-        option_3_services: hasOption3 ? formData.option_3_services : [],
-        option_3_title: hasOption3 ? formData.option_3_title : '',
-        option_3_remise_percent: hasOption3 && formData.option_3_remise_type === 'percent' ? formData.option_3_remise_percent : 0,
-        option_3_remise_montant: hasOption3 && formData.option_3_remise_type === 'amount' ? formData.option_3_remise_montant : 0,
+        // Options dynamiques (illimitées)
+        additional_options: additionalOptions
+          .filter(o => (o.services || []).length > 0)
+          .map(o => ({
+            title: o.title || '',
+            services: o.services,
+            remise_type: o.remise_type || 'percent',
+            remise_percent: o.remise_type === 'percent' ? (o.remise_percent || 0) : 0,
+            remise_montant: o.remise_type === 'amount' ? (o.remise_montant || 0) : 0,
+          })),
       };
       if (id) {
         payload.client_id = payload.client_id || formData.client_id;
@@ -834,18 +790,44 @@ const QuoteForm = () => {
             </Button>
             <h1 className="text-lg font-bold">{id ? 'Modifier le devis' : 'Nouveau devis'}</h1>
           </div>
-          <button onClick={toggleDarkMode} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" data-testid="dark-mode-toggle-form">
-            {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
+          <div className="flex items-center gap-2">
+            {profiles.length > 0 && (
+              <Select value={selectedProfileId} onValueChange={setSelectedProfileId}>
+                <SelectTrigger data-testid="profile-select-mobile" className="h-8 w-auto gap-1 bg-white/15 border-white/30 text-white text-xs px-2 hover:bg-white/25">
+                  <Building2 className="h-3.5 w-3.5" />
+                  <SelectValue placeholder="Profil" />
+                </SelectTrigger>
+                <SelectContent>
+                  {profiles.map(p => <SelectItem key={p.id} value={p.id} data-testid={`profile-option-${p.id}`}>{p.company_name || p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+            <button onClick={toggleDarkMode} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" data-testid="dark-mode-toggle-form">
+              {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="hidden lg:flex lg:items-center lg:justify-between mb-4">
           <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{id ? 'Modifier le devis' : 'Nouveau devis'}</h1>
-          <button onClick={toggleDarkMode} className={`p-2 rounded-full transition-colors ${darkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
-            {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </button>
+          <div className="flex items-center gap-2">
+            {profiles.length > 0 && (
+              <Select value={selectedProfileId} onValueChange={setSelectedProfileId}>
+                <SelectTrigger data-testid="profile-select-desktop" className={`h-9 w-auto gap-1.5 text-sm px-3 ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white'}`}>
+                  <Building2 className="h-4 w-4" style={{ color: BRAND_BLUE }} />
+                  <SelectValue placeholder="Profil entreprise" />
+                </SelectTrigger>
+                <SelectContent className={darkMode ? 'bg-slate-700 border-slate-600' : ''}>
+                  {profiles.map(p => <SelectItem key={p.id} value={p.id} className={darkMode ? 'text-white hover:bg-slate-600' : ''} data-testid={`profile-option-desktop-${p.id}`}>{p.company_name || p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+            <button onClick={toggleDarkMode} className={`p-2 rounded-full transition-colors ${darkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+              {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
         <form onSubmit={handleSubmit} className="flex gap-5">
           {/* LEFT - Form */}
@@ -959,165 +941,55 @@ const QuoteForm = () => {
               moveSvcDown={moveServiceDown}
             />
 
-            {/* Toggle Option 2 */}
-            {!hasOption2 ? (
-              <Button 
-                type="button" 
-                variant="outline" 
-                className="w-full h-12 border-dashed border-2"
-                style={{ borderColor: BRAND_ORANGE, color: BRAND_ORANGE }}
-                onClick={() => setHasOption2(true)}
-                data-testid="add-option-2-btn"
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                Ajouter une Option 2 (alternative)
-              </Button>
-            ) : (
-              <>
-                {/* Option 2 Services */}
+            {/* Options dynamiques (illimitées) */}
+            {additionalOptions.map((opt, idx) => (
+              <div key={idx} className="space-y-2" data-testid={`dynamic-option-${idx}`}>
                 <ServicesSection
-                  services={formData.option_2_services}
-                  updateSvc={updateService2}
-                  removeSvc={removeService2}
-                  addSvc={addService2}
-                  openCat={() => openCatalog('option2')}
-                  optionNum={2}
-                  totals={totals2}
-                  remiseType={formData.option_2_remise_type}
-                  remisePercent={formData.option_2_remise_percent}
-                  remiseMontant={formData.option_2_remise_montant}
-                  onRemiseTypeChange={(t) => { updateField('option_2_remise_type', t); if(t === 'percent') updateField('option_2_remise_montant', 0); else updateField('option_2_remise_percent', 0); }}
-                  onRemisePercentChange={(v) => updateField('option_2_remise_percent', v)}
-                  onRemiseMontantChange={(v) => updateField('option_2_remise_montant', v)}
-                  optionTitle={formData.option_2_title}
-                  onTitleChange={(v) => updateField('option_2_title', v)}
-                  moveSvcUp={moveService2Up}
-                  moveSvcDown={moveService2Down}
-                />
-                
-                {/* Toggle Option 3 */}
-                {!hasOption3 ? (
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    className="w-full h-10 border-dashed border-2"
-                    style={{ borderColor: '#d97706', color: '#d97706' }}
-                    onClick={() => setHasOption3(true)}
-                    data-testid="add-option-3-btn"
-                  >
-                    <Copy className="h-4 w-4 mr-2" />
-                    Ajouter une Option 3
-                  </Button>
-                ) : (
-                  <>
-                    <ServicesSection
-                      services={formData.option_3_services}
-                      updateSvc={updateService3}
-                      removeSvc={removeService3}
-                      addSvc={addService3}
-                      openCat={() => openCatalog('option3')}
-                      optionNum={3}
-                      totals={totals3}
-                      remiseType={formData.option_3_remise_type}
-                      remisePercent={formData.option_3_remise_percent}
-                      remiseMontant={formData.option_3_remise_montant}
-                      onRemiseTypeChange={(t) => { updateField('option_3_remise_type', t); if(t === 'percent') updateField('option_3_remise_montant', 0); else updateField('option_3_remise_percent', 0); }}
-                      onRemisePercentChange={(v) => updateField('option_3_remise_percent', v)}
-                      onRemiseMontantChange={(v) => updateField('option_3_remise_montant', v)}
-                      optionTitle={formData.option_3_title}
-                      onTitleChange={(v) => updateField('option_3_title', v)}
-                      moveSvcUp={moveService3Up}
-                      moveSvcDown={moveService3Down}
-                    />
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="w-full h-9 text-red-600 border-red-300 hover:bg-red-50 text-sm"
-                      onClick={() => {
-                        if (window.confirm('Supprimer l\'option 3 ?')) {
-                          setHasOption3(false);
-                          updateField('option_3_services', []);
-                          updateField('option_3_title', '');
-                        }
-                      }}
-                    >
-                      <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                      Supprimer l'option 3
-                    </Button>
-                  </>
-                )}
-                
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="w-full h-9 text-red-600 border-red-300 hover:bg-red-50 text-sm"
-                  onClick={() => {
-                    if (window.confirm('Supprimer l\'option 2 ?')) {
-                      setHasOption2(false);
-                      updateField('option_2_services', []);
-                      updateField('option_2_title', '');
-                    }
-                  }}
-                >
-                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                  Supprimer l'option 2
-                </Button>
-              </>
-            )}
-
-            {/* Toggle Option 3 standalone */}
-            {!hasOption2 && !hasOption3 && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                className="w-full h-12 border-dashed border-2"
-                style={{ borderColor: '#d97706', color: '#d97706' }}
-                onClick={() => setHasOption3(true)}
-                data-testid="add-standalone-option-3-btn"
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                Ajouter une Option 3 (alternative)
-              </Button>
-            )}
-
-            {!hasOption2 && hasOption3 && (
-              <>
-                <ServicesSection
-                  services={formData.option_3_services}
-                  updateSvc={updateService3}
-                  removeSvc={removeService3}
-                  addSvc={addService3}
-                  openCat={() => openCatalog('option3')}
-                  optionNum={3}
-                  totals={totals3}
-                  remiseType={formData.option_3_remise_type}
-                  remisePercent={formData.option_3_remise_percent}
-                  remiseMontant={formData.option_3_remise_montant}
-                  onRemiseTypeChange={(t) => { updateField('option_3_remise_type', t); if(t === 'percent') updateField('option_3_remise_montant', 0); else updateField('option_3_remise_percent', 0); }}
-                  onRemisePercentChange={(v) => updateField('option_3_remise_percent', v)}
-                  onRemiseMontantChange={(v) => updateField('option_3_remise_montant', v)}
-                  optionTitle={formData.option_3_title}
-                  onTitleChange={(v) => updateField('option_3_title', v)}
-                  moveSvcUp={moveService3Up}
-                  moveSvcDown={moveService3Down}
+                  services={opt.services}
+                  updateSvc={(i, field, val) => updateOptService(idx, i, field, val)}
+                  removeSvc={(i) => removeOptService(idx, i)}
+                  addSvc={() => addOptService(idx)}
+                  openCat={() => openCatalog(idx)}
+                  optionNum={idx + 2}
+                  totals={computeOptTotals(opt)}
+                  remiseType={opt.remise_type}
+                  remisePercent={opt.remise_percent}
+                  remiseMontant={opt.remise_montant}
+                  onRemiseTypeChange={(t) => { updateOptionField(idx, 'remise_type', t); if (t === 'percent') updateOptionField(idx, 'remise_montant', 0); else updateOptionField(idx, 'remise_percent', 0); }}
+                  onRemisePercentChange={(v) => updateOptionField(idx, 'remise_percent', v)}
+                  onRemiseMontantChange={(v) => updateOptionField(idx, 'remise_montant', v)}
+                  optionTitle={opt.title}
+                  onTitleChange={(v) => updateOptionField(idx, 'title', v)}
+                  moveSvcUp={(i) => moveOptServiceUp(idx, i)}
+                  moveSvcDown={(i) => moveOptServiceDown(idx, i)}
                 />
                 <Button 
                   type="button" 
                   variant="outline" 
                   className="w-full h-9 text-red-600 border-red-300 hover:bg-red-50 text-sm"
                   onClick={() => {
-                    if (window.confirm('Supprimer l\'option 3 ?')) {
-                      setHasOption3(false);
-                      updateField('option_3_services', []);
-                      updateField('option_3_title', '');
-                    }
+                    if (window.confirm(`Supprimer l'option ${idx + 2} ?`)) removeOption(idx);
                   }}
+                  data-testid={`remove-option-${idx}-btn`}
                 >
                   <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                  Supprimer l'option 3
+                  Supprimer l'option {idx + 2}
                 </Button>
-              </>
-            )}
+              </div>
+            ))}
+
+            {/* Bouton ajouter une option */}
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="w-full h-12 border-dashed border-2"
+              style={{ borderColor: BRAND_ORANGE, color: BRAND_ORANGE }}
+              onClick={addOption}
+              data-testid="add-option-btn"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Ajouter une option (alternative)
+            </Button>
 
             {/* Notes */}
             <Card className="p-4 bg-white border-0 shadow-sm" data-testid="notes-section">
@@ -1145,13 +1017,13 @@ const QuoteForm = () => {
                     <span>Option 1</span><span>{totals1.total_net.toFixed(2)} €</span>
                   </div>
                 </div>
-                {hasOption2 && formData.option_2_services.length > 0 && (
-                  <div className="p-2 rounded-lg" style={{ background: '#fff7ed' }}>
+                {additionalOptions.filter(o => (o.services || []).length > 0).map((opt, idx) => (
+                  <div key={idx} className="p-2 rounded-lg" style={{ background: '#fff7ed' }}>
                     <div className="flex justify-between font-bold" style={{ color: BRAND_ORANGE }}>
-                      <span>Option 2</span><span>{totals2.total_net.toFixed(2)} €</span>
+                      <span>{opt.title ? `Option ${idx + 2}` : `Option ${idx + 2}`}</span><span>{computeOptTotals(opt).total_net.toFixed(2)} €</span>
                     </div>
                   </div>
-                )}
+                ))}
               </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" className="flex-1 h-10" onClick={() => setShowPreviewMobile(true)} data-testid="preview-btn-mobile">
@@ -1175,14 +1047,17 @@ const QuoteForm = () => {
                       <span>Total Option 1</span><span>{totals1.total_net.toFixed(2)} €</span>
                     </div>
                   </div>
-                  {hasOption2 && formData.option_2_services.length > 0 && (
-                    <div className="p-2 rounded-lg" style={{ background: '#fff7ed' }}>
-                      {totals2.remise > 0 && <div className="flex justify-between text-sm" style={{ color: BRAND_ORANGE }}><span>Remise</span><span>-{totals2.remise.toFixed(2)} €</span></div>}
-                      <div className="flex justify-between font-bold pt-1 border-t" style={{ borderColor: BRAND_ORANGE, color: BRAND_ORANGE }}>
-                        <span>Total Option 2</span><span>{totals2.total_net.toFixed(2)} €</span>
+                  {additionalOptions.filter(o => (o.services || []).length > 0).map((opt, idx) => {
+                    const t = computeOptTotals(opt);
+                    return (
+                      <div key={idx} className="p-2 rounded-lg" style={{ background: '#fff7ed' }}>
+                        {t.remise > 0 && <div className="flex justify-between text-sm" style={{ color: BRAND_ORANGE }}><span>Remise</span><span>-{t.remise.toFixed(2)} €</span></div>}
+                        <div className="flex justify-between font-bold pt-1 border-t" style={{ borderColor: BRAND_ORANGE, color: BRAND_ORANGE }}>
+                          <span>Total Option {idx + 2}</span><span>{t.total_net.toFixed(2)} €</span>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })}
                 </div>
                 <div className="flex gap-2">
                   <Button 
@@ -1250,7 +1125,7 @@ const QuoteForm = () => {
             <DialogTitle>
               Catalogue de services 
               <span className="ml-2 text-sm font-normal" style={{ color: catalogTarget === 'option1' ? BRAND_BLUE : BRAND_ORANGE }}>
-                (pour {catalogTarget === 'option1' ? 'Option 1' : catalogTarget === 'option2' ? 'Option 2' : 'Option 3'})
+                (pour {catalogTarget === 'option1' ? 'Option 1' : `Option ${catalogTarget + 2}`})
               </span>
             </DialogTitle>
           </DialogHeader>

@@ -196,9 +196,13 @@ const PDFDocument = ({ document, type, compact = false }) => {
   const diagLines = buildDiagnosticLines(document.diagnostic);
   const hasOption2 = isQuote && document.option_2_services && document.option_2_services.length > 0;
   const hasOption3 = isQuote && document.option_3_services && document.option_3_services.length > 0;
+  const dynamicOpts = isQuote && Array.isArray(document.additional_options)
+    ? document.additional_options.filter(o => (o.services || []).length > 0)
+    : [];
+  const hasDynamic = dynamicOpts.length > 0;
   const paymentPlan = document.payment_plan || 'acompte_solde';
   const showLineNumbers = document.show_line_numbers !== false;
-  const multipleOptions = hasOption2 || hasOption3;
+  const multipleOptions = hasDynamic || hasOption2 || hasOption3;
 
   return (
     <div className="bg-white" style={{ width: '100%', maxWidth: '794px', minHeight: compact ? 'auto' : '297mm', fontFamily: "'Manrope', 'Inter', sans-serif", fontSize: fs, lineHeight: 1.4 }} data-testid="pdf-document">
@@ -226,9 +230,18 @@ const PDFDocument = ({ document, type, compact = false }) => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
           <div style={{ borderRadius: '8px', padding: '10px', background: '#eff6ff', borderLeft: `3px solid ${BRAND_BLUE}` }}>
             <div style={{ fontSize: '8px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: BRAND_BLUE, marginBottom: '3px' }}>Entreprise</div>
-            <div style={{ fontWeight: 700, fontSize: '12px' }}>Ruben SUAREZ-SAR</div>
+            <div style={{ fontWeight: 700, fontSize: '12px' }}>{document.company?.company_name || document.company?.account_holder || 'Ruben SUAREZ-SAR'}</div>
             <div style={{ fontSize: '10px', color: '#4b5563', lineHeight: 1.55 }}>
-              1 Chemin de l'Etang Jean Guyon<br />39570 COURLAOUX<br />06 80 33 45 46<br />sr-renovation.fr<br />SIRET: 894 908 227 00024
+              {document.company ? (
+                <>
+                  {document.company.address ? <>{document.company.address}<br /></> : null}
+                  {document.company.phone ? <>{document.company.phone}<br /></> : null}
+                  {document.company.email ? <>{document.company.email}<br /></> : null}
+                  {document.company.siret ? <>SIRET: {document.company.siret}</> : null}
+                </>
+              ) : (
+                <>1 Chemin de l'Etang Jean Guyon<br />39570 COURLAOUX<br />06 80 33 45 46<br />sr-renovation.fr<br />SIRET: 894 908 227 00024</>
+              )}
             </div>
           </div>
           <div style={{ borderRadius: '8px', padding: '10px', background: '#fff7ed', borderLeft: `3px solid ${BRAND_ORANGE}` }}>
@@ -294,8 +307,29 @@ const PDFDocument = ({ document, type, compact = false }) => {
           </div>
         )}
 
-        {/* Services - Option 2 */}
-        {isQuote && hasOption2 && (
+        {/* Services - Options dynamiques (illimitées) */}
+        {isQuote && hasDynamic && dynamicOpts.map((opt, idx) => (
+          <React.Fragment key={idx}>
+            <ServicesTable 
+              services={opt.services} 
+              title={opt.title ? `OPTION ${idx + 2} : ${opt.title}` : `OPTION ${idx + 2}`} 
+              compact={compact} 
+              showLineNumbers={showLineNumbers} 
+            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', border: '1.5px solid #d1d5db', borderRadius: '4px', background: 'white' }}>
+                <div style={{ width: '14px', height: '14px', border: '2px solid #9ca3af', borderRadius: '3px' }} />
+                <span style={{ fontSize: '9px', color: '#6b7280' }}>Option {idx + 2}</span>
+              </div>
+              <div style={{ flex: 1 }}>
+                <TotalsSection remise={opt.remise} remisePercent={opt.remise_percent} totalNet={opt.total_net} acompte30={opt.acompte_30} isQuote={isQuote} label={`Total Option ${idx + 2}`} compact={compact} paymentPlan={paymentPlan} />
+              </div>
+            </div>
+          </React.Fragment>
+        ))}
+
+        {/* Services - Option 2 (legacy, anciens devis) */}
+        {isQuote && !hasDynamic && hasOption2 && (
           <>
             <ServicesTable 
               services={document.option_2_services} 
@@ -315,8 +349,8 @@ const PDFDocument = ({ document, type, compact = false }) => {
           </>
         )}
 
-        {/* Services - Option 3 */}
-        {isQuote && hasOption3 && (
+        {/* Services - Option 3 (legacy, anciens devis) */}
+        {isQuote && !hasDynamic && hasOption3 && (
           <>
             <ServicesTable 
               services={document.option_3_services} 

@@ -255,7 +255,7 @@ const PublicQuotePage = () => {
               </div>
 
               {/* Sélection d'option si plusieurs options disponibles */}
-              {(quote.option_2_services?.length > 0 || quote.option_3_services?.length > 0) && (
+              {(quote.additional_options?.filter(o => (o.services||[]).length > 0).length > 0 || quote.option_2_services?.length > 0 || quote.option_3_services?.length > 0) && (
                 <div className="mb-5 p-4 bg-slate-50 rounded-lg border border-slate-200">
                   <label className="text-sm font-semibold text-slate-700 mb-3 block">Choisissez l'option que vous souhaitez accepter :</label>
                   <div className="space-y-2">
@@ -280,7 +280,35 @@ const PublicQuotePage = () => {
                       </div>
                     </label>
 
-                    {/* Option 2 */}
+                    {/* Options dynamiques (illimitées) */}
+                    {quote.additional_options?.filter(o => (o.services||[]).length > 0).length > 0 ? (
+                      quote.additional_options.filter(o => (o.services||[]).length > 0).map((opt, idx) => {
+                        const optNum = idx + 2;
+                        return (
+                          <label key={idx} className="flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:bg-white" style={{ borderColor: selectedOption === optNum ? BRAND_BLUE : '#e2e8f0', backgroundColor: selectedOption === optNum ? '#eff6ff' : 'white' }}>
+                            <input
+                              type="radio"
+                              name="option"
+                              value={optNum}
+                              checked={selectedOption === optNum}
+                              onChange={() => setSelectedOption(optNum)}
+                              className="mt-1"
+                              style={{ accentColor: BRAND_BLUE }}
+                            />
+                            <div className="flex-1">
+                              <div className="font-semibold text-sm" style={{ color: selectedOption === optNum ? BRAND_BLUE : '#1e293b' }}>
+                                {opt.title || `Option ${optNum}`}
+                              </div>
+                              <div className="text-sm text-slate-600 mt-1">
+                                Montant : <span className="font-bold">{opt.total_net?.toFixed(2) || '0.00'} €</span>
+                              </div>
+                            </div>
+                          </label>
+                        );
+                      })
+                    ) : (
+                      <>
+                    {/* Option 2 (legacy) */}
                     {quote.option_2_services?.length > 0 && (
                       <label className="flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:bg-white" style={{ borderColor: selectedOption === 2 ? BRAND_BLUE : '#e2e8f0', backgroundColor: selectedOption === 2 ? '#eff6ff' : 'white' }}>
                         <input
@@ -303,7 +331,7 @@ const PublicQuotePage = () => {
                       </label>
                     )}
 
-                    {/* Option 3 */}
+                    {/* Option 3 (legacy) */}
                     {quote.option_3_services?.length > 0 && (
                       <label className="flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:bg-white" style={{ borderColor: selectedOption === 3 ? BRAND_BLUE : '#e2e8f0', backgroundColor: selectedOption === 3 ? '#eff6ff' : 'white' }}>
                         <input
@@ -324,6 +352,8 @@ const PublicQuotePage = () => {
                           </div>
                         </div>
                       </label>
+                    )}
+                      </>
                     )}
                   </div>
                 </div>
