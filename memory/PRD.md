@@ -56,6 +56,10 @@ Application web pour créer des devis et factures professionnels et personnalis�
 - **Options dynamiques illimitées**: bouton 'Ajouter une option' crée Option 2,3,4...; chaque option a titre/services/remise globale et un bouton de suppression individuel. Backend: modèle `OptionBlock`, champ `additional_options` (POST/PUT), synchronisation rétro-compatible vers option_2/option_3 (2 premières) pour anciens consommateurs (PDF legacy, page publique). PDFPreview rend `additional_options` (fallback legacy). Page publique: cases à cocher dynamiques.
 - **Remises en € (montant fixe)**: modèle `Service` backend inclut désormais `remise_type`/`remise_montant` (persistance des remises de ligne). Recalcul correct des totaux ligne + option + global.
 
+## Implémenté le 09/06/2026 (session 2)
+- **Réorganisation du catalogue**: Les catégories sont maintenant triées dans l'ordre défini (TOITURE → FAÇADE → ZINGUERIE & HABILLAGE → SOLS & EXTÉRIEURS → Autres). Avant, l'ordre était aléatoire (ZINGUERIE apparaissait en premier).
+- **Barre de recherche dans le catalogue**: Champ de recherche en haut de la boîte de dialogue pour filtrer en temps réel par nom ou description de prestation. Auto-focus, message "aucun résultat" si rien ne correspond.
+
 ## Backlog priorisé
 
 ### P0 — À confirmer avec l'utilisateur

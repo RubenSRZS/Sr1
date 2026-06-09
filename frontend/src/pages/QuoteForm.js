@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download, Copy, Moon, Sun, ChevronUp, ChevronDown, Building2 } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download, Copy, Moon, Sun, ChevronUp, ChevronDown, Building2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -304,6 +304,7 @@ const QuoteForm = () => {
   const [draftRestored, setDraftRestored] = useState(false);
   const [profiles, setProfiles] = useState([]);
   const [selectedProfileId, setSelectedProfileId] = useState('');
+  const [catalogSearch, setCatalogSearch] = useState('');
 
   const initialFormState = {
     client_id: '',
@@ -612,6 +613,7 @@ const QuoteForm = () => {
 
   const openCatalog = (target) => {
     setCatalogTarget(target);
+    setCatalogSearch('');
     setShowCatalog(true);
   };
 
@@ -1119,7 +1121,7 @@ const QuoteForm = () => {
       )}
 
       {/* Catalog Dialog */}
-      <Dialog open={showCatalog} onOpenChange={setShowCatalog}>
+      <Dialog open={showCatalog} onOpenChange={(open) => { setShowCatalog(open); if (!open) setCatalogSearch(''); }}>
         <DialogContent className="sm:max-w-[700px] max-h-[80vh]" data-testid="catalog-dialog">
           <DialogHeader>
             <DialogTitle>
@@ -1129,23 +1131,65 @@ const QuoteForm = () => {
               </span>
             </DialogTitle>
           </DialogHeader>
-          <div className="overflow-y-auto space-y-3 max-h-[60vh] px-1">
-            {catalog.length === 0 ? (
+          {/* Barre de recherche */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            <Input
+              value={catalogSearch}
+              onChange={e => setCatalogSearch(e.target.value)}
+              placeholder="Rechercher une prestation..."
+              className="pl-9 h-9 text-sm"
+              autoFocus
+              data-testid="catalog-search-input"
+            />
+          </div>
+          <div className="overflow-y-auto space-y-3 max-h-[55vh] px-1">
+            {catalog.filter(i => i.item_type !== 'note_condition').length === 0 ? (
               <div className="text-center py-8 text-gray-400">
                 <p className="text-sm">Aucun service dans le catalogue</p>
                 <p className="text-xs mt-2">Ajoutez des services depuis la page Catalogue</p>
               </div>
             ) : (
               (() => {
+                // Ordre des catégories défini
+                const CATEGORY_ORDER = Object.keys(CATALOG_CATEGORIES);
+
+                // Filtrer par recherche (exclure notes/conditions)
+                const filtered = catalog.filter(item =>
+                  item.item_type !== 'note_condition' && (
+                    !catalogSearch ||
+                    item.service_name?.toLowerCase().includes(catalogSearch.toLowerCase()) ||
+                    item.description?.toLowerCase().includes(catalogSearch.toLowerCase())
+                  )
+                );
+
+                if (filtered.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-gray-400">
+                      <p className="text-sm">Aucun résultat pour « {catalogSearch} »</p>
+                    </div>
+                  );
+                }
+
                 // Grouper par catégorie
-                const grouped = catalog.reduce((acc, item) => {
+                const grouped = filtered.reduce((acc, item) => {
                   const cat = item.category || 'Autres';
                   if (!acc[cat]) acc[cat] = [];
                   acc[cat].push(item);
                   return acc;
                 }, {});
+
+                // Trier les catégories dans l'ordre défini
+                const sortedEntries = Object.entries(grouped).sort(([a], [b]) => {
+                  const idxA = CATEGORY_ORDER.indexOf(a);
+                  const idxB = CATEGORY_ORDER.indexOf(b);
+                  if (idxA === -1 && idxB === -1) return a.localeCompare(b);
+                  if (idxA === -1) return 1;
+                  if (idxB === -1) return -1;
+                  return idxA - idxB;
+                });
                 
-                return Object.entries(grouped).map(([category, items]) => (
+                return sortedEntries.map(([category, items]) => (
                   <div key={category} className="space-y-2">
                     <div className="text-xs font-bold uppercase text-gray-500 px-2 py-1 bg-gray-50 rounded sticky top-0">
                       {category}
