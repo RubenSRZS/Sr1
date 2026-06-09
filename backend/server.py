@@ -104,7 +104,7 @@ def build_relance_html(body_html: str, public_link: str, relance_day: int,
     <tr>
       <td>
         <p style="margin:0;font-size:20px;font-weight:800;color:#fff;letter-spacing:0.5px;">SR Rénovation</p>
-        <p style="margin:3px 0 0;font-size:11px;color:rgba(255,255,255,0.75);">Toiture &bull; Façade &bull; Zinguerie &bull; Jura (39)</p>
+        <p style="margin:3px 0 0;font-size:11px;color:rgba(255,255,255,0.75);">Nettoyage Toiture &amp; Habitat</p>
       </td>
       <td align="right">
         <a href="{tel_link}" style="display:inline-block;background:rgba(255,255,255,0.2);color:#fff;text-decoration:none;font-size:12px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.3);">06 80 33 45 46</a>
@@ -155,18 +155,6 @@ def build_relance_html(body_html: str, public_link: str, relance_day: int,
       <td width="32%" align="center" style="padding-left:5px;">
         <a href="{mail_link}" style="display:block;border:2px solid #e5e7eb;color:#6b7280;text-decoration:none;padding:10px 0;border-radius:8px;font-size:13px;font-weight:700;text-align:center;">Email</a>
       </td>
-    </tr>
-    </table>
-  </td></tr>
-
-  <!-- FOOTER — gradient site -->
-  <tr><td style="background:linear-gradient(to right,#2563eb,#f97316);padding:14px 28px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr>
-      <td style="text-align:center;color:#fff;font-size:10px;font-weight:700;">Entreprise<br><span style="font-weight:400;opacity:0.8;">locale française</span></td>
-      <td style="text-align:center;color:#fff;font-size:10px;font-weight:700;">10 ans<br><span style="font-weight:400;opacity:0.8;">d&apos;expérience</span></td>
-      <td style="text-align:center;color:#fff;font-size:10px;font-weight:700;">+500<br><span style="font-weight:400;opacity:0.8;">chantiers</span></td>
-      <td style="text-align:center;color:#fff;font-size:10px;font-weight:700;">Intervention<br><span style="font-weight:400;opacity:0.8;">rapide</span></td>
     </tr>
     </table>
   </td></tr>
