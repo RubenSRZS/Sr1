@@ -49,11 +49,21 @@ Application web pour créer des devis et factures professionnels et personnalis�
 - Iteration 10: 100% (21/21) — Parité visuelle page publique/PDF
 - Iteration 11: 100% (20/20) — Refonte email + PDF attachment
 - Iteration 12: 100% (23/23) — Responsive, signature PDF, emails post-signature, RIB
+- Iteration 13 (09/06/2026): 100% — Sélection profil par devis + options dynamiques illimitées + remises € (backend 8/8 pytest, frontend UI OK)
+
+## Implémenté le 09/06/2026
+- **Sélection du profil entreprise par devis**: petit sélecteur (icône bâtiment) à côté du bouton mode nuit (mobile + desktop). Le profil choisi alimente la carte 'Entreprise' de l'aperçu/PDF (avant codé en dur 'Ruben SUAREZ-SAR'). Snapshot `company` stocké sur le devis. Backend: `profile_id` + `company` sur Quote, helper `resolve_company`.
+- **Options dynamiques illimitées**: bouton 'Ajouter une option' crée Option 2,3,4...; chaque option a titre/services/remise globale et un bouton de suppression individuel. Backend: modèle `OptionBlock`, champ `additional_options` (POST/PUT), synchronisation rétro-compatible vers option_2/option_3 (2 premières) pour anciens consommateurs (PDF legacy, page publique). PDFPreview rend `additional_options` (fallback legacy). Page publique: cases à cocher dynamiques.
+- **Remises en € (montant fixe)**: modèle `Service` backend inclut désormais `remise_type`/`remise_montant` (persistance des remises de ligne). Recalcul correct des totaux ligne + option + global.
 
 ## Backlog priorisé
 
+### P0 — À confirmer avec l'utilisateur
+- Le profil par défaut actuel est "Câble Ethernet Ugreen" (semble être un profil de test). L'utilisateur voudra probablement définir "SR Rénovation" comme profil par défaut (page Profil / bouton 'définir par défaut').
+
 ### P1 — À venir
 - Dashboard statut des devis (section envoyés/ouverts/signés)
+- Push GitHub (RubenSRZS/Sr1) via le bouton "Save to Github" quand l'utilisateur valide.
 
 ### P2
 - PDF preview fond blanc en mode sombre
