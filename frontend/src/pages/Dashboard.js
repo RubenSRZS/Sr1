@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, FileText, Receipt, Users, ArrowRight, Moon, Sun, Send, CheckCircle, Clock, FileCheck, UserCircle, Settings } from 'lucide-react';
+import { Plus, FileText, Receipt, Users, ArrowRight, Moon, Sun, Send, CheckCircle, Clock, FileCheck, UserCircle, Settings, Bell } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -149,6 +149,24 @@ const Dashboard = () => {
           </div>
           <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
             Gérez les informations sur vos devis/factures : nom, SIRET, RIB, assurances...
+          </p>
+        </Card>
+
+        {/* Relances Section */}
+        <Card className={`p-5 mb-4 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`} data-testid="relances-dashboard-card">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Bell className={`w-5 h-5 ${darkMode ? 'text-orange-400' : 'text-orange-500'}`} />
+              <h3 className={`font-bold text-base ${darkMode ? 'text-white' : 'text-slate-800'}`}>Relances Automatiques</h3>
+            </div>
+            <Link to="/relances">
+              <Button size="sm" variant="outline" className={`text-xs ${darkMode ? 'border-slate-600 hover:bg-slate-700 text-slate-300' : ''}`}>
+                <Settings className="w-3.5 h-3.5 mr-1" /> Configurer
+              </Button>
+            </Link>
+          </div>
+          <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+            Emails de suivi automatiques J+3, J+7, J+14, J+30 — jamais le dimanche. Désactivez par devis si le client répond par téléphone.
           </p>
         </Card>
 

@@ -15,6 +15,8 @@ from datetime import datetime, timezone
 import json
 from google import genai
 from google.genai import types
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -33,6 +35,123 @@ REPLY_TO_EMAIL = os.environ.get('REPLY_TO_EMAIL')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 if GEMINI_API_KEY:
     gemini_client = genai.Client(api_key=GEMINI_API_KEY, http_options={'api_version': 'v1alpha'})
+
+# ==================== RELANCE CONFIG ====================
+scheduler = AsyncIOScheduler()
+
+DEFAULT_RELANCE_TEMPLATES = {
+    3: {
+        "day": 3,
+        "subject": "Rappel - Votre devis SR Rénovation n°{quote_number}",
+        "body": "Bonjour {client_name},\n\nJe me permets de revenir vers vous concernant le devis n°{quote_number} que je vous ai adressé récemment pour votre chantier à {work_location} (montant : {total_net} €).\n\nJe reste entièrement disponible pour répondre à vos questions ou apporter des précisions sur notre proposition.\n\nN'hésitez pas à me contacter directement ou à consulter votre devis en ligne via le lien ci-dessous.\n\nCordialement,\nRuben Suarez – SR Rénovation"
+    },
+    7: {
+        "day": 7,
+        "subject": "Votre devis n°{quote_number} — Des questions ?",
+        "body": "Bonjour {client_name},\n\nJe fais suite à mon précédent message concernant votre devis n°{quote_number} (montant : {total_net} €).\n\nAvez-vous eu l'opportunité d'en prendre connaissance ? Y a-t-il des points sur lesquels vous souhaiteriez des éclaircissements ou des ajustements ?\n\nJe suis à votre disposition pour adapter notre proposition à vos besoins. Votre satisfaction est ma priorité.\n\nBien cordialement,\nRuben Suarez – SR Rénovation"
+    },
+    14: {
+        "day": 14,
+        "subject": "Votre projet à {work_location} — Devis n°{quote_number} encore disponible",
+        "body": "Bonjour {client_name},\n\nJe reviens vers vous au sujet de votre devis n°{quote_number} pour votre chantier à {work_location} (montant : {total_net} €).\n\nNos équipes sont qualifiées et notre travail est couvert par une assurance décennale. Nous pouvons démarrer les travaux dans les meilleurs délais dès validation de votre devis.\n\nSi vous avez des interrogations sur le budget ou le déroulement, je suis disponible au 06 80 33 45 46.\n\nCordialement,\nRuben Suarez – SR Rénovation"
+    },
+    30: {
+        "day": 30,
+        "subject": "Dernière relance — Devis n°{quote_number}",
+        "body": "Bonjour {client_name},\n\nCeci est mon dernier message concernant votre devis n°{quote_number} d'un montant de {total_net} € pour votre chantier à {work_location}.\n\nJe garde votre dossier ouvert encore quelques jours. Si votre situation a évolué ou si vous souhaitez retravailler le projet, n'hésitez pas à me recontacter à tout moment.\n\nBonne continuation,\nRuben Suarez – SR Rénovation"
+    }
+}
+
+def build_relance_html(body_html: str, public_link: str, relance_day: int) -> str:
+    badge = f"Relance J+{relance_day}"
+    return f"""<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:'Segoe UI',Arial,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f5;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:580px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+<tr><td style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 40%,#f97316 100%);padding:28px;text-align:center;">
+  <h1 style="color:#fff;margin:0;font-size:24px;font-weight:800;font-family:'Montserrat',sans-serif;">SR RÉNOVATION</h1>
+  <span style="display:inline-block;margin-top:8px;background:rgba(255,255,255,0.2);color:white;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;">{badge}</span>
+</td></tr>
+<tr><td style="padding:32px 28px 24px;">
+  <p style="color:#1e293b;font-size:15px;line-height:1.8;margin:0 0 24px;">{body_html}</p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr><td align="center" style="padding:8px 0 24px;">
+    <a href="{public_link}" style="display:inline-block;background-color:#f97316;color:#fff;text-decoration:none;padding:14px 40px;border-radius:50px;font-weight:700;font-size:15px;">Consulter mon devis</a>
+  </td></tr></table>
+</td></tr>
+<tr><td style="padding:0 28px;"><div style="border-top:1px solid #e5e7eb;"></div></td></tr>
+<tr><td style="padding:20px 28px;text-align:center;">
+  <p style="color:#1e293b;font-size:14px;font-weight:700;margin:0 0 8px;font-family:Georgia,serif;">SR Rénovation</p>
+  <p style="color:#475569;font-size:12px;margin:0;line-height:1.8;">
+    &#9742; 06 80 33 45 46 &nbsp;&bull;&nbsp; &#9993; <a href="mailto:SrRenovation03@gmail.com" style="color:#3b82f6;">SrRenovation03@gmail.com</a><br>
+    Jura (39) &mdash; <a href="https://sr-renovation.fr" style="color:#3b82f6;">sr-renovation.fr</a>
+  </p>
+</td></tr>
+</table></td></tr></table>
+</body></html>"""
+
+async def run_relances():
+    today = datetime.now(timezone.utc)
+    if today.weekday() == 6:
+        logger.info("Relances: skipped (Sunday)")
+        return
+    thresholds = [3, 7, 14, 30]
+    count = 0
+    async for q in db.quotes.find(
+        {"status": "sent", "relances_active": True, "sent_at": {"$exists": True, "$ne": None}},
+        {"_id": 0}
+    ):
+        try:
+            sent_at = datetime.fromisoformat(q["sent_at"].replace("Z", "+00:00"))
+            days_since = (today - sent_at).days
+            relances_sent = q.get("relances_sent", [])
+            pending = next((t for t in thresholds if days_since >= t and t not in relances_sent), None)
+            if pending is None:
+                if days_since >= 30 and 30 in relances_sent:
+                    await db.quotes.update_one({"id": q["id"]}, {"$set": {"relances_active": False}})
+                continue
+            tmpl = await db.relance_templates.find_one({"day": pending}, {"_id": 0})
+            if not tmpl:
+                tmpl = DEFAULT_RELANCE_TEMPLATES.get(pending)
+            if not tmpl:
+                continue
+            fmt = dict(
+                quote_number=q.get("quote_number", ""),
+                client_name=q.get("client_name", ""),
+                total_net=f"{q.get('total_net', 0):.2f}",
+                work_location=q.get("work_location", "")
+            )
+            subject = tmpl["subject"].format(**fmt)
+            body_html = tmpl["body"].replace('\n', '<br>').format(**fmt)
+            base_url = os.environ.get("PUBLIC_APP_URL", "")
+            public_link = f"{base_url}/devis/public/{q.get('public_token', '')}" if base_url else "#"
+            html = build_relance_html(body_html, public_link, pending)
+            client_email = q.get("client_email", "")
+            if client_email:
+                params = {
+                    "from": f"SR Renovation <{SENDER_EMAIL}>",
+                    "to": [client_email],
+                    "reply_to": REPLY_TO_EMAIL,
+                    "subject": subject,
+                    "html": html,
+                }
+                await asyncio.to_thread(resend.Emails.send, params)
+                count += 1
+            new_sent = relances_sent + [pending]
+            now_str = datetime.now(timezone.utc).isoformat()
+            upd = {"relances_sent": new_sent, "last_relance_at": now_str}
+            if pending == 30:
+                upd["relances_active"] = False
+            await db.quotes.update_one({"id": q["id"]}, {"$set": upd})
+            logger.info(f"Relance J+{pending} => quote {q['id']} / {client_email}")
+        except Exception as e:
+            logger.error(f"Relance error quote {q.get('id','?')}: {e}")
+    logger.info(f"Relances run done: {count} sent")
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -189,7 +308,17 @@ class Quote(BaseModel):
     sent_to_email: Optional[str] = None
     opened_at: Optional[str] = None
     signed_at: Optional[str] = None
+    relances_active: bool = False
+    relances_sent: List[int] = []
+    last_relance_at: Optional[str] = None
+    lost_at: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class RelanceTemplate(BaseModel):
+    day: int
+    subject: str
+    body: str
+    updated_at: Optional[str] = None
 
 class InvoiceCreate(BaseModel):
     quote_id: Optional[str] = None
@@ -1157,6 +1286,56 @@ async def sign_quote_public(token: str, body: SignQuote):
 
     return {"status": "success", "signed_at": now}
 
+# ==================== RELANCE ENDPOINTS ====================
+
+@api_router.get("/relance-templates")
+async def get_relance_templates():
+    templates = []
+    for day in [3, 7, 14, 30]:
+        tmpl = await db.relance_templates.find_one({"day": day}, {"_id": 0})
+        if not tmpl:
+            tmpl = DEFAULT_RELANCE_TEMPLATES[day].copy()
+        templates.append(tmpl)
+    return templates
+
+@api_router.put("/relance-templates/{day}")
+async def update_relance_template(day: int, body: RelanceTemplate):
+    if day not in [3, 7, 14, 30]:
+        raise HTTPException(status_code=400, detail="Jour invalide. Doit être 3, 7, 14 ou 30.")
+    now = datetime.now(timezone.utc).isoformat()
+    await db.relance_templates.update_one(
+        {"day": day},
+        {"$set": {"subject": body.subject, "body": body.body, "updated_at": now, "day": day}},
+        upsert=True
+    )
+    return {"status": "ok"}
+
+@api_router.patch("/quotes/{quote_id}/toggle-relances")
+async def toggle_relances(quote_id: str):
+    q = await db.quotes.find_one({"id": quote_id}, {"_id": 0, "id": 1, "relances_active": 1, "status": 1})
+    if not q:
+        raise HTTPException(status_code=404, detail="Devis non trouvé")
+    new_state = not q.get("relances_active", False)
+    await db.quotes.update_one({"id": quote_id}, {"$set": {"relances_active": new_state}})
+    return {"relances_active": new_state}
+
+@api_router.patch("/quotes/{quote_id}/mark-lost")
+async def mark_quote_lost(quote_id: str):
+    q = await db.quotes.find_one({"id": quote_id}, {"_id": 0, "id": 1})
+    if not q:
+        raise HTTPException(status_code=404, detail="Devis non trouvé")
+    await db.quotes.update_one(
+        {"id": quote_id},
+        {"$set": {"status": "lost", "relances_active": False, "lost_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"status": "lost"}
+
+@api_router.post("/relances/run-now")
+async def trigger_relances_now():
+    """Endpoint de test pour déclencher les relances manuellement (Ruben uniquement)."""
+    await run_relances()
+    return {"status": "done"}
+
 # ==================== SEND QUOTE EMAIL ====================
 
 class SendQuoteEmail(BaseModel):
@@ -1279,6 +1458,8 @@ async def send_quote_email(quote_id: str, body: SendQuoteEmail):
                 "sent_to_email": body.recipient_email,
                 "status": "sent",
                 "public_token": public_token,
+                "relances_active": True,
+                "relances_sent": [],
             }}
         )
         return {"status": "success", "email_id": email_result.get("id"), "public_token": public_token}
@@ -1567,7 +1748,18 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_migrate():
-    """Assign public_token to quotes that don't have one."""
+    # Seed default relance templates if not present
+    for day, tmpl in DEFAULT_RELANCE_TEMPLATES.items():
+        existing = await db.relance_templates.find_one({"day": day})
+        if not existing:
+            await db.relance_templates.insert_one({"_id": str(uuid.uuid4()), **tmpl})
+            logger.info(f"Seeded relance template J+{day}")
+    # Start scheduler
+    if not scheduler.running:
+        scheduler.add_job(run_relances, CronTrigger(hour=8, minute=0, timezone='Europe/Paris'), id='relances_daily', replace_existing=True)
+        scheduler.start()
+        logger.info("APScheduler started — relances daily at 08:00 Europe/Paris")
+    # Assign public_token to quotes that don't have one
     async for q in db.quotes.find({"public_token": {"$exists": False}}, {"_id": 0, "id": 1}):
         token = secrets.token_urlsafe(32)
         await db.quotes.update_one({"id": q["id"]}, {"$set": {"public_token": token}})
@@ -1575,4 +1767,6 @@ async def startup_migrate():
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    if scheduler.running:
+        scheduler.shutdown()
     client.close()

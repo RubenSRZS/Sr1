@@ -1,0 +1,72 @@
+{
+  "summary": "Tested all relances features for SR Rénovation: backend APIs (relance-templates CRUD, toggle-relances, mark-lost) + frontend UI (QuotesList tabs, InvoicesList tabs, RelanceSettings page, Dashboard card). All 17 backend tests PASSED. All critical frontend flows verified and working.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "InvoicesList - 'En attente' tab",
+        "issues": [
+          "The 'En attente' tab only filters invoices with payment_status='pending'. The one 'Partiel' invoice (MASSICOT Anne marie, 1078€) is NOT shown in this tab — only in 'Toutes'. The 'En attente' tab shows 0 items even though there is 1 unpaid invoice. Consider including 'partial' in 'pending' filter or adding a 3rd 'Partiel' tab.",
+          "Tab badge count for 'En attente' doesn't appear because count=0 (all unpaid are 'partial' status)"
+        ]
+      }
+    ]
+  },
+  "test_results": {
+    "backend_relance_templates_GET": "PASS — returns 4 templates (J+3,7,14,30) with day, subject, body. No _id exposed.",
+    "backend_relance_templates_PUT_j3": "PASS — PUT /api/relance-templates/3 updates subject+body, persists to DB, returns {status:ok}",
+    "backend_relance_templates_invalid_day": "PASS — PUT /api/relance-templates/99 returns 400",
+    "backend_toggle_relances": "PASS — PATCH /api/quotes/{id}/toggle-relances toggles relances_active, returns new state",
+    "backend_toggle_nonexistent": "PASS — returns 404 for non-existent quote",
+    "backend_mark_lost": "PASS — PATCH /api/quotes/{id}/mark-lost sets status=lost, relances_active=False",
+    "backend_mark_lost_persistence": "PASS — verified in DB after mark-lost",
+    "backend_mark_lost_nonexistent": "PASS — returns 404 for non-existent quote",
+    "frontend_dashboard_relances_card": "PASS — 'Relances Automatiques' card with Bell icon + 'Configurer' button found",
+    "frontend_dashboard_configurer_nav": "PASS — Clicking 'Configurer' navigates to /relances",
+    "frontend_quotes_tabs": "PASS — 5 tabs: Tous(35), Brouillons(4), En attente(19), Signés(4), Perdus(0)",
+    "frontend_quotes_sent_tab_badges": "PASS — 'En attente' tab shows 'Relance J+X prévue' AND 'Relances OFF' badges",
+    "frontend_quotes_toggle_bell_button": "PASS — 19 toggle-relances buttons visible in 'En attente' tab",
+    "frontend_quotes_mark_lost_button": "PASS — 19 mark-lost (XCircle) buttons visible in 'En attente' tab",
+    "frontend_toggle_relances_action": "PASS — Clicking Bell button toggles state OFF→ON, toast 'Relances réactivées' shown, badge updates",
+    "frontend_invoices_tabs": "PASS — 3 tabs: Toutes(9), En attente(0 pending), Payées(8)",
+    "frontend_invoices_header_stats": "PASS — Header shows '9 factures · 1078 € en attente · 12350 € encaissé'",
+    "frontend_relance_settings_page": "PASS — 4 cards (J+3,7,14,30) load correctly from API",
+    "frontend_relance_j3_expanded_default": "PASS — J+3 card expanded by default with subject/body inputs",
+    "frontend_relance_save_j3": "PASS — Save button shows toast 'Modèle J+3 sauvegardé'",
+    "frontend_relance_j7_expand": "PASS — J+7 card expands on click, shows subject/body"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_relances_iteration15.py",
+    "/app/test_reports/pytest/pytest_results_relances_iter15.xml"
+  ],
+  "action_items": [
+    "MINOR: InvoicesList 'En attente' tab only shows payment_status='pending' invoices. Consider whether 'partial' invoices should also appear in this tab. Currently 1 'Partiel' invoice (MASSICOT, 1078€) only shows in 'Toutes' tab."
+  ],
+  "critical_code_review_comments": [
+    "server.py is now 1773 lines — well above 700-line guideline. The new relance scheduler + endpoints are cleanly separated with comments. Future refactor into separate router files would improve maintainability.",
+    "The APScheduler skip-Sunday logic uses weekday()==6 (correct for Python datetime). Verified logic is sound.",
+    "When a quote is sent via email, relances_active is set to True and relances_sent is reset to [] (line 1461-1462). This is correct behavior.",
+    "The run_relances() function sends emails using Resend. It only emails quotes with relances_active=True. The email restriction (only Ruben unless in test mode) should be verified independently — no real emails sent during tests.",
+    "toggle-relances endpoint doesn't validate if status is 'sent' — technically any quote can have its relances toggled. This is minor since relances_active only matters for 'sent' quotes."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_relances_iteration15.py"
+  ],
+  "success_rate": {
+    "backend": "100% (17/17 tests passed)",
+    "frontend": "95% (all critical flows working; 1 minor design note on invoice En attente tab)"
+  },
+  "test_credentials": {
+    "pin": "0330"
+  },
+  "seed_data_creation": "Created and deleted 2 test quotes during testing (TEST_Relance_Client and TEST_MarkLost_Client with work_location 'a supprimer'). All cleaned up.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Iteration 15: All relances features (J+3,7,14,30 scheduler, toggle-relances, mark-lost, relance-templates CRUD) working end-to-end. Backend 17/17 tests pass. Key selectors: tab-all/draft/sent/accepted/lost for QuotesList, tab-invoices-all/pending/paid for InvoicesList, toggle-relances-{id}, mark-lost-{id}, relance-card-3/7/14/30, save-relance-3/7/14/30. Dashboard relances card: data-testid=relances-dashboard-card. QuotesList currently shows 35 quotes (19 'sent', 4 draft, 4 accepted, 0 lost).",
+  "rca_of_issues": "N/A — no critical issues found. Minor design note: InvoicesList 'En attente' tab uses payment_status='pending' filter but existing unpaid invoice uses payment_status='partial'. These are different statuses so the 'partial' invoice doesn't appear under 'En attente' tab."
+}

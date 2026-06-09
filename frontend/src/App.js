@@ -14,6 +14,7 @@ import CatalogManager from '@/pages/CatalogManager';
 import AIAssistant from '@/pages/AIAssistant';
 import ProfileManager from '@/pages/ProfileManager';
 import PublicQuotePage from '@/pages/PublicQuotePage';
+import RelanceSettings from '@/pages/RelanceSettings';
 import PinScreen from '@/components/PinScreen';
 import BottomNav from '@/components/BottomNav';
 import DesktopNav from '@/components/DesktopNav';
@@ -82,6 +83,7 @@ function AppContent() {
           <Route path="/catalog" element={<CatalogManager />} />
           <Route path="/profile" element={<ProfileManager />} />
           <Route path="/ai-assistant" element={<AIAssistant />} />
+          <Route path="/relances" element={<RelanceSettings />} />
         </Routes>
       </div>
       <BottomNav />
