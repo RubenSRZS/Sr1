@@ -53,7 +53,7 @@ DEFAULT_RELANCE_TEMPLATES = {
     14: {
         "day": 14,
         "subject": "Votre projet à {work_location} — Devis n°{quote_number} encore disponible",
-        "body": "Bonjour {client_name},\n\nJe reviens vers vous au sujet de votre devis n°{quote_number} pour votre chantier à {work_location} (montant : {total_net} €).\n\nNos équipes sont qualifiées et notre travail est couvert par une assurance décennale. Nous pouvons démarrer les travaux dans les meilleurs délais dès validation de votre devis.\n\nSi vous avez des interrogations sur le budget ou le déroulement, je suis disponible au 06 80 33 45 46.\n\nCordialement,\nRuben Suarez – SR Rénovation"
+        "body": "Bonjour {client_name},\n\nJe reviens vers vous au sujet de votre devis n°{quote_number} pour votre chantier à {work_location} (montant : {total_net} €).\n\nNous pouvons démarrer les travaux dans les meilleurs délais dès validation de votre devis.\n\nSi vous avez des interrogations, je suis disponible pour en discuter au 06 80 33 45 46.\n\nCordialement,\nRuben Suarez – SR Rénovation"
     },
     30: {
         "day": 30,
@@ -1346,6 +1346,43 @@ async def trigger_relances_now():
     """Endpoint de test pour déclencher les relances manuellement (Ruben uniquement)."""
     await run_relances()
     return {"status": "done"}
+
+@api_router.post("/relances/send-previews")
+async def send_preview_emails(body: dict = Body(...)):
+    """Envoie les 4 templates de relance en aperçu à l'adresse spécifiée."""
+    to_email = body.get("email", "rubensrzs03@gmail.com")
+    base_url = os.environ.get("PUBLIC_APP_URL", "https://quote-v3-release.preview.emergentagent.com")
+    public_link = f"{base_url}/devis/public/preview"
+    fmt = dict(
+        quote_number="D-2025-042",
+        client_name="Ruben Suarez",
+        total_net="3 250.00",
+        work_location="Votre chantier test"
+    )
+    sent = []
+    errors = []
+    for day in [3, 7, 14, 30]:
+        tmpl = await db.relance_templates.find_one({"day": day}, {"_id": 0})
+        if not tmpl:
+            tmpl = DEFAULT_RELANCE_TEMPLATES.get(day)
+        if not tmpl:
+            continue
+        try:
+            subject = f"[APERÇU J+{day}] " + tmpl["subject"].format(**fmt)
+            body_html = tmpl["body"].replace('\n', '<br>').format(**fmt)
+            html = build_relance_html(body_html, public_link, day)
+            params = {
+                "from": f"SR Renovation <{SENDER_EMAIL}>",
+                "to": [to_email],
+                "reply_to": REPLY_TO_EMAIL,
+                "subject": subject,
+                "html": html,
+            }
+            await asyncio.to_thread(resend.Emails.send, params)
+            sent.append(f"J+{day}")
+        except Exception as e:
+            errors.append(f"J+{day}: {str(e)}")
+    return {"sent": sent, "errors": errors, "to": to_email}
 
 # ==================== SEND QUOTE EMAIL ====================
 
