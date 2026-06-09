@@ -80,7 +80,7 @@ Vous avez **3 options** pour utiliser votre application :
 
 ### **Option 1 : Utiliser la Preview Emergent (RECOMMANDÉ pour tester)**
 
-✅ **URL actuelle** : https://dynamic-options-fix.preview.emergentagent.com
+✅ **URL actuelle** : https://quote-v3-release.preview.emergentagent.com
 
 **Avantages :**
 - ✅ Gratuit en preview

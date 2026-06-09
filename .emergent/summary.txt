@@ -1,165 +1,112 @@
-<analysis><problem_statement>
-The user initially requested an invoice sending system similar to the quote system, with two email options (one including a Google My Business review link, and one simple thank you). 
-Mid-session, the user revealed that the agent's codebase and database were severely outdated because the user had made manual updates to their production server and GitHub repository. The scope expanded to:
-1. Syncing the codebase with the user's GitHub (commit v2.2) and importing a production MongoDB dump.
-2. Creating a Company Profile management system accessible from the Dashboard.
-3. Improving the mobile UI of the Quote Form (making service prices highly visible).
-4. Fixing the discount system (allowing € fixed amounts, changing HT to TTC, and showing a total discount summary).
-5. Refactoring the Options system in the Quote Form from hardcoded Options 2 & 3 to a dynamic Add Option system.
-
-**CRITICAL CONSTRAINT:** The imported database contains REAL CLIENTS. The user strictly forbade sending any test emails.
-</problem_statement>
+<analysis>**original_problem_statement**: The user required their quoting application to support dynamic, unlimited Options blocks instead of hardcoded Option 2 and Option 3. Additionally, they needed fixed € amount discounts to recalculate totals properly on line items, and a way to select different Company Profiles during quote creation so that the generated PDFs reflect the correct legal entity (SIRET, name, etc.). The codebase and database were synced with production, and **CRITICAL CONSTRAINT: The database contains REAL CLIENTS. No test emails should be sent.** PRODUCT REQUIREMENTS: Allow unlimited dynamic quote options, support € discounts on line items, and manage multiple company profiles per quote.
 
 **User's preferred language**: French. (You MUST automatically detect the user's primary language from their messages inside the <trajectory> tag and INSTRUCT next agent to respond in the user's preferred language only). -> **RESPOND IN FRENCH ONLY.**
 
 **what currently exists?** 
-A full-stack React/FastAPI/MongoDB quoting and invoicing application. The codebase is now synced with the user's latest GitHub commit (v2.2+). The database contains production data (30 clients, 34 quotes). The dashboard includes a new Company Profile section. The mobile view of the Quote Form uses vertical cards to display large numbers. HT has been universally changed to TTC. The client name disappearing bug during quote edits is fixed. The invoice email system with 2 template choices is fully functional.
+A full-stack React/FastAPI/MongoDB quoting and invoicing application. The dashboard manages company profiles. The Quote Form successfully handles dynamic, unlimited Additional Options, correctly applies line-level and option-level € amount discounts, and allows the user to select a specific company profile per quote. The generated PDF correctly displays the selected profile's snapshot instead of hardcoded data.
 
 **Last working item**:
-- **Last item agent was working:** Refactoring the Options system in . The user was unhappy that Option 2 and Option 3 were hardcoded and had to be deleted together. The agent was in the middle of replacing the static ,  states with a dynamic array-based options system.
-- **Status:** IN PROGRESS
-- **Agent Testing Done:** N
-- **Which testing method agent to use?** Frontend testing agent (to verify adding, modifying, and deleting dynamic options in the Quote Form without crashing).
+- **Last item agent was working:** The agent successfully finished fixing the Dynamic Options, € Discounts, and Profile Selection features, and tested them via . The only remaining task from the initial scope that was not addressed is pushing these changes to the user's GitHub repository.
+- **Status:** NOT STARTED (for GitHub push)
+- **Agent Testing Done:** N/A
+- **Which testing method agent to use?** NA (It's a git operation)
 - **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: Dynamic Options in Quote Form implementation is half-finished (P0)
-     - Attempted fixes: The agent started a  to remove / but was interrupted. The file  is likely in an intermediate, broken state regarding options.
-     - Next debug checklist: Check  state variables. Replace legacy , , etc., with an array of objects . Update the rendering logic, the  payload, and ensure  endpoints can handle the new array format.
-     - Why fix this issue and what will be achieved with the fix? The user explicitly demanded the ability to add unlimited options and delete them individually. If not fixed, the quote form will likely crash.
-     - Status: IN PROGRESS
-     - Is recurring issue? N
-     - Should Test frontend/backend/both after fix? Both (Frontend UI + Backend saving/PDF generation).
-     - Blocked on other issue: None.
-
-  - Issue 2: Fixed amount (€) discounts on line items do not recalculate totals (P0)
-     - Attempted fixes: Agent updated  to handle  and , but the user reported that entering a € discount does not update the line item total or the final total.
-     - Next debug checklist: Check the   hook in . Verify how  is subtracted from . Ensure  is properly recalculated when .
-     - Why fix this issue and what will be achieved with the fix? Crucial financial logic for the user to offer flat discounts (e.g., -50€) instead of percentages.
-     - Status: NOT STARTED (Agent abandoned this to focus on Issue 1)
-     - Is recurring issue? Y (Agent failed to fix it twice).
-     - Should Test frontend/backend/both after fix? Frontend.
-     - Blocked on other issue: None.
-
-  - Issue 3: Push changes to GitHub (P1)
-     - Attempted fixes: None in this session, but was blocked in the previous fork.
-     - Next debug checklist: Ensure the git state is clean, commit the new v3.1 changes, and push to . Ask user for authentication if needed.
-     - Why fix this issue and what will be achieved with the fix? User relies on GitHub to deploy to their Google Cloud production server.
-     - Status: NOT STARTED
-     - Is recurring issue? N
-     - Should Test frontend/backend/both after fix? NA.
+  Issue 1: Push changes to GitHub (P1)
+   - Attempted fixes: None in this session. The agent prioritized fixing the broken form logic first.
+   - Next debug checklist: Ensure the git state is clean, commit the new v3.2/v3.1 changes (dynamic options, profile selection fix, € discount fix), and push to . Ask user for authentication or use the Save to Github feature.
+   - Why fix this issue and what will be achieved with the fix? User relies on GitHub to deploy to their Google Cloud production server.
+   - Status: NOT STARTED
+   - Is recurring issue? N
+   - Should Test frontend/backend/both after fix? NA
+   - Blocked on other issue: None
 
 **In progress Task List**:
-  - Task 1: Refactor QuoteForm Options to be dynamic
-     - Where to resume:  state management and UI rendering for options.
-     - What will be achieved with this? User can add/remove standalone option blocks freely.
-     - Status: IN PROGRESS
-     - Should Test frontend/backend/both after fix? Both
-     - Blocked on something: None
+ None.
 
-**Upcoming and Future Tasks**
+**Upcoming and Future Tasks**:
   Upcoming Tasks:
-  - (P1) Profile Selection inside Quote Creation: The user asked for a discreet button on the side during quote creation to select which Company Profile to use. Currently, profiles can only be managed in the Dashboard, but not selected per-quote. Update  and backend to attach  to quotes.
+  - (P2) Fix PDF preview to have a white background in dark mode.
 
   Future Tasks:
-  - None explicitly remaining from this session's scope.
+  - (P3) Dashboard: Add revenue graphs.
+  - (P3) Drag & drop to reorganize services in Quote Form.
+  - (P3) Predefined quote templates.
 
-**Completed work in this session**
-- Invoice email sending with 2 options (Review vs Simple) (, , ) (DONE)
-- Reverted email template to Blue/Orange theme (DONE)
-- Git pulled latest production code (v2.2) (DONE)
-- Restored production MongoDB dump (DONE)
-- Created Company Profile Manager (, , ) (DONE)
-- Improved mobile QuoteForm layout (vertical cards instead of table) (DONE)
-- Changed HT to TTC globally (DONE)
-- Fixed bug where client name disappeared when editing a quote ( missing API fields) (DONE)
+**Completed work in this session**:
+- Profile Selection inside Quote Creation (, , ) (DONE)
+- Dynamic Options (unlimited options with individual deletion) in Quote Form (, , ) (DONE)
+- Fixed amount (€) discounts on line items () (DONE)
 
-**Earlier issues found/mentioned but not fixed**
-   Issue 1: Profile Selection in Quote Form
-   - Debug checklist: Add a dropdown/button in  to select a profile from . Ensure the default profile is pre-selected. Pass the selected profile data to the PDF generator.
-   - Why to solve this issue and what will be achieved with this? Fulfills user's requirement to issue quotes under different legal entities/SIRETs.
-   - Should Test frontend/backend/both after fix: Both
-   - Is recurring issue? N
+**Earlier issues found/mentioned but not fixed**:
+  None. All blocking issues raised by the user have been successfully fixed and tested.
 
-**Known issue recurrence from previous fork**
+**Known issue recurrence from previous fork**:
   - Issue recurrence in previous fork: Frontend build fragility ().
-  - Recurrence count: 0 in this session (The restart workaround fixed it previously, and it hasn't crashed in this session).
+  - Recurrence count: 0 in this session.
   - Status: RESOLVED
 
-**Code Architecture**
+**Code Architecture**:
+additionalOptionsprofiles
 
-
-**Key Technical Concepts**
+**Key Technical Concepts**:
 - Frontend: React, Tailwind CSS, shadcn/ui.
 - Backend: FastAPI, Pydantic, Motor (Async MongoDB).
-- Database: MongoDB (database name: ).
+- Database: MongoDB.
 - Integrations: Resend (Email), Google Gemini (AI).
 
-**key DB schema**
+**key DB schema**:
   - profiles: 
   - quotes: 
 
-**changes in tech stack**
-  - Replaced test database with production database .
+**changes in tech stack**:
+  - None.
 
-**All files of reference**
-  1.  (Currently broken/in-progress for dynamic options).
-  2.  (Created).
-  3.  (Created).
-  4.  (Updated with profile and invoice email routes).
-  5.  (Updated with Profile card).
+**All files of reference**:
+  1.  (Updated to handle dynamic array of options and profile selector).
+  2.  (Updated endpoints  and  to process , compute totals, and store a  snapshot from ).
+  3.  (Updated to dynamically map  and render  instead of hardcoded data).
+  4.  (Updated to map  for signature).
+  5.  (Updated with test pins).
+  6.  (Updated with completed tasks).
 
 **Areas that need refactoring**:
--  is massive (>1300 lines) and contains very complex, repetitive state logic for calculating totals. The transition to dynamic options is highly necessary to clean this up.
+-  is massive (>1500 lines) combining models, routing, and business logic. It could benefit from being split into , , etc.
 
-**key api endpoints**
-- : Sends invoice emails.
-- , , : Profile management.
+**key api endpoints**:
+-  and : Crucial endpoints that handle the business logic of calculating line item / option totals and resolving the company snapshot.
 
-**Critical Info for New Agent**
-- 🚨 **CRITICAL: DO NOT SEND ANY TEST EMAILS.** The database contains real, live clients. If you must test the email flow, rigorously mock the  API call or change the recipient to a safe dummy email in the code temporarily, then revert it.
-- **Version:** The user likes to see the version bumped in the Dashboard UI. It is currently at **v3.1**.
-- **QuoteForm State:** You are inheriting  in the middle of a refactor. The priority is to finish making the Options dynamic (array-based) and ensure € fixed amount discounts work per-line item.
+**Critical Info for New Agent**:
+- 🚨 **CRITICAL: DO NOT SEND ANY TEST EMAILS.** The database contains real, live clients.
+- The system now uses  array for dynamic blocks on the frontend, but the backend still mirrors this data into legacy  and  variables to maintain backward compatibility with old quotes. 
+- Company profiles are no longer hardcoded. A snapshot of the selected  is saved inside the  document under the  field upon creation/update.
 
-**documents and test reports created in this job**
+**documents and test reports created in this job**:
+  - 
   - 
 
-**Last 10 User Messages and any pending HUMAN messages** 
- 1. (Addressed) User wants invoice sending system with 2 email types (Review/Simple).
- 2. (Addressed) User wants blue/orange theme restored on emails.
- 3. (Addressed) User points out agent is outdated.
- 4. (Addressed) User uploads production DB dump.
- 5. (Addressed) User requests Profile management in Dashboard to change SIRET/details per quote.
- 6. (Addressed) User complains mobile navigation is missing Profile, and QuoteForm prices are unreadable on mobile.
- 7. (Addressed) User complains AI assistant was removed from mobile nav.
- 8. (Addressed) User clarifies Profile should be a section *in* the dashboard, not in the nav bar.
- 9. (Pending) User wants € fixed discounts to work and reflect on line items and the final total.
- 10. (Pending) User complains € discounts still don't work, demands the Options system be made dynamic (unlimited blocks, individual deletion).
+**Last 10 User Messages and any pending HUMAN messages**:
+ 1. (Addressed) User provides handoff summary.
+ 2. (Addressed) User explicitly demands immediate priority on the profile selection button in the UI.
+ 3. (Addressed) User clarifies that the profile selection was previously broken (quotes always showed Ruben regardless of profile) and insists it's the number one priority.
 
-**Project Health Check:**
-- Broken:  is likely in a broken state due to interrupted refactoring of the Options logic. Fixed € discounts are not functioning.
+**Project Health Check**:
+- Healthy. Testing Agent validated the newly refactored features. Frontend compiles perfectly (with one minor React Hook dependency warning). Backend is stable.
 
-**3rd Party Integrations**
-- Resend (Emails) - User API Key provided via .
-- Google Gemini (AI Quotes) - User API Key provided via .
-- MongoDB (Database) - Local connection, using real production dump.
+**3rd Party Integrations**:
+- Resend (Emails) - requires User API Key.
+- Google Gemini (AI Quotes) - requires User API Key.
 
-**Testing status**
-  - Testing agent used after significant changes: YES (Used for Invoice Email feature).
-  - Troubleshoot agent used after agent stuck in loop: NO.
-  - Test files created: None.
-  - Known regressions:  options logic.
+**Testing status**:
+  - Testing agent used after significant changes: YES
+  - Troubleshoot agent used after agent stuck in loop: NO
+  - Test files created: None
+  - Known regressions: None
 
-**Credentials to test flow:**
+**Credentials to test flow**:
 - PIN to access frontend: 
+- Profile Default ID: 
 
-**What agent forgot to execute**
-- The agent forgot to actually fix the € (fixed amount) discount calculation on line items, leading to user frustration.
-- The agent forgot to add the UI in  to actually *select* the newly created Company Profiles during quote generation.
-
-**Debugging checklist for current issue**
-    Issue: Dynamic options and Fixed € Discounts in 
-    Frontend files to check: 
-    -  (Look for  and  calculations in . Look at state for converting  to a dynamic  array).
-    Backend files to check:
-    -  (Ensure the  and  endpoints properly accept and serialize the new dynamic options array).</analysis>
+**What agent forgot to execute**:
+- Pushing the final code updates (v3.2) to the user's GitHub repository.</analysis>
