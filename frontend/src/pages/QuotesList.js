@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Search, FileText, Trash2, Eye, Receipt, ChevronRight, Send, CheckCircle, Clock, FileCheck, SortAsc, Mail, EyeIcon, Copy, BellOff, Bell, XCircle } from 'lucide-react';
+import { Plus, Search, FileText, Trash2, Eye, Receipt, ChevronRight, Send, CheckCircle, Clock, FileCheck, SortAsc, Mail, EyeIcon, Copy, BellOff, Bell, XCircle, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -93,7 +93,14 @@ const QuotesList = () => {
     } catch { toast.error('Erreur'); }
   };
 
-  const handleMarkLost = async (e, quote) => {
+  const handleRestore = async (e, quote) => {
+    e.stopPropagation();
+    try {
+      await axios.patch(`${API}/quotes/${quote.id}/restore`);
+      toast.success('Devis restauré — remis en "En attente"');
+      fetchQuotes();
+    } catch { toast.error('Erreur restauration'); }
+  };
     e.stopPropagation();
     if (!window.confirm(`Marquer le devis ${quote.quote_number} comme perdu ?`)) return;
     try {
@@ -303,6 +310,20 @@ const QuotesList = () => {
                     data-testid={`mark-lost-${q.id}`}
                   >
                     <XCircle className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+
+                {/* Restore — only for lost quotes */}
+                {q.status === 'lost' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => handleRestore(e, q)}
+                    className="h-8 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50 flex-shrink-0"
+                    title="Restaurer le devis"
+                    data-testid={`restore-quote-${q.id}`}
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 mr-1" /> Restaurer
                   </Button>
                 )}
 

@@ -1330,6 +1330,17 @@ async def mark_quote_lost(quote_id: str):
     )
     return {"status": "lost"}
 
+@api_router.patch("/quotes/{quote_id}/restore")
+async def restore_quote(quote_id: str):
+    q = await db.quotes.find_one({"id": quote_id}, {"_id": 0, "id": 1, "status": 1})
+    if not q:
+        raise HTTPException(status_code=404, detail="Devis non trouvé")
+    await db.quotes.update_one(
+        {"id": quote_id},
+        {"$set": {"status": "sent", "relances_active": False, "lost_at": None}}
+    )
+    return {"status": "sent"}
+
 @api_router.post("/relances/run-now")
 async def trigger_relances_now():
     """Endpoint de test pour déclencher les relances manuellement (Ruben uniquement)."""
