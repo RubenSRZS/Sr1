@@ -248,8 +248,22 @@ const PDFDocument = ({ document, type, compact = false }) => {
                 <>
                   {document.company.address ? <>{document.company.address}<br /></> : null}
                   {document.company.phone ? <>{document.company.phone}<br /></> : null}
-                  {document.company.email ? <>{document.company.email}<br /></> : null}
+                  {document.company.website ? <>{document.company.website}<br /></> : null}
                   {document.company.siret ? <>SIRET: {document.company.siret}</> : null}
+                  {(document.company.insurance_rc_pro || document.company.insurance_decennale) && (
+                    <div style={{ marginTop: '5px', paddingTop: '5px', borderTop: '1px dashed #bfdbfe', display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                      {document.company.insurance_rc_pro && (
+                        <span style={{ fontSize: '8px', background: '#dbeafe', color: '#1d4ed8', borderRadius: '3px', padding: '1px 5px', fontWeight: 600 }}>
+                          RC Pro
+                        </span>
+                      )}
+                      {document.company.insurance_decennale && (
+                        <span style={{ fontSize: '8px', background: '#dbeafe', color: '#1d4ed8', borderRadius: '3px', padding: '1px 5px', fontWeight: 600 }}>
+                          Décennale
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </>
               ) : (
                 <>1 Chemin de l'Etang Jean Guyon<br />39570 COURLAOUX<br />06 80 33 45 46<br />sr-renovation.fr<br />SIRET: 894 908 227 00024</>

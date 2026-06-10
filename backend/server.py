@@ -275,6 +275,7 @@ class Profile(BaseModel):
     bank_name: str = ""
     insurance_decennale: str = ""
     insurance_rc_pro: str = ""
+    website: str = ""
     is_default: bool = False
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -291,6 +292,7 @@ class ProfileCreate(BaseModel):
     bank_name: str = ""
     insurance_decennale: str = ""
     insurance_rc_pro: str = ""
+    website: str = ""
 
 class ClientCreate(BaseModel):
     name: str
@@ -518,10 +520,13 @@ async def resolve_company(profile_id):
         "address": profile.get("address", ""),
         "phone": profile.get("phone", ""),
         "email": profile.get("email", ""),
+        "website": profile.get("website", ""),
         "siret": profile.get("siret", ""),
         "iban": profile.get("iban", ""),
         "bic": profile.get("bic", ""),
         "bank_name": profile.get("bank_name", ""),
+        "insurance_rc_pro": profile.get("insurance_rc_pro", ""),
+        "insurance_decennale": profile.get("insurance_decennale", ""),
     }
     return profile.get("id"), company
 

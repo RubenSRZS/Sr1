@@ -25,6 +25,7 @@ const ProfileManager = () => {
     bank_name: '',
     insurance_decennale: '',
     insurance_rc_pro: '',
+    website: '',
   });
 
   useEffect(() => {
@@ -57,6 +58,7 @@ const ProfileManager = () => {
       bank_name: '',
       insurance_decennale: '',
       insurance_rc_pro: '',
+      website: '',
     });
   };
 
@@ -75,6 +77,7 @@ const ProfileManager = () => {
       bank_name: profile.bank_name || '',
       insurance_decennale: profile.insurance_decennale || '',
       insurance_rc_pro: profile.insurance_rc_pro || '',
+      website: profile.website || '',
     });
   };
 
@@ -170,6 +173,14 @@ const ProfileManager = () => {
                 value={formData.phone}
                 onChange={e => setFormData({...formData, phone: e.target.value})}
                 placeholder="06 12 34 56 78"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-slate-700">Site web</label>
+              <Input
+                value={formData.website}
+                onChange={e => setFormData({...formData, website: e.target.value})}
+                placeholder="sr-renovation.fr"
               />
             </div>
             <div>
@@ -296,6 +307,18 @@ const ProfileManager = () => {
                     <div className="col-span-2">
                       <span className="text-slate-500">Garantie Décennale:</span>
                       <span className="ml-2 font-medium">{profile.insurance_decennale}</span>
+                    </div>
+                  )}
+                  {profile.insurance_rc_pro && (
+                    <div className="col-span-2">
+                      <span className="text-slate-500">RC Pro:</span>
+                      <span className="ml-2 font-medium">{profile.insurance_rc_pro}</span>
+                    </div>
+                  )}
+                  {profile.website && (
+                    <div>
+                      <span className="text-slate-500">Site web:</span>
+                      <span className="ml-2 font-medium">{profile.website}</span>
                     </div>
                   )}
                 </div>
