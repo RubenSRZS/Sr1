@@ -1317,6 +1317,40 @@ async def sign_quote_public(token: str, body: SignQuote):
     client_email = q.get('sent_to_email') or q.get('client_email')
     if client_email:
         try:
+            # Resolve current profile for dynamic company/bank info
+            _, company = await resolve_company(q.get("profile_id"))
+            co_name = (company or {}).get("company_name") or "SR Rénovation"
+            co_phone = (company or {}).get("phone") or "06 80 33 45 46"
+            co_email = (company or {}).get("email") or "SrRenovation03@gmail.com"
+            co_website = (company or {}).get("website") or "sr-renovation.fr"
+            co_iban = (company or {}).get("iban") or ""
+            co_bic = (company or {}).get("bic") or ""
+            co_bank = (company or {}).get("bank_name") or ""
+            co_holder = (company or {}).get("account_holder") or co_name
+
+            bank_block = ""
+            if co_iban:
+                rows = f"""
+        <tr><td style="color:#64748b;font-size:12px;padding:3px 0;">Titulaire</td><td style="color:#1e293b;font-size:13px;font-weight:600;padding:3px 0;">{co_holder}</td></tr>
+        {'<tr><td style="color:#64748b;font-size:12px;padding:3px 0;">Banque</td><td style="color:#1e293b;font-size:13px;font-weight:600;padding:3px 0;">' + co_bank + '</td></tr>' if co_bank else ''}
+        <tr><td style="color:#64748b;font-size:12px;padding:3px 0;">IBAN</td><td style="color:#1e293b;font-size:13px;font-weight:600;padding:3px 0;word-break:break-all;">{co_iban}</td></tr>
+        {'<tr><td style="color:#64748b;font-size:12px;padding:3px 0;">BIC</td><td style="color:#1e293b;font-size:13px;font-weight:600;padding:3px 0;">' + co_bic + '</td></tr>' if co_bic else ''}"""
+                bank_block = f"""
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin:0 0 20px;">
+    <tr><td style="padding:18px;">
+      <p style="color:#1e40af;font-size:14px;font-weight:700;margin:0 0 12px;">Coordonnées bancaires (RIB)</p>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;">{rows}
+      </table>
+    </td></tr>
+  </table>"""
+            acompte_block = ""
+            if acompte > 0:
+                acompte_block = f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;margin:0 0 20px;"><tr><td style="padding:18px;"><p style="color:#1e40af;font-size:14px;font-weight:700;margin:0 0 10px;">Acompte de 30% à verser : {acompte:.2f} €</p><p style="color:#475569;font-size:13px;line-height:1.6;margin:0;">Vous pouvez effectuer le virement aux coordonnées suivantes :</p></td></tr></table>'
+
+            phone_line = f'&#9742; {co_phone}<br>' if co_phone else ''
+            email_line = f'&#9993; <a href="mailto:{co_email}" style="color:#3b82f6;text-decoration:none;">{co_email}</a><br>' if co_email else ''
+            website_line = f'&#127760; <a href="https://{co_website}" style="color:#3b82f6;text-decoration:none;">{co_website}</a>' if co_website else ''
+
             client_html = f"""<!DOCTYPE html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet"></head>
 <body style="margin:0;padding:0;background-color:#f0f2f5;font-family:'Segoe UI',Arial,Helvetica,sans-serif;">
@@ -1324,8 +1358,7 @@ async def sign_quote_public(token: str, body: SignQuote):
 <tr><td align="center" style="padding:24px 12px;">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:580px;background-color:#ffffff;border-radius:16px;overflow:hidden;">
 <tr><td style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 40%,#f97316 100%);padding:32px 28px;text-align:center;">
-  <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:800;letter-spacing:0.5px;font-family:'Montserrat',sans-serif;">SR RÉNOVATION</h1>
-  <p style="color:rgba(255,255,255,0.85);margin:4px 0 0;font-size:13px;font-weight:600;line-height:1.5;">Nettoyage <span style="font-weight:700;">Professionnel</span><br>Toitures &bull; Fa&ccedil;ades &bull; Terrasses</p>
+  <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:800;letter-spacing:0.5px;font-family:'Montserrat',sans-serif;">{co_name.upper()}</h1>
 </td></tr>
 <tr><td style="padding:28px;">
   <p style="color:#1e293b;font-size:16px;line-height:1.7;margin:0 0 20px;">
@@ -1338,38 +1371,27 @@ async def sign_quote_public(token: str, body: SignQuote):
     Nous vous remercions pour votre confiance et nous nous engageons à vous fournir un travail de qualité. Votre devis signé est joint à cet email.
   </p>
 
-  {'<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;margin:0 0 20px;"><tr><td style="padding:18px;"><p style="color:#1e40af;font-size:14px;font-weight:700;margin:0 0 10px;">Acompte de 30%% à verser : ' + f'{acompte:.2f}' + ' €</p><p style="color:#475569;font-size:13px;line-height:1.6;margin:0;">Vous pouvez effectuer le virement aux coordonnées suivantes :</p></td></tr></table>' if acompte > 0 else ''}
+  {acompte_block}
 
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin:0 0 20px;">
-    <tr><td style="padding:18px;">
-      <p style="color:#1e40af;font-size:14px;font-weight:700;margin:0 0 12px;">Coordonnées bancaires (RIB)</p>
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
-        <tr><td style="color:#64748b;font-size:12px;padding:3px 0;">Titulaire</td><td style="color:#1e293b;font-size:13px;font-weight:600;padding:3px 0;">M RUBEN SUAREZ-SAR</td></tr>
-        <tr><td style="color:#64748b;font-size:12px;padding:3px 0;">Banque</td><td style="color:#1e293b;font-size:13px;font-weight:600;padding:3px 0;">Banque Populaire BFC</td></tr>
-        <tr><td style="color:#64748b;font-size:12px;padding:3px 0;">IBAN</td><td style="color:#1e293b;font-size:13px;font-weight:600;padding:3px 0;word-break:break-all;">FR76 1080 7000 1312 3197 7296 321</td></tr>
-        <tr><td style="color:#64748b;font-size:12px;padding:3px 0;">BIC</td><td style="color:#1e293b;font-size:13px;font-weight:600;padding:3px 0;">CCBPFRPPDJN</td></tr>
-      </table>
-    </td></tr>
-  </table>
+  {bank_block}
 
   <p style="color:#475569;font-size:14px;line-height:1.7;margin:0 0 8px;">
     N'hésitez pas à me contacter pour toute question.
   </p>
   <p style="color:#1e293b;font-size:14px;line-height:1.7;margin:0;">
     À très bientôt,<br>
-    <strong>Ruben — SR Rénovation</strong>
+    <strong>{co_name}</strong>
   </p>
 </td></tr>
 
 <tr><td style="padding:0 28px;"><div style="border-top:1px solid #e5e7eb;"></div></td></tr>
 
 <tr><td style="padding:24px 28px;text-align:center;">
-  <p style="color:#1e293b;font-size:15px;font-weight:700;margin:0 0 10px;">SR Rénovation</p>
+  <p style="color:#1e293b;font-size:15px;font-weight:700;margin:0 0 10px;">{co_name}</p>
   <p style="color:#64748b;font-size:13px;line-height:2;margin:0;">
-    &#9742; 06 80 33 45 46<br>
-    &#9993; <a href="mailto:SrRenovation03@gmail.com" style="color:#3b82f6;text-decoration:none;">SrRenovation03@gmail.com</a><br>
-    &#127968; Jura (39) - Artisan local &amp; certifié<br>
-    &#127760; <a href="https://sr-renovation.fr" style="color:#3b82f6;text-decoration:none;">sr-renovation.fr</a>
+    {phone_line}
+    {email_line}
+    {website_line}
   </p>
 </td></tr>
 </table>

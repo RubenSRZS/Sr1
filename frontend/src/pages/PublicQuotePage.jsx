@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Check, Download, Pen, FileText } from 'lucide-react';
-import { PDFDocument, generatePDFBase64, BRAND_BLUE } from '@/components/PDFPreview';
+import { PDFDocument, generatePDFBase64, BRAND_BLUE, BRAND_ORANGE } from '@/components/PDFPreview';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 

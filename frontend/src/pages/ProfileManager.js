@@ -278,49 +278,39 @@ const ProfileManager = () => {
                     </span>
                   )}
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-2 text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
                   <div>
                     <span className="text-slate-500">Entreprise:</span>
                     <span className="ml-2 font-medium">{profile.company_name}</span>
                   </div>
-                  <div>
+                  {profile.email && <div>
                     <span className="text-slate-500">Email:</span>
                     <span className="ml-2 font-medium">{profile.email}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Téléphone:</span>
+                  </div>}
+                  {profile.phone && <div>
+                    <span className="text-slate-500">Tél:</span>
                     <span className="ml-2 font-medium">{profile.phone}</span>
-                  </div>
-                  {profile.siret && (
-                    <div>
-                      <span className="text-slate-500">SIRET:</span>
-                      <span className="ml-2 font-medium">{profile.siret}</span>
-                    </div>
-                  )}
-                  {profile.iban && (
-                    <div>
-                      <span className="text-slate-500">IBAN:</span>
-                      <span className="ml-2 font-medium">{profile.iban}</span>
-                    </div>
-                  )}
-                  {profile.insurance_decennale && (
-                    <div className="col-span-2">
-                      <span className="text-slate-500">Garantie Décennale:</span>
-                      <span className="ml-2 font-medium">{profile.insurance_decennale}</span>
-                    </div>
-                  )}
-                  {profile.insurance_rc_pro && (
-                    <div className="col-span-2">
-                      <span className="text-slate-500">RC Pro:</span>
-                      <span className="ml-2 font-medium">{profile.insurance_rc_pro}</span>
-                    </div>
-                  )}
-                  {profile.website && (
-                    <div>
-                      <span className="text-slate-500">Site web:</span>
-                      <span className="ml-2 font-medium">{profile.website}</span>
-                    </div>
-                  )}
+                  </div>}
+                  {profile.siret && <div>
+                    <span className="text-slate-500">SIRET:</span>
+                    <span className="ml-2 font-medium">{profile.siret}</span>
+                  </div>}
+                  {profile.website && <div>
+                    <span className="text-slate-500">Site:</span>
+                    <span className="ml-2 font-medium">{profile.website}</span>
+                  </div>}
+                  {profile.iban && <div className="md:col-span-2">
+                    <span className="text-slate-500">IBAN:</span>
+                    <span className="ml-2 font-medium font-mono text-xs">{profile.iban}</span>
+                  </div>}
+                  {profile.insurance_decennale && <div className="md:col-span-2">
+                    <span className="text-slate-500">Décennale:</span>
+                    <span className="ml-2 font-medium">{profile.insurance_decennale}</span>
+                  </div>}
+                  {profile.insurance_rc_pro && <div className="md:col-span-2">
+                    <span className="text-slate-500">RC Pro:</span>
+                    <span className="ml-2 font-medium">{profile.insurance_rc_pro}</span>
+                  </div>}
                 </div>
               </div>
               <div className="flex gap-2 ml-4">
