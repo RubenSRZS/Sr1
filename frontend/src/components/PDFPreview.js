@@ -251,15 +251,15 @@ const PDFDocument = ({ document, type, compact = false }) => {
                   {document.company.website ? <>{document.company.website}<br /></> : null}
                   {document.company.siret ? <>SIRET: {document.company.siret}</> : null}
                   {(document.company.insurance_rc_pro || document.company.insurance_decennale) && (
-                    <div style={{ marginTop: '5px', paddingTop: '5px', borderTop: '1px dashed #bfdbfe', display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                    <div style={{ marginTop: '5px', paddingTop: '5px', borderTop: '1px dashed #bfdbfe', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       {document.company.insurance_rc_pro && (
-                        <span style={{ fontSize: '8px', background: '#dbeafe', color: '#1d4ed8', borderRadius: '3px', padding: '1px 5px', fontWeight: 600 }}>
-                          RC Pro
+                        <span style={{ fontSize: '8px', color: '#1d4ed8', fontWeight: 600 }}>
+                          RC Pro : {document.company.insurance_rc_pro}
                         </span>
                       )}
                       {document.company.insurance_decennale && (
-                        <span style={{ fontSize: '8px', background: '#dbeafe', color: '#1d4ed8', borderRadius: '3px', padding: '1px 5px', fontWeight: 600 }}>
-                          Décennale
+                        <span style={{ fontSize: '8px', color: '#1d4ed8', fontWeight: 600 }}>
+                          Décennale : {document.company.insurance_decennale}
                         </span>
                       )}
                     </div>
