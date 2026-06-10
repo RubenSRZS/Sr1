@@ -225,7 +225,7 @@ const PublicQuotePage = () => {
                 </Button>
               </div>
               
-              {!quote.client?.email && (
+              {(quote.company?.iban || quote.company?.account_holder) && (
                 <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
                   <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2 text-sm">
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -234,10 +234,10 @@ const PublicQuotePage = () => {
                     Coordonnées bancaires (RIB)
                   </h4>
                   <div className="space-y-1.5 text-xs text-blue-900">
-                    <div><span className="font-medium">Titulaire :</span> M RUBEN SUAREZ-SAR</div>
-                    <div><span className="font-medium">Banque :</span> Banque Populaire BFC</div>
-                    <div><span className="font-medium">IBAN :</span> FR76 1080 7000 1312 3197 7296 321</div>
-                    <div><span className="font-medium">BIC :</span> CCBPFRPPDJN</div>
+                    {quote.company?.account_holder && <div><span className="font-medium">Titulaire :</span> {quote.company.account_holder}</div>}
+                    {quote.company?.bank_name && <div><span className="font-medium">Banque :</span> {quote.company.bank_name}</div>}
+                    {quote.company?.iban && <div><span className="font-medium">IBAN :</span> {quote.company.iban}</div>}
+                    {quote.company?.bic && <div><span className="font-medium">BIC :</span> {quote.company.bic}</div>}
                     <div className="mt-2.5 pt-2.5 border-t border-blue-200">
                       <p className="font-medium">Modalités de paiement :</p>
                       <p className="mt-0.5">• Acompte 30% à la signature</p>

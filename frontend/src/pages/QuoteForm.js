@@ -675,7 +675,13 @@ const QuoteForm = () => {
       address: prof.address || '',
       phone: prof.phone || '',
       email: prof.email || '',
+      website: prof.website || '',
       siret: prof.siret || '',
+      iban: prof.iban || '',
+      bic: prof.bic || '',
+      bank_name: prof.bank_name || '',
+      insurance_rc_pro: prof.insurance_rc_pro || '',
+      insurance_decennale: prof.insurance_decennale || '',
     } : null;
 
     // Options dynamiques avec totaux calculés
