@@ -273,69 +273,44 @@ const QuotesList = () => {
                 )}
               </div>
 
-              {/* Actions */}
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                <Link to={`/quotes/edit/${q.id}`} className="flex-1 min-w-0">
+              {/* Actions — rangée principale */}
+              <div className="flex gap-1.5 flex-wrap">
+                <Link to={`/quotes/edit/${q.id}`} style={{ flex: '1 1 auto', minWidth: 0, display: 'block' }}>
                   <Button variant="outline" size="sm" className="w-full h-8 text-xs" data-testid={`view-quote-${q.id}`}>
                     <Eye className="h-3.5 w-3.5 mr-1" /> Voir
                   </Button>
                 </Link>
-                <Button variant="outline" size="sm" onClick={() => handleDuplicate(q)} className="h-8 text-xs text-slate-600 border-slate-200 hover:bg-slate-50 flex-shrink-0" title="Dupliquer" data-testid={`duplicate-quote-${q.id}`}>
-                  <Copy className="h-3.5 w-3.5" />
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => setSendQuote(q)} className="h-8 text-xs text-blue-600 border-blue-200 hover:bg-blue-50 flex-shrink-0" data-testid={`send-quote-${q.id}`}>
+                <Button variant="outline" size="sm" onClick={() => setSendQuote(q)} className="h-8 text-xs text-blue-600 border-blue-200 hover:bg-blue-50" style={{ flex: '1 1 auto' }} data-testid={`send-quote-${q.id}`}>
                   <Send className="h-3.5 w-3.5 mr-1" /> Envoyer
                 </Button>
-
-                {/* Toggle relances — only for sent quotes */}
-                {isSent && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => handleToggleRelances(e, q)}
-                    className={`h-8 text-xs flex-shrink-0 ${q.relances_active ? 'text-blue-600 border-blue-200 hover:bg-blue-50' : 'text-gray-400 border-gray-200 hover:bg-gray-50'}`}
-                    title={q.relances_active ? 'Désactiver les relances' : 'Activer les relances'}
-                    data-testid={`toggle-relances-${q.id}`}
-                  >
-                    {q.relances_active ? <Bell className="h-3.5 w-3.5" /> : <BellOff className="h-3.5 w-3.5" />}
-                  </Button>
-                )}
-
-                {/* Mark as lost — only for sent quotes */}
-                {isSent && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => handleMarkLost(e, q)}
-                    className="h-8 text-xs text-red-500 border-red-200 hover:bg-red-50 flex-shrink-0"
-                    title="Marquer comme perdu"
-                    data-testid={`mark-lost-${q.id}`}
-                  >
-                    <XCircle className="h-3.5 w-3.5" />
-                  </Button>
-                )}
-
-                {/* Restore — only for lost quotes */}
-                {q.status === 'lost' && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => handleRestore(e, q)}
-                    className="h-8 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50 flex-shrink-0"
-                    title="Restaurer le devis"
-                    data-testid={`restore-quote-${q.id}`}
-                  >
-                    <RotateCcw className="h-3.5 w-3.5 mr-1" /> Restaurer
-                  </Button>
-                )}
-
                 {q.status !== 'invoiced' && q.status !== 'lost' && (
-                  <Button variant="outline" size="sm" onClick={() => openConvertModal(q)} className="h-8 text-xs text-orange-600 border-orange-200 hover:bg-orange-50 flex-shrink-0" data-testid={`convert-quote-${q.id}`}>
+                  <Button variant="outline" size="sm" onClick={() => openConvertModal(q)} className="h-8 text-xs text-orange-600 border-orange-200 hover:bg-orange-50" style={{ flex: '1 1 auto' }} data-testid={`convert-quote-${q.id}`}>
                     <Receipt className="h-3.5 w-3.5 mr-1" /> Facturer
                   </Button>
                 )}
+                {q.status === 'lost' && (
+                  <Button variant="outline" size="sm" onClick={(e) => handleRestore(e, q)} className="h-8 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50" style={{ flex: '1 1 auto' }} data-testid={`restore-quote-${q.id}`}>
+                    <RotateCcw className="h-3.5 w-3.5 mr-1" /> Restaurer
+                  </Button>
+                )}
+              </div>
 
-                <Button variant="ghost" size="sm" onClick={() => handleDelete(q.id)} className="h-8 text-red-500 hover:bg-red-50 flex-shrink-0" data-testid={`delete-quote-${q.id}`}>
+              {/* Actions — rangée secondaire (icônes) */}
+              <div className="flex gap-1.5 mt-1.5">
+                <Button variant="ghost" size="sm" onClick={() => handleDuplicate(q)} className="h-7 w-7 p-0 text-slate-400 hover:text-slate-600 hover:bg-slate-100" title="Dupliquer" data-testid={`duplicate-quote-${q.id}`}>
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+                {isSent && (
+                  <Button variant="ghost" size="sm" onClick={(e) => handleToggleRelances(e, q)} className={`h-7 w-7 p-0 ${q.relances_active ? 'text-blue-500 hover:bg-blue-50' : 'text-gray-400 hover:bg-gray-100'}`} title={q.relances_active ? 'Désactiver les relances' : 'Activer les relances'} data-testid={`toggle-relances-${q.id}`}>
+                    {q.relances_active ? <Bell className="h-3.5 w-3.5" /> : <BellOff className="h-3.5 w-3.5" />}
+                  </Button>
+                )}
+                {isSent && (
+                  <Button variant="ghost" size="sm" onClick={(e) => handleMarkLost(e, q)} className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50" title="Marquer comme perdu" data-testid={`mark-lost-${q.id}`}>
+                    <XCircle className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+                <Button variant="ghost" size="sm" onClick={() => handleDelete(q.id)} className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50 ml-auto" data-testid={`delete-quote-${q.id}`}>
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
