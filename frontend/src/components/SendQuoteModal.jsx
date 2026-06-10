@@ -43,9 +43,22 @@ const SendQuoteModal = ({ quote, onClose, onSent }) => {
     setSending(true);
     setGeneratingPdf(true);
 
+    // Always use the current profile so PDF reflects latest company info
+    let quoteWithCurrentCompany = quote;
+    try {
+      const profilesRes = await fetch(`${API}/profiles`);
+      if (profilesRes.ok) {
+        const profiles = await profilesRes.json();
+        const currentProfile = profiles.find(p => p.is_default) || profiles[0];
+        if (currentProfile) {
+          quoteWithCurrentCompany = { ...quote, company: currentProfile };
+        }
+      }
+    } catch (_) {}
+
     let pdfData = null;
     try {
-      pdfData = await generatePDFBase64(quote, 'quote');
+      pdfData = await generatePDFBase64(quoteWithCurrentCompany, 'quote');
     } catch (err) {
       console.error('PDF generation error:', err);
       toast.error('Erreur lors de la génération du PDF, envoi sans pièce jointe');

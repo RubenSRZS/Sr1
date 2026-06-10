@@ -1170,8 +1170,11 @@ async def get_public_quote(token: str):
     q = await db.quotes.find_one({"public_token": token}, {"_id": 0})
     if not q:
         raise HTTPException(status_code=404, detail="Devis non trouvé")
+    # Always resolve CURRENT profile so PDF stays up-to-date when profile changes
+    _, company = await resolve_company(q.get("profile_id"))
     # Return all fields needed by PDFDocument component for visual parity
     return {
+        "company": company,
         "id": q["id"],
         "quote_number": q["quote_number"],
         "quote_title": q.get("quote_title", ""),
