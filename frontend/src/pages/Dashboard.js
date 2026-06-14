@@ -1,45 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
-import { Plus, FileText, Receipt, Users, ArrowRight, Moon, Sun, Send, CheckCircle, Clock, FileCheck, UserCircle, Settings, Bell } from 'lucide-react';
+import { Plus, FileText, Receipt, Users, ArrowRight, Moon, Sun, Send, CheckCircle, Clock, FileCheck, UserCircle, Settings, Bell, Layers } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { initializeDefaultCatalog } from '@/utils/defaultCatalog';
 import { useTheme } from '@/context/ThemeContext';
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { useDataCache } from '@/context/DataCacheContext';
 
 const Dashboard = () => {
   const { darkMode, toggleDarkMode } = useTheme();
-  const [stats, setStats] = useState(null);
-  const [recentQuotes, setRecentQuotes] = useState([]);
-  const [recentInvoices, setRecentInvoices] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { cache, fetchStats, fetchQuotes, fetchInvoices } = useDataCache();
+  const [loading, setLoading] = useState(cache.stats === null);
 
   useEffect(() => {
-    fetchData();
+    let active = true;
+    Promise.all([fetchStats(), fetchQuotes(), fetchInvoices()])
+      .catch(() => { if (active) toast.error('Erreur de chargement'); })
+      .finally(() => { if (active) setLoading(false); });
     initializeDefaultCatalog();
-  }, []);
+    return () => { active = false; };
+  }, [fetchStats, fetchQuotes, fetchInvoices]);
 
-  const fetchData = async () => {
-    try {
-      const [statsRes, quotesRes, invoicesRes] = await Promise.all([
-        axios.get(`${API}/stats`),
-        axios.get(`${API}/quotes`),
-        axios.get(`${API}/invoices`),
-      ]);
-      setStats(statsRes.data);
-      setRecentQuotes(quotesRes.data.slice(-5).reverse());
-      setRecentInvoices(invoicesRes.data.slice(-5).reverse());
-    } catch (error) {
-      toast.error('Erreur de chargement');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const stats = cache.stats;
+  const recentQuotes = useMemo(() => (cache.quotes || []).slice(-5).reverse(), [cache.quotes]);
+  const recentInvoices = useMemo(() => (cache.invoices || []).slice(-5).reverse(), [cache.invoices]);
 
-  if (loading) {
+  if (loading && !stats) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-slate-900' : 'bg-[var(--sr-cream)]'}`}>
         <div className="h-10 w-10 border-3 border-[var(--sr-orange)] border-t-transparent rounded-full animate-spin" />
@@ -167,6 +154,24 @@ const Dashboard = () => {
           </div>
           <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
             Emails de suivi automatiques J+3, J+7, J+14, J+30 — jamais le dimanche. Désactivez par devis si le client répond par téléphone.
+          </p>
+        </Card>
+
+        {/* Catalogue Section */}
+        <Card className={`p-5 mb-4 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`} data-testid="catalog-dashboard-card">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Layers className={`w-5 h-5 ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />
+              <h3 className={`font-bold text-base ${darkMode ? 'text-white' : 'text-slate-800'}`}>Catalogue de services</h3>
+            </div>
+            <Link to="/catalog">
+              <Button size="sm" variant="outline" className={`text-xs ${darkMode ? 'border-slate-600 hover:bg-slate-700 text-slate-300' : ''}`} data-testid="dashboard-catalog-link">
+                <Settings className="w-3.5 h-3.5 mr-1" /> Gérer
+              </Button>
+            </Link>
+          </div>
+          <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+            Toitures, façades, terrasses… tous vos services réutilisables dans vos devis.
           </p>
         </Card>
 

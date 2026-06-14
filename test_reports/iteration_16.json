@@ -1,0 +1,78 @@
+{
+  "summary": "Iteration 16 — Tested CRM page, GlobalSearch (Ctrl+K), Fullscreen preview on QuoteForm/InvoiceForm, attachments + WhatsApp button on Send modals, mobile responsiveness, navigation refactor (CRM replaces Catalogue), and new backend endpoints (timeline, notes, public-token, open tracking). 9/9 backend tests PASS. All major frontend flows working.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "QuoteForm / InvoiceForm (live preview)",
+        "issues": [
+          "React DOM hydration warnings in console: '<th> cannot contain <span>', '<span> cannot contain <tr>', '<tr> cannot contain <span>', '<span> cannot contain <tbody>'. The live preview HTML markup is malformed (probably <span> wrappers around <table>/<tr>/<th> elements in QuoteForm.js line 820 and InvoiceForm.js line 211). Visual rendering still works but generates console errors and breaks React 19 hydration. Recommend fixing the PDF preview component nesting."
+        ]
+      }
+    ]
+  },
+  "test_results": {
+    "backend_timeline_ok": "PASS — GET /api/clients/{id}/timeline returns {client, events[], stats:{quotes_count,invoices_count,total_signed,total_invoiced}}. No _id leaked.",
+    "backend_timeline_404": "PASS — invalid client id returns 404",
+    "backend_notes_patch_persist": "PASS — PATCH /api/clients/{id}/notes saves, verified via GET",
+    "backend_notes_patch_404": "PASS — invalid client returns 404",
+    "backend_public_token_create": "PASS — POST /api/quotes/{id}/public-token returns token; idempotent (same token on second call)",
+    "backend_public_token_404": "PASS — invalid quote returns 404",
+    "backend_open_count_increment": "PASS — POST /api/public/quote/{token}/opened increments open_count and sets last_opened_at",
+    "backend_send_quote_extra_attachments_schema": "PASS — Pydantic accepts extra_attachments field (verified via 404 on bogus id, not 422)",
+    "backend_send_invoice_extra_attachments_schema": "PASS — same",
+    "frontend_desktop_nav_crm": "PASS — CRM link present, Catalogue link absent in desktop nav",
+    "frontend_dashboard_catalog_card": "PASS — Dashboard has link to /catalog",
+    "frontend_global_search_trigger": "PASS — clicking global-search-trigger opens modal, results returned for 'ruben' (5 hits), Esc closes",
+    "frontend_global_search_ctrl_k": "PASS — Ctrl+K opens modal from /quotes",
+    "frontend_crm_page_load": "PASS — /crm page renders with 32 clients in list",
+    "frontend_crm_client_detail": "PASS — clicking a client shows detail panel with edit/delete + Nouveau devis/facture buttons",
+    "frontend_crm_notes_autocalc": "PASS — entering '10x100\\n50+25\\n200/4\\n15*7+3' produces '= 1 000 / = 75 / = 50 / = 108' (French locale formatting with non-breaking space)",
+    "frontend_crm_notes_autosave": "PASS — debounced PATCH persists via API, verified by backend test",
+    "frontend_crm_timeline_items": "PASS — Timeline shows quote/invoice items with data-testid='timeline-<type>-<id>' (3 items for first client)",
+    "frontend_quote_preview_fullscreen": "PASS — /quotes/new has preview-fullscreen-btn-desktop, opens modal with close-preview-fullscreen + download-pdf-btn-fullscreen",
+    "frontend_invoice_preview_fullscreen": "PASS — /invoices/new same behaviour",
+    "frontend_send_quote_attachments": "PASS — SendQuoteModal has add-attachment-btn + file input. Uploading test.txt shows filename and 1 remove button",
+    "frontend_send_quote_whatsapp": "PASS — WhatsApp button present",
+    "frontend_send_invoice_attachments": "PASS — SendInvoiceModal has add-attachment-btn + WhatsApp button",
+    "frontend_mobile_bottom_nav": "PASS — 5 entries (Accueil, Devis, IA, Factures, CRM); Catalogue absent",
+    "frontend_mobile_crm_back_btn": "PASS — clicking a client on mobile shows detail with visible back-to-list-btn (chevron left)",
+    "e2e_public_quote_tracking": "PASS — open_count increments from 2→3 after POST /api/public/quote/{token}/opened; PublicQuotePage.jsx calls this endpoint on mount"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration16_crm.py",
+    "/app/test_reports/pytest/pytest_iter16.xml"
+  ],
+  "action_items": [
+    "MINOR: Fix React DOM nesting warnings in QuoteForm.js (~line 820) and InvoiceForm.js (~line 211) — invalid <span> wrapping <tr>/<tbody>/<th> elements in live preview. Causes console errors and React 19 hydration issues.",
+    "OPTIONAL: server.py is now 2055 lines — well past the 700-line guideline. Consider splitting routes (clients, quotes, invoices, relances, profiles, email) into separate routers/modules for maintainability."
+  ],
+  "critical_code_review_comments": [
+    "server.py 2055 lines — should be split into multiple routers (clients/quotes/invoices/email/relances).",
+    "Live PDF preview component generates invalid HTML (span > tr/tbody/th) — works visually but breaks hydration. Should use proper table semantics or refactor the preview into a separate component using raw HTML rendering.",
+    "evalExpression in CRM.jsx uses Function() constructor — input is regex-restricted to [\\d+\\-*/().,] so safe, but adding a clearer comment would help future maintainers.",
+    "Note auto-save: useEffect debounce uses 800ms; depends on client object reference. Re-renders on parent state changes could retrigger save. Consider using a ref to compare 'lastSavedNotes' to avoid unnecessary PATCH calls.",
+    "/api/quotes/{id}/public-token endpoint is idempotent (good). Consider also exposing similar endpoint for invoices for symmetry if invoices also need public links."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration16_crm.py (NEW)"
+  ],
+  "success_rate": {
+    "backend": "100% (9/9 tests passed)",
+    "frontend": "100% (all critical flows working; 1 minor DOM nesting design warning)"
+  },
+  "test_credentials": {
+    "pin": "0330",
+    "test_email": "rubensrzs03@gmail.com (NEVER sent real emails during this iteration)"
+  },
+  "seed_data_creation": "None — used existing real clients and quotes. Notes auto-save test temporarily wrote/restored notes on first client.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Iteration 16: All CRM features (timeline, notes auto-calc + auto-save, client detail, mobile back button), GlobalSearch (Ctrl+K + click trigger, Esc to close, arrow nav), Fullscreen preview on QuoteForm/InvoiceForm, SendQuoteModal/SendInvoiceModal with extra_attachments (base64) + WhatsApp button, navigation refactor (CRM replaces Catalogue, Catalogue accessible from Dashboard), and tracking endpoints (POST /api/quotes/{id}/public-token, POST /api/public/quote/{token}/opened with open_count + last_opened_at) all working. Backend tests: /app/backend/tests/test_iteration16_crm.py. Only outstanding issue: React DOM nesting warnings in QuoteForm/InvoiceForm live preview (invalid <span> wrappers around <tr>/<th>/<tbody>). PIN bypass for Playwright: page.add_init_script(\"localStorage.setItem('sr_auth','true');\"). Backend has 2055 lines — split recommended for maintainability.",
+  "rca_of_issues": "N/A — no critical bugs. Hydration warnings stem from PDFPreview.js / live preview component using <span> elements wrapping table structures; non-blocking but should be cleaned for React 19 strict mode."
+}

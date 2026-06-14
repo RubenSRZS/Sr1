@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import SendQuoteModal from '@/components/SendQuoteModal';
+import { useDataCache } from '@/context/DataCacheContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -42,9 +43,10 @@ function getDaysSinceSent(sentAt) {
 
 const QuotesList = () => {
   const navigate = useNavigate();
-  const [quotes, setQuotes] = useState([]);
+  const { cache, fetchQuotes: cachedFetchQuotes, invalidate } = useDataCache();
+  const quotes = cache.quotes || [];
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(cache.quotes === null);
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [markAsPaid, setMarkAsPaid] = useState(true);
@@ -53,12 +55,16 @@ const QuotesList = () => {
   const [sendQuote, setSendQuote] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
 
-  useEffect(() => { fetchQuotes(); }, []);
+  useEffect(() => {
+    let active = true;
+    cachedFetchQuotes().catch(() => { if (active) toast.error('Erreur chargement'); }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [cachedFetchQuotes]);
 
   const fetchQuotes = async () => {
-    try { const r = await axios.get(`${API}/quotes`); setQuotes(r.data); }
+    invalidate('quotes');
+    try { await cachedFetchQuotes({ force: true }); }
     catch { toast.error('Erreur chargement'); }
-    finally { setLoading(false); }
   };
 
   const handleDelete = async (id) => {
@@ -142,7 +148,7 @@ const QuotesList = () => {
   const counts = { all: quotes.length };
   TABS.slice(1).forEach(t => { counts[t.key] = quotes.filter(q => q.status === t.key).length; });
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 border-3 border-[#3b82f6] border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading && quotes.length === 0) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 border-3 border-[#3b82f6] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="quotes-list-page">
@@ -254,7 +260,15 @@ const QuotesList = () => {
               {/* Tracking + relance info */}
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {q.sent_at && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded flex items-center gap-1"><Mail className="w-2.5 h-2.5" /> Envoyé {daysSinceSent !== null ? `(J+${daysSinceSent})` : ''}</span>}
-                {q.opened_at && <span className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded flex items-center gap-1"><EyeIcon className="w-2.5 h-2.5" /> Ouvert</span>}
+                {q.opened_at && (
+                  <span
+                    className="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded flex items-center gap-1 font-semibold"
+                    title={q.last_opened_at ? `Dernière ouverture : ${new Date(q.last_opened_at).toLocaleString('fr-FR')}` : `Ouvert le ${new Date(q.opened_at).toLocaleString('fr-FR')}`}
+                    data-testid={`quote-opened-${q.id}`}
+                  >
+                    <EyeIcon className="w-2.5 h-2.5" /> Ouvert{(q.open_count || 0) > 1 ? ` ${q.open_count}×` : ''}
+                  </span>
+                )}
                 {q.signed_at && <span className="text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded flex items-center gap-1"><CheckCircle className="w-2.5 h-2.5" /> Signé</span>}
                 {isSent && q.relances_active && nextRelanceDay && (
                   <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded flex items-center gap-1">

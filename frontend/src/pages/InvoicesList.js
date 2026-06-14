@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import SendInvoiceModal from '@/components/SendInvoiceModal';
+import { useDataCache } from '@/context/DataCacheContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -20,18 +21,24 @@ const TABS = [
 ];
 
 const InvoicesList = () => {
-  const [invoices, setInvoices] = useState([]);
+  const { cache, fetchInvoices: cachedFetchInvoices, invalidate } = useDataCache();
+  const invoices = cache.invoices || [];
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(cache.invoices === null);
   const [sortMode, setSortMode] = useState('recent');
   const [sendModal, setSendModal] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
 
-  useEffect(() => { fetchInvoices(); }, []);
+  useEffect(() => {
+    let active = true;
+    cachedFetchInvoices().catch(() => { if (active) toast.error('Erreur chargement'); }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [cachedFetchInvoices]);
+
   const fetchInvoices = async () => {
-    try { const r = await axios.get(`${API}/invoices`); setInvoices(r.data); }
+    invalidate('invoices');
+    try { await cachedFetchInvoices({ force: true }); }
     catch { toast.error('Erreur chargement'); }
-    finally { setLoading(false); }
   };
 
   const handleDelete = async (id) => {
@@ -70,7 +77,7 @@ const InvoicesList = () => {
   const totalPending = invoices.filter(i => i.payment_status !== 'paid').reduce((s, i) => s + (i.reste_a_payer || 0), 0);
   const totalPaid = invoices.filter(i => i.payment_status === 'paid').reduce((s, i) => s + (i.total_net || 0), 0);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 border-3 border-[#3b82f6] border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading && invoices.length === 0) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 border-3 border-[#3b82f6] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="min-h-screen bg-[var(--sr-cream)]" data-testid="invoices-list-page">

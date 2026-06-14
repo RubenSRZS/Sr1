@@ -448,8 +448,19 @@ const InvoiceForm = () => {
               </Card>
 
               <Card className="bg-white border-0 shadow-sm overflow-hidden">
-                <div className="px-3 py-2 border-b border-gray-100">
+                <div className="px-3 py-2 border-b border-gray-100 flex items-center justify-between">
                   <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Aperçu en direct</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowPreviewMobile(true)}
+                    className="h-7 text-xs"
+                    style={{ color: BRAND_BLUE }}
+                    data-testid="preview-fullscreen-btn-desktop"
+                  >
+                    <Eye className="h-3.5 w-3.5 mr-1" /> Plein écran
+                  </Button>
                 </div>
                 <div className="p-2 bg-white max-h-[55vh] overflow-y-auto" data-testid="live-preview-desktop">
                   <div className="transform scale-[0.48] origin-top-left bg-white" style={{ width: '210mm' }}>
@@ -462,28 +473,30 @@ const InvoiceForm = () => {
         </form>
       </div>
 
-      {/* Mobile Preview Modal */}
+      {/* Fullscreen Preview Modal (desktop + mobile) */}
       {showPreviewMobile && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-3 pt-6 backdrop-blur-sm overflow-y-auto lg:hidden">
-          <div className="bg-white rounded-xl w-full max-w-lg shadow-2xl animate-fade-in-up">
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-start justify-center p-3 pt-6 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-xl w-full max-w-4xl shadow-2xl animate-fade-in-up">
             <div className="sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between rounded-t-xl z-10">
               <span className="font-semibold text-sm">Aperçu de la facture</span>
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={handleDownloadPDF}
-                  className="h-7 text-xs"
+                  className="h-8 text-xs"
                   style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }}
-                  data-testid="download-pdf-btn-mobile"
+                  data-testid="download-pdf-btn-fullscreen"
                 >
                   <Download className="h-3.5 w-3.5 mr-1" /> PDF
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => setShowPreviewMobile(false)} className="h-7" data-testid="close-mobile-preview"><EyeOff className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="sm" onClick={() => setShowPreviewMobile(false)} className="h-8" data-testid="close-preview-fullscreen"><EyeOff className="h-4 w-4" /></Button>
               </div>
             </div>
-            <div className="p-2 bg-white">
-              <PDFDocument document={previewDoc} type="invoice" compact={true} />
+            <div className="p-3 sm:p-6 bg-slate-50 flex justify-center">
+              <div className="bg-white shadow-lg" style={{ width: '210mm', maxWidth: '100%' }}>
+                <PDFDocument document={previewDoc} type="invoice" compact={false} />
+              </div>
             </div>
           </div>
         </div>

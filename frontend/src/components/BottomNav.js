@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, FileText, Receipt, Users, Sparkles, Layers, UserCircle } from 'lucide-react';
+import { Home, FileText, Receipt, Sparkles, Heart } from 'lucide-react';
 
 const BottomNav = () => {
   const location = useLocation();
@@ -9,7 +9,7 @@ const BottomNav = () => {
     { path: '/quotes', icon: FileText, label: 'Devis' },
     { path: '/ai-assistant', icon: Sparkles, label: 'IA' },
     { path: '/invoices', icon: Receipt, label: 'Factures' },
-    { path: '/catalog', icon: Layers, label: 'Catalogue' },
+    { path: '/crm', icon: Heart, label: 'CRM' },
   ];
 
   return (

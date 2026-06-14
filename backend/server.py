@@ -408,6 +408,8 @@ class Quote(BaseModel):
     sent_at: Optional[str] = None
     sent_to_email: Optional[str] = None
     opened_at: Optional[str] = None
+    last_opened_at: Optional[str] = None
+    open_count: int = 0
     signed_at: Optional[str] = None
     relances_active: bool = False
     relances_sent: List[int] = []
@@ -603,6 +605,63 @@ async def delete_client(client_id: str):
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Client non trouvé")
     return {"status": "success"}
+
+@api_router.patch("/clients/{client_id}/notes")
+async def update_client_notes(client_id: str, body: dict):
+    notes = body.get("notes", "")
+    res = await db.clients.update_one({"id": client_id}, {"$set": {"notes": notes}})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Client non trouvé")
+    return {"status": "success"}
+
+@api_router.get("/clients/{client_id}/timeline")
+async def client_timeline(client_id: str):
+    """Returns ordered list of quote+invoice events for a single client."""
+    c = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not c:
+        raise HTTPException(status_code=404, detail="Client non trouvé")
+    quotes = await db.quotes.find({"client_id": client_id}, {"_id": 0}).to_list(500)
+    invoices = await db.invoices.find({"client_id": client_id}, {"_id": 0}).to_list(500)
+    events = []
+    for q in quotes:
+        events.append({
+            "type": "quote",
+            "id": q.get("id"),
+            "number": q.get("quote_number"),
+            "status": q.get("status"),
+            "total": q.get("total_net"),
+            "created_at": q.get("created_at"),
+            "sent_at": q.get("sent_at"),
+            "opened_at": q.get("opened_at"),
+            "open_count": q.get("open_count", 0),
+            "signed_at": q.get("signed_at"),
+            "lost_at": q.get("lost_at"),
+            "work_location": q.get("work_location"),
+        })
+    for inv in invoices:
+        events.append({
+            "type": "invoice",
+            "id": inv.get("id"),
+            "number": inv.get("invoice_number"),
+            "status": inv.get("payment_status"),
+            "total": inv.get("total_net"),
+            "created_at": inv.get("created_at"),
+            "sent_at": inv.get("sent_at"),
+            "work_location": inv.get("work_location"),
+        })
+    events.sort(key=lambda e: str(e.get("created_at") or ""), reverse=True)
+    total_signed = sum(e["total"] or 0 for e in events if e["type"] == "quote" and e.get("signed_at"))
+    total_invoiced = sum(e["total"] or 0 for e in events if e["type"] == "invoice")
+    return {
+        "client": c,
+        "events": events,
+        "stats": {
+            "quotes_count": len(quotes),
+            "invoices_count": len(invoices),
+            "total_signed": total_signed,
+            "total_invoiced": total_invoiced,
+        }
+    }
 
 # ==================== PROFILES ====================
 
@@ -1222,11 +1281,14 @@ async def track_quote_opened(token: str):
     q = await db.quotes.find_one({"public_token": token}, {"_id": 0})
     if not q:
         raise HTTPException(status_code=404, detail="Devis non trouvé")
+    now_iso = datetime.now(timezone.utc).isoformat()
+    update: dict = {
+        "$set": {"last_opened_at": now_iso},
+        "$inc": {"open_count": 1},
+    }
     if not q.get("opened_at"):
-        await db.quotes.update_one(
-            {"public_token": token},
-            {"$set": {"opened_at": datetime.now(timezone.utc).isoformat()}}
-        )
+        update["$set"]["opened_at"] = now_iso
+    await db.quotes.update_one({"public_token": token}, update)
     return {"status": "success"}
 
 class SignQuote(BaseModel):
@@ -1480,7 +1542,7 @@ async def trigger_relances_now():
 async def send_preview_emails(body: dict = Body(...)):
     """Envoie les 4 templates de relance en aperçu à l'adresse spécifiée."""
     to_email = body.get("email", "rubensrzs03@gmail.com")
-    base_url = os.environ.get("PUBLIC_APP_URL", "https://email-design-test.preview.emergentagent.com")
+    base_url = os.environ.get("PUBLIC_APP_URL", "https://factures-devis-1.preview.emergentagent.com")
     public_link = f"{base_url}/devis/public/preview"
     fmt = dict(quote_number="D-2025-042", client_name="Ruben Suarez", total_net="3 250.00", work_location="Votre chantier test")
     sent = []
@@ -1508,7 +1570,7 @@ async def send_single_preview(day: int, body: dict = Body(...)):
     if day not in [3, 7, 14, 30]:
         raise HTTPException(status_code=400, detail="Jour invalide")
     to_email = body.get("email", "rubensrzs03@gmail.com")
-    base_url = os.environ.get("PUBLIC_APP_URL", "https://email-design-test.preview.emergentagent.com")
+    base_url = os.environ.get("PUBLIC_APP_URL", "https://factures-devis-1.preview.emergentagent.com")
     public_link = f"{base_url}/devis/public/preview"
     fmt = dict(quote_number="D-2025-042", client_name="Ruben Suarez", total_net="3 250.00", work_location="Votre chantier test")
     tmpl = await db.relance_templates.find_one({"day": day}, {"_id": 0})
@@ -1534,6 +1596,18 @@ class SendQuoteEmail(BaseModel):
     recipient_email: str
     pdf_base64: str | None = None
     pdf_filename: str | None = None
+    extra_attachments: list[dict] | None = None  # [{filename, content (base64)}]
+
+@api_router.post("/quotes/{quote_id}/public-token")
+async def ensure_quote_public_token(quote_id: str):
+    q = await db.quotes.find_one({"id": quote_id}, {"_id": 0, "public_token": 1})
+    if not q:
+        raise HTTPException(status_code=404, detail="Devis non trouvé")
+    public_token = q.get("public_token")
+    if not public_token:
+        public_token = secrets.token_urlsafe(32)
+        await db.quotes.update_one({"id": quote_id}, {"$set": {"public_token": public_token}})
+    return {"public_token": public_token}
 
 @api_router.post("/quotes/{quote_id}/send-email")
 async def send_quote_email(quote_id: str, body: SendQuoteEmail):
@@ -1639,6 +1713,15 @@ async def send_quote_email(quote_id: str, body: SendQuoteEmail):
                 "filename": body.pdf_filename,
                 "content": body.pdf_base64,
             }]
+        # Append extra attachments (assurance, photos, etc.)
+        if body.extra_attachments:
+            params.setdefault("attachments", [])
+            for att in body.extra_attachments:
+                if att.get("filename") and att.get("content"):
+                    params["attachments"].append({
+                        "filename": att["filename"],
+                        "content": att["content"],
+                    })
         email_result = await asyncio.to_thread(resend.Emails.send, params)
         now = datetime.now(timezone.utc).isoformat()
         await db.quotes.update_one(
@@ -1666,6 +1749,7 @@ class SendInvoiceEmail(BaseModel):
     email_type: str = "simple"  # 'with_review' | 'simple'
     pdf_base64: str | None = None
     pdf_filename: str | None = None
+    extra_attachments: list[dict] | None = None  # [{filename, content (base64)}]
 
 @api_router.post("/invoices/{invoice_id}/send-email")
 async def send_invoice_email(invoice_id: str, body: SendInvoiceEmail):
@@ -1773,6 +1857,15 @@ async def send_invoice_email(invoice_id: str, body: SendInvoiceEmail):
                 "filename": body.pdf_filename,
                 "content": body.pdf_base64,
             }]
+        # Append extra attachments (assurance, photos, etc.)
+        if body.extra_attachments:
+            params.setdefault("attachments", [])
+            for att in body.extra_attachments:
+                if att.get("filename") and att.get("content"):
+                    params["attachments"].append({
+                        "filename": att["filename"],
+                        "content": att["content"],
+                    })
         email_result = await asyncio.to_thread(resend.Emails.send, params)
         now = datetime.now(timezone.utc).isoformat()
         await db.invoices.update_one(

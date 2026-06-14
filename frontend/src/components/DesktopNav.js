@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, FileText, Receipt, Users, Layers, Sparkles } from 'lucide-react';
+import { Home, FileText, Receipt, Users, Sparkles, UserCircle, Heart } from 'lucide-react';
+import GlobalSearch from '@/components/GlobalSearch';
 
 const LOGO_SR = "https://customer-assets.emergentagent.com/job_538ea579-31dc-4f0d-9c02-673e8a0738ca/artifacts/srxb4k7u_Nouveau%20Logo%203.png";
 
@@ -11,8 +12,8 @@ const DesktopNav = () => {
     { path: '/quotes', icon: FileText, label: 'Devis' },
     { path: '/invoices', icon: Receipt, label: 'Factures' },
     { path: '/clients', icon: Users, label: 'Clients' },
-    { path: '/catalog', icon: Layers, label: 'Catalogue' },
-    { path: '/profile', icon: Users, label: 'Profil' },
+    { path: '/crm', icon: Heart, label: 'CRM' },
+    { path: '/profile', icon: UserCircle, label: 'Profil' },
     { path: '/ai-assistant', icon: Sparkles, label: 'Assistant IA', gradient: true },
   ];
 
@@ -36,6 +37,9 @@ const DesktopNav = () => {
             </Link>
           );
         })}
+      </div>
+      <div className="ml-auto">
+        <GlobalSearch />
       </div>
     </nav>
   );
