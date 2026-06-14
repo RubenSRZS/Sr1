@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { initializeDefaultCatalog } from '@/utils/defaultCatalog';
 import { useTheme } from '@/context/ThemeContext';
 import { useDataCache } from '@/context/DataCacheContext';
+import AnalyticsSection from '@/components/AnalyticsSection';
 
 const Dashboard = () => {
   const { darkMode, toggleDarkMode } = useTheme();
@@ -120,6 +121,9 @@ const Dashboard = () => {
             </div>
           </Link>
         </div>
+
+        {/* Analytics / Performance */}
+        <AnalyticsSection dark={darkMode} />
 
         {/* Profile Section */}
         <Card className={`p-5 mb-4 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>

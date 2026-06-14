@@ -1912,6 +1912,68 @@ async def get_stats():
         "revenue": {"total": total_revenue, "pending": pending_revenue},
     }
 
+@api_router.get("/stats/analytics")
+async def get_analytics():
+    quotes = await db.quotes.find({}, {"_id": 0, "status": 1, "sent_at": 1, "signed_at": 1, "total_net": 1, "created_at": 1}).to_list(5000)
+    invoices = await db.invoices.find({}, {"_id": 0, "total_net": 1, "created_at": 1, "client_name": 1}).to_list(5000)
+
+    def parse(dt):
+        if not dt:
+            return None
+        try:
+            return datetime.fromisoformat(str(dt).replace("Z", "+00:00"))
+        except Exception:
+            return None
+
+    sent_quotes = [q for q in quotes if q.get("sent_at")]
+    accepted_quotes = [q for q in quotes if q.get("status") == "accepted"]
+    conversion_rate = round(len(accepted_quotes) / len(sent_quotes) * 100, 1) if sent_quotes else 0.0
+
+    deltas = []
+    for q in quotes:
+        s = parse(q.get("sent_at"))
+        g = parse(q.get("signed_at"))
+        if s and g and g >= s:
+            deltas.append((g - s).days)
+    avg_days_to_sign = round(sum(deltas) / len(deltas), 1) if deltas else None
+
+    now = datetime.now(timezone.utc)
+    y, m = now.year, now.month
+    seq = []
+    for _ in range(6):
+        seq.append((y, m))
+        m -= 1
+        if m == 0:
+            m = 12
+            y -= 1
+    seq = list(reversed(seq))
+    months_fr = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'aoû', 'sep', 'oct', 'nov', 'déc']
+    rev_map = {k: 0.0 for k in seq}
+    for inv in invoices:
+        d = parse(inv.get("created_at"))
+        if d and (d.year, d.month) in rev_map:
+            rev_map[(d.year, d.month)] += inv.get("total_net") or 0
+    revenue_by_month = [{"label": months_fr[mm - 1], "value": round(rev_map[(yy, mm)], 2)} for (yy, mm) in seq]
+
+    client_rev = {}
+    for inv in invoices:
+        name = inv.get("client_name") or "—"
+        client_rev[name] = client_rev.get(name, 0) + (inv.get("total_net") or 0)
+    top_clients = sorted(
+        [{"name": k, "total": round(v, 2)} for k, v in client_rev.items()],
+        key=lambda x: x["total"], reverse=True
+    )[:5]
+
+    return {
+        "conversion_rate": conversion_rate,
+        "sent_count": len(sent_quotes),
+        "accepted_count": len(accepted_quotes),
+        "avg_days_to_sign": avg_days_to_sign,
+        "total_signed": round(sum((q.get("total_net") or 0) for q in accepted_quotes), 2),
+        "revenue_by_month": revenue_by_month,
+        "top_clients": top_clients,
+    }
+
 # ==================== AI ASSISTANT ====================
 
 class AIGenerateRequest(BaseModel):

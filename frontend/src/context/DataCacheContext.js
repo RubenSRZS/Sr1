@@ -21,6 +21,7 @@ export const DataCacheProvider = ({ children }) => {
     profiles: null,
     catalog: null,
     stats: null,
+    analytics: null,
   });
   const fetchedAt = useRef({});
   const inflight = useRef({});
@@ -70,7 +71,7 @@ export const DataCacheProvider = ({ children }) => {
 
   const invalidateAll = useCallback(() => {
     fetchedAt.current = {};
-    setCache({ quotes: null, invoices: null, clients: null, profiles: null, catalog: null, stats: null });
+    setCache({ quotes: null, invoices: null, clients: null, profiles: null, catalog: null, stats: null, analytics: null });
   }, []);
 
   const fetchQuotes = useCallback((opts) => getOrFetch('quotes', `${API}/quotes`, opts), [getOrFetch]);
@@ -79,6 +80,7 @@ export const DataCacheProvider = ({ children }) => {
   const fetchProfiles = useCallback((opts) => getOrFetch('profiles', `${API}/profiles`, opts), [getOrFetch]);
   const fetchCatalog = useCallback((opts) => getOrFetch('catalog', `${API}/services`, opts), [getOrFetch]);
   const fetchStats = useCallback((opts) => getOrFetch('stats', `${API}/stats`, opts), [getOrFetch]);
+  const fetchAnalytics = useCallback((opts) => getOrFetch('analytics', `${API}/stats/analytics`, opts), [getOrFetch]);
 
   // Background prefetch — start loading the heavy lists right after first paint
   const prefetchEssentials = useCallback(() => {
@@ -100,6 +102,7 @@ export const DataCacheProvider = ({ children }) => {
       fetchProfiles,
       fetchCatalog,
       fetchStats,
+      fetchAnalytics,
       invalidate,
       invalidateAll,
       patchCacheItem,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Search, User, Phone, Mail, MapPin, FileText, Receipt, Send, CheckCircle, Clock, XCircle, Save, Trash2, ChevronLeft, StickyNote, Calculator, Edit3 } from 'lucide-react';
+import { Plus, Search, User, Phone, Mail, MapPin, FileText, Receipt, Send, CheckCircle, XCircle, Save, Trash2, ChevronLeft, StickyNote, Edit3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -30,26 +30,92 @@ const evalExpression = (expr) => {
   } catch { return null; }
 };
 
-// Render notes line by line, appending `= result` when a line is a math expression
-const renderNotesPreview = (notes) => {
-  if (!notes) return null;
-  return notes.split('\n').map((line, i) => {
-    const trimmed = line.trim();
-    let result = null;
-    if (trimmed && /[+\-*/xX×÷]/.test(trimmed) && /^[\d+\-*/().,xX×÷\s]+$/.test(trimmed)) {
-      result = evalExpression(trimmed);
+// Compute the math result of a single note line, or null.
+const lineResult = (line) => {
+  const t = (line || '').trim();
+  if (t && /[+\-*/xX×÷]/.test(t) && /^[\d+\-*/().,xX×÷\s]+$/.test(t)) {
+    return evalExpression(t);
+  }
+  return null;
+};
+
+// Single notepad where the computed result appears inline, on the right of each line.
+const SmartNotes = ({ value, onChange, placeholder }) => {
+  const lines = useMemo(() => (value && value.length ? value.split('\n') : ['']), [value]);
+  const refs = useRef([]);
+  const caret = useRef(null);
+
+  const commit = (next) => onChange(next.join('\n'));
+
+  const handleChange = (i, text) => {
+    const next = [...lines];
+    next[i] = text;
+    commit(next);
+  };
+
+  const handleKeyDown = (i, e) => {
+    const el = e.target;
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const pos = el.selectionStart ?? lines[i].length;
+      const before = lines[i].slice(0, pos);
+      const after = lines[i].slice(pos);
+      const next = [...lines];
+      next[i] = before;
+      next.splice(i + 1, 0, after);
+      caret.current = { line: i + 1, pos: 0 };
+      commit(next);
+    } else if (e.key === 'Backspace' && el.selectionStart === 0 && el.selectionEnd === 0 && i > 0) {
+      e.preventDefault();
+      const prevLen = lines[i - 1].length;
+      const next = [...lines];
+      next[i - 1] = lines[i - 1] + lines[i];
+      next.splice(i, 1);
+      caret.current = { line: i - 1, pos: prevLen };
+      commit(next);
+    } else if (e.key === 'ArrowUp' && i > 0) {
+      e.preventDefault();
+      refs.current[i - 1]?.focus();
+    } else if (e.key === 'ArrowDown' && i < lines.length - 1) {
+      e.preventDefault();
+      refs.current[i + 1]?.focus();
     }
-    return (
-      <div key={i} className="flex items-center gap-2">
-        <span className="whitespace-pre-wrap">{line || '\u00A0'}</span>
-        {result !== null && (
-          <span className="ml-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
-            <Calculator className="w-3 h-3" />= {result.toLocaleString('fr-FR')}
-          </span>
-        )}
-      </div>
-    );
+  };
+
+  useEffect(() => {
+    if (caret.current) {
+      const { line, pos } = caret.current;
+      const el = refs.current[line];
+      if (el) { el.focus(); try { el.setSelectionRange(pos, pos); } catch (_) {} }
+      caret.current = null;
+    }
   });
+
+  return (
+    <div data-testid="client-notes-editor">
+      {lines.map((line, i) => {
+        const res = lineResult(line);
+        return (
+          <div key={i} className="flex items-center gap-2 min-h-[30px] border-b border-dashed border-slate-100 last:border-0">
+            <input
+              ref={(el) => { refs.current[i] = el; }}
+              value={line}
+              onChange={(e) => handleChange(i, e.target.value)}
+              onKeyDown={(e) => handleKeyDown(i, e)}
+              placeholder={i === 0 ? placeholder : ''}
+              className="flex-1 bg-transparent outline-none py-1 text-sm text-slate-700 placeholder:text-slate-300"
+              data-testid={`notes-line-${i}`}
+            />
+            {res !== null && (
+              <span className="shrink-0 text-sm font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded" data-testid={`notes-line-result-${i}`}>
+                = {res.toLocaleString('fr-FR')}
+              </span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 };
 
 // Sum of all computed lines (only meaningful when there are several)
@@ -191,7 +257,7 @@ const ClientDetail = ({ client, onBack, onUpdated, onDeleted }) => {
           </Button>
         </div>
 
-        {/* Notes with auto-calc */}
+        {/* Notes — bloc unique, résultat inline */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
@@ -199,25 +265,20 @@ const ClientDetail = ({ client, onBack, onUpdated, onDeleted }) => {
             </Label>
             {savingNotes && <span className="text-[10px] text-slate-400">Sauvegarde…</span>}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <Textarea
+          <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 min-h-[140px] focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-200 transition-colors">
+            <SmartNotes
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder={"Ex :\n10x100\n+ déplacement 50\nremise 5%"}
-              rows={10}
-              className="text-sm font-mono"
-              data-testid="client-notes-textarea"
+              onChange={setNotes}
+              placeholder="Ex : 10x100, + déplacement 50, 200/4…"
             />
-            <div className="text-sm text-slate-700 bg-amber-50/50 border border-amber-100 rounded-md p-3 font-mono leading-relaxed min-h-[120px]" data-testid="client-notes-preview">
-              {notes ? renderNotesPreview(notes) : <span className="text-slate-400 not-italic">Tapez une opération : <strong>10x100</strong> → résultat instantané</span>}
-              {notes && notesTotal !== null && (
-                <div className="mt-2 pt-2 border-t border-amber-200 flex items-center justify-between font-bold text-emerald-700" data-testid="notes-total-row">
-                  <span className="text-[11px] uppercase tracking-wider">Total</span>
-                  <span data-testid="notes-total">{notesTotal.toLocaleString('fr-FR')} €</span>
-                </div>
-              )}
-            </div>
+            {notesTotal !== null && (
+              <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between font-bold text-emerald-700" data-testid="notes-total-row">
+                <span className="text-[11px] uppercase tracking-wider text-slate-400">Total</span>
+                <span data-testid="notes-total">{notesTotal.toLocaleString('fr-FR')} €</span>
+              </div>
+            )}
           </div>
+          <p className="text-[11px] text-slate-400 mt-1">Tapez une opération (10x100, 50+25…) — le résultat s'affiche à droite de la ligne. Entrée pour une nouvelle ligne.</p>
         </div>
 
         {/* Timeline */}

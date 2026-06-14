@@ -1,0 +1,51 @@
+{
+  "summary": "Iteration 18 — Validated the SmartNotes single-block inline-calc redesign on /crm and the NEW Dashboard 'Performance' analytics section. ALL PASS (backend 6/6, frontend 100%). SmartNotes: data-testid=client-notes-editor renders a single block with one <input> per line. Typed '10x100' on notes-line-0 → notes-line-result-0 shows '= 1\\u202f000'. Enter created notes-line-1; '50+25' → '= 75'. Enter → notes-line-2; '200/4' → '= 50'. notes-total = '1\\u202f125 €' (then 100\\u202f575 € after the Backspace-merge test). A letters-only line ('main d oeuvre') correctly shows NO result badge. Cursor stability: typing 'Z' at position 3 of '10x100' produced exactly '10xZ100' (no jump). Backspace at start of a non-first line merges with previous line. Autosave (~800ms) persisted to backend; PATCH /api/clients/{id}/notes returned 200, GET confirmed; re-navigating to /quotes then back to /crm and reopening the same client showed all 3 lines intact. Notes restored to empty for Amy COUFFON and MEURET Steve (verified via API). Dashboard Analytics: data-testid=analytics-section renders after the quick-action Nouveau Devis/Facture buttons. kpi-conversion='17.9% — 5/28 devis signés', kpi-delay='0.4 j — entre envoi et signature', kpi-signed='6\\u202f593,5 € — devis acceptés'. revenue-chart-card renders a recharts BarChart (avr=8\\u202f450, mai=5\\u202f440). top-clients-card lists top-client-0..4 with euro amounts + progress bar (SCOZZAFAVE 2\\u202f970 €, POUX Christian 2\\u202f280 €, Nathalie LARGILLET 1\\u202f700 €, MASSICOT Anne marie 1\\u202f540 €, Amy COUFFON 1\\u202f500 €). Regression: desktop-nav-catalogue link present; stats grid, profile/relances/catalogue cards still load; CRM list (32 clients), search (crm-search-input), and sort (crm-sort-select) work. No console errors. No real emails sent.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_results": {
+    "analytics_section_present": "PASS — data-testid=analytics-section renders right after quick actions (quick-new-quote/quick-new-invoice).",
+    "kpi_conversion": "PASS — '17.9% / 5/28 devis signés' (matches GET /api/stats/analytics).",
+    "kpi_delay": "PASS — '0.4 j' (matches avg_days_to_sign=0.4).",
+    "kpi_signed": "PASS — '6\\u202f593,5 €' (matches total_signed=6593.5).",
+    "revenue_chart_card": "PASS — recharts BarChart renders with bars; current data avr=8450, mai=5440 (other months 0).",
+    "top_clients_card": "PASS — 5 entries top-client-0..4 with name + € + progress bar. Order matches backend.",
+    "smart_notes_single_block": "PASS — client-notes-editor is one container with per-line inputs (notes-line-0..N) and inline result badges (notes-line-result-i) on the SAME row. No separate yellow preview panel.",
+    "smart_notes_10x100": "PASS — '10x100' → result-0 '= 1\\u202f000'.",
+    "smart_notes_enter_50plus25": "PASS — Enter creates notes-line-1; '50+25' → result-1 '= 75'.",
+    "smart_notes_enter_200div4": "PASS — Enter creates notes-line-2; '200/4' → result-2 '= 50'.",
+    "smart_notes_total": "PASS — notes-total displays '1\\u202f125 €' summing the 3 computed lines.",
+    "smart_notes_letters_no_result": "PASS — line containing 'main d oeuvre' shows no result badge.",
+    "smart_notes_cursor_stability": "PASS — Typing 'Z' at pos 3 of '10x100' → '10xZ100' (no caret jump).",
+    "smart_notes_backspace_merge": "PASS — Backspace at start of line 1 merges it into line 0.",
+    "smart_notes_autosave_persist": "PASS — After ~1.5s autosave, GET /api/clients shows the updated notes; navigating away and returning re-hydrates the editor with the saved 3 lines.",
+    "smart_notes_restore": "PASS — Amy COUFFON & MEURET Steve restored to original empty notes (verified via API).",
+    "regression_desktop_nav_catalogue": "PASS — desktop catalogue link present.",
+    "regression_crm_search": "PASS — crm-search-input filters list.",
+    "regression_crm_sort": "PASS — crm-sort-select present and functional.",
+    "regression_crm_client_count": "PASS — 32 clients listed.",
+    "backend_analytics_endpoint": "PASS — 6/6 pytest: status/shape, types/ranges, revenue_by_month, top_clients, PATCH notes round-trip, PATCH notes 404."
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration18_analytics.py",
+    "/app/test_reports/pytest/pytest_iter18.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "SmartNotes uses useMemo over `value` to derive lines and a `caret` ref to restore cursor position after Enter/Backspace structural changes. The post-render useEffect (no dep array) runs on every render but only acts when caret.current is set — safe and effective.",
+    "evalExpression is sandboxed by a strict regex /^[\\d+\\-*/().,]+$/ before Function() — safe.",
+    "computeNotesTotal only renders when there are >1 computed lines — good UX choice (single-line case already shows the inline result).",
+    "AnalyticsSection: loading state initial = (cache.analytics === null) — cache primed from initial fetch avoids flash. ResponsiveContainer w/ fixed height=150 prevents layout shift. Good.",
+    "Minor (non-blocking): when there's no computed line, the line containing only letters still gets the empty-flex row with min-h-[30px] and a dashed border — visually OK but produces an extra dashed separator at the end if the user always ends with an empty line. Cosmetic.",
+    "GET /api/stats/analytics is unauthenticated like the rest of the app (PIN-only client-side). Consistent with current security model."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration18_analytics.py (new)"
+  ],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100% (22/22 assertions)"},
+  "test_credentials": {"pin": "0330 (auth bypassed via localStorage.sr_auth=true)", "test_email": "rubensrzs03@gmail.com (NOT used — no real sends)"},
+  "seed_data_creation": "None permanent. Temporarily wrote multi-line notes to Amy COUFFON (id=ea78c81b-2b57-48f7-9f00-d570f0cbe9ab) and MEURET Steve (via pytest fixture). Both restored to original empty value and verified via GET /api/clients.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Iter 18 confirms (a) NEW Dashboard Performance section (analytics-section, kpi-conversion/delay/signed, revenue-chart-card with recharts BarChart, top-clients-card with top-client-0..N) renders correctly with real backend data, and (b) NEW CRM SmartNotes inline-calc editor (client-notes-editor with notes-line-{i}, notes-line-result-{i}, notes-total) handles arithmetic (x,+,-,*,/), Enter/Backspace structural edits, cursor stability, autosave persistence, and navigation round-trip. Backend pytest /app/backend/tests/test_iteration18_analytics.py validates /api/stats/analytics shape + PATCH /api/clients/{id}/notes. No critical bugs found.",
+  "rca_of_issue": "N/A — feature validation, no bugs found."
+}
