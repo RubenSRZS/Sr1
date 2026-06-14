@@ -112,6 +112,11 @@ Application web pour créer des devis et factures professionnels et personnalis�
 - **Modals d'envoi**: pied de page collant (sticky bottom-0) avec "Envoyer par email" + "Envoyer par WhatsApp" toujours visibles sans scroller (SendQuoteModal + SendInvoiceModal).
 - Tests: iteration_17.json 16/16 PASS (frontend).
 
+## Implémenté le 14/06/2026 (session 2 — refonte bloc-notes + analytics)
+- **Refonte bloc-notes CRM (demande explicite)**: suppression du double panneau (jaune + blanc). Nouveau composant `SmartNotes` = un seul bloc où chaque ligne est un champ et le **résultat s'affiche inline, à droite de la ligne écrite** (10x100 → "= 1 000"). Entrée = nouvelle ligne, Backspace en début de ligne = fusion, flèches ↑↓ pour naviguer, curseur stable. Ligne "Total" si ≥2 calculs.
+- **Mini-dashboard analytics "Performance"** sur l'Accueil: 3 KPI (taux de conversion signés/envoyés, délai moyen de signature, total signé), graphique CA des 6 derniers mois (recharts BarChart), top 5 clients facturés (barres de progression). Endpoint backend `GET /api/stats/analytics`. Composant `AnalyticsSection.jsx`. Cache `fetchAnalytics`.
+- Tests: iteration_18.json — backend 6/6 pytest, frontend 22/22 PASS.
+
 ### P0 — À confirmer avec l'utilisateur
 - Le profil par défaut actuel est "Câble Ethernet Ugreen" (semble être un profil de test). L'utilisateur voudra probablement définir "SR Rénovation" comme profil par défaut (page Profil / bouton 'définir par défaut').
 
