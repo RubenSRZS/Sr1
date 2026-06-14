@@ -104,7 +104,13 @@ Application web pour créer des devis et factures professionnels et personnalis�
 - Carte "Relances Automatiques" dans Dashboard avec lien /relances
 - Tests: 17/17 backend + frontend critical flows OK
 
-## Backlog priorisé
+## Implémenté le 14/06/2026 (corrections CRM + envoi)
+- **Fix bloc-notes CRM (bug majeur)**: l'auto-save appelait `invalidate('clients')` → la liste passait à `null` → le panneau détail se démontait/remontait en plein milieu de la frappe, le textarea perdait le focus et se réinitialisait (d'où "les opérations ne fonctionnent pas"). Corrigé via `patchCacheItem`/`removeCacheItem` (DataCacheContext) qui met à jour le client en place sans refetch. `ClientDetail` ne refait plus `setNotes` sur chaque changement de prop (useEffect dépend de `[client.id]` uniquement).
+- **Total des calculs**: ajout d'une ligne "Total" (somme des lignes calculées) sous l'aperçu du bloc-notes quand ≥2 opérations.
+- **Tri des clients**: nouveau sélecteur (data-testid=crm-sort-select) — Nom (A→Z), Récemment modifié, Récemment ajouté. Backend: champ `updated_at` sur Client, mis à jour sur PATCH notes et PUT client.
+- **Catalogue restauré dans la nav PC** (DesktopNav) — retiré uniquement de la barre mobile du bas (BottomNav), comme demandé.
+- **Modals d'envoi**: pied de page collant (sticky bottom-0) avec "Envoyer par email" + "Envoyer par WhatsApp" toujours visibles sans scroller (SendQuoteModal + SendInvoiceModal).
+- Tests: iteration_17.json 16/16 PASS (frontend).
 
 ### P0 — À confirmer avec l'utilisateur
 - Le profil par défaut actuel est "Câble Ethernet Ugreen" (semble être un profil de test). L'utilisateur voudra probablement définir "SR Rénovation" comme profil par défaut (page Profil / bouton 'définir par défaut').
