@@ -14,9 +14,33 @@ Application web pour créer des devis et factures professionnels et personnalis�
 
 ### Core
 - Dashboard, clients CRUD, devis/factures avec aperçu PDF en temps réel
-- Catalogue de services avec catégories et couleurs
+- Catalogue de services avec catégories et couleurs (accès depuis Accueil)
 - Diagnostic visuel hiérarchique, conversion devis->facture
 - Mode sombre global, numérotation personnalisée, options multiples, remises
+
+### Performance (Feb 2026)
+- Lazy loading de toutes les routes (React.lazy + Suspense) → bundle initial réduit
+- Cache global (DataCacheContext, TTL 60s) pour quotes/invoices/clients/profiles/catalog/stats
+- Préfetch en arrière-plan après le premier paint
+
+### CRM véritable (Feb 2026)
+- Page /crm avec liste clients gauche + détail droite (responsive mobile)
+- Bloc-notes par client avec calculs auto inline (10x100 = 1000, 5+7, 200/4...)
+- Auto-save debouncée (800ms)
+- Timeline complète (devis + factures + statuts + ouvertures)
+- Stats par client (count devis, total signé, total facturé)
+- Endpoints : GET /clients/{id}/timeline, PATCH /clients/{id}/notes
+
+### Recherche globale (Feb 2026)
+- Composant GlobalSearch avec raccourci Ctrl/Cmd + K et "/"
+- Recherche cross-entity (devis, factures, clients)
+- Navigation clavier ↑ ↓ ⏎
+
+### Envoi devis/factures (Feb 2026)
+- Pièces jointes multiples (attestation assurance, photos, PDF) — max 10 Mo
+- Bouton WhatsApp natif amélioré (icône SVG + gestion absence de téléphone)
+- Aperçu plein écran PC (en plus du mobile)
+- Tracking ouvertures : open_count + last_opened_at affichés en badge "Ouvert X×"
 
 ### Sécurité
 - Protection par code PIN (0330)
