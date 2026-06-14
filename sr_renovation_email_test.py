@@ -14,7 +14,7 @@ import re
 from datetime import datetime
 
 class SRRenovationEmailTester:
-    def __init__(self, base_url="https://factures-devis-1.preview.emergentagent.com"):
+    def __init__(self, base_url="https://client-timeline-hub.preview.emergentagent.com"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
