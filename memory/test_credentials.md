@@ -1,16 +1,12 @@
-# Identifiants de test — SR Rénovation (devis/factures)
+# Test Credentials — SR Rénovation
 
-## Accès Frontend (écran PIN)
-- PIN: `0330`
+## App access (PIN)
+- PIN code: `0330`
+- Playwright bypass (recommended): `page.add_init_script("localStorage.setItem('sr_auth','true');")` BEFORE first navigation, OR fill the 4 inputs `data-testid=pin-digit-0..3` with `0330`.
 
-## Base de données
-- Données de PRODUCTION réelles (vrais clients). ⚠️ NE JAMAIS envoyer d'email de test.
-- DB locale via MONGO_URL / DB_NAME (backend/.env).
+## Email (testing only)
+- ONLY use `rubensrzs03@gmail.com` for any email test.
+- 🚨 NEVER send test emails to real clients in the DB.
 
-## Profils entreprise (collection `profiles`)
-- "SR Rénovation" — id: `e5a4b05f-4811-4e9c-a5e1-408545a10d80` (is_default = False)
-- "Câble Ethernet Ugreen" — id: `4ecc93d3-f98f-462e-9a8f-88f1cd449b9b` (is_default = True) — semble être un profil de test créé par l'utilisateur.
-
-## Notes pour les tests
-- Pour tester l'envoi d'email, MOCKER l'appel Resend ou utiliser une adresse factice. Vrais clients en base.
-- Pour créer des devis de test via API, utiliser work_location contenant "a supprimer" puis nettoyer.
+## Notes
+- DB contains REAL clients/quotes. Do not mutate real client notes without restoring them.

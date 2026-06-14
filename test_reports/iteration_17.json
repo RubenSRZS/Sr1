@@ -1,0 +1,48 @@
+{
+  "summary": "Iteration 17 — Validated the 4 user-reported fixes on /crm and Send modals plus CRM regression. ALL PASS. (1) CRM bloc-notes no longer flickers/clobbers: typed '10x100\\n50+25\\nmain doeuvre\\n200/4' (~4s) crossing the 800ms autosave boundary, textarea retained ALL characters, focus retained on client-notes-textarea, client-detail panel stayed mounted (no remount). Preview showed '= 1 000 / = 75 / = 50' and notes-total = '1 125 €'. (2) Sort dropdown options 'Nom (A → Z)' / 'Récemment modifié' / 'Récemment ajouté' all reorder the list. After editing Amy COUFFON's notes, 'Récemment modifié' brought her to the top. (3) Desktop nav has Catalogue link → /catalog. Mobile bottom-nav entries are exactly [Accueil, Devis, IA, Factures, CRM] — Catalogue absent as expected. (4) SendQuoteModal and SendInvoiceModal both expose sticky-bottom-0 footer with confirm-send-btn ('Envoyer par email') and send-whatsapp-btn ('Envoyer par WhatsApp') both visible in the 1920x1080 viewport without scroll. Regression: client list loads (32 clients), search works, client detail/timeline render, edit/delete buttons present, mobile back-to-list-btn hides detail correctly. Notes were restored to original (empty) for Amy COUFFON. No real emails were triggered.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "fix1_crm_notes_no_flicker": "PASS — Textarea retained '10x100\\n50+25\\nmain doeuvre\\n200/4' verbatim after ~4s typing & autosave; focus stayed on client-notes-textarea; client-detail remained mounted (no remount mid-typing).",
+    "fix1_crm_notes_preview_total": "PASS — Preview shows = 1 000 / = 75 / = 50 (French formatting with NBSP); notes-total = '1 125 €'.",
+    "fix1_crm_notes_restore": "PASS — Original notes restored for Amy COUFFON (verified via input_value match).",
+    "fix2_sort_name": "PASS — Default sort 'Nom (A → Z)' shows Amy COUFFON first.",
+    "fix2_sort_created": "PASS — 'Récemment ajouté' shows TEST_MarkLost_Client first.",
+    "fix2_sort_recent_before": "PASS — Before edit, 'Récemment modifié' shows MEURET Steve first.",
+    "fix2_sort_recent_after_edit": "PASS — After editing Amy's notes, 'Récemment modifié' bubbles Amy COUFFON to top.",
+    "fix3_desktop_nav_catalogue": "PASS — desktop-nav-catalogue link present in [data-testid=desktop-nav] with href=/catalog.",
+    "fix3_mobile_bottom_nav_no_catalogue": "PASS — Mobile bottom-nav entries: [nav-accueil, nav-devis, nav-ia, nav-factures, nav-crm]. Catalogue absent.",
+    "fix4_send_quote_modal_sticky_footer": "PASS — confirm-send-btn 'Envoyer par email' (y+h=854/1080) and send-whatsapp-btn 'Envoyer par WhatsApp' (y+h=906/1080) both in viewport. Footer class='sticky bottom-0 bg-white border-t border-slate-100 z-10'.",
+    "fix4_send_invoice_modal_sticky_footer": "PASS — same: confirm y+h=850/1080, whatsapp y+h=902/1080. email-type-with-review + email-type-simple selector preserved. NO real send attempted.",
+    "regression_crm_list_load": "PASS — 32 clients loaded.",
+    "regression_crm_search": "PASS — Search input filters list (search 'a' returned 32).",
+    "regression_crm_client_detail": "PASS — Clicking a client renders [data-testid=client-detail] with edit/delete/Nouveau devis/facture buttons.",
+    "regression_crm_timeline": "PASS — Historique shows 3 items (1500€ Payée, 3400€ Envoyé, 1500€ Facturé) for Amy COUFFON.",
+    "regression_mobile_back_btn": "PASS — On 390x844 viewport, back-to-list-btn is visible & clicking it hides client-detail."
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration16_crm.py"
+  ],
+  "action_items": [
+    "All 4 reported fixes are confirmed working. Carry-over from iter16: React DOM nesting warnings in QuoteForm/InvoiceForm live preview (out of scope, non-blocking)."
+  ],
+  "critical_code_review_comments": [
+    "CRM.jsx ClientDetail useEffect deps [client.id] for timeline fetch and patchCacheItem in onUpdated correctly break the flicker loop. Good fix.",
+    "Notes auto-save effect deps still include 'client' (full object) and 'onUpdated' on line 115. Because onUpdated is recreated each parent render, the effect re-evaluates often; the early-return `if (notes === (client.notes || '')) return;` prevents redundant PATCH but the cleanup clears the pending timer on every render. This is fine because `notes` only changes via user input and the typed value remains in local state, but consider wrapping onUpdated in useCallback in CRM parent for stability.",
+    "evalExpression uses Function() constructor — safe because input is regex-restricted to /^[\\d+\\-*/().,]+$/. OK.",
+    "SendQuoteModal & SendInvoiceModal: sticky footer correctly placed inside the scrollable container (max-h-[75vh]/[70vh] overflow-y-auto) so bottom-0 anchors to viewport of the scroll container. Verified buttons render in viewport at 1920x1080. Good.",
+    "BottomNav uses data-testid=`nav-${label.toLowerCase()}` — Catalogue intentionally absent. Consistent."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100% (16/16 verified)"},
+  "test_credentials": {"pin": "0330 (auth bypassed via localStorage.sr_auth=true)", "test_email": "rubensrzs03@gmail.com (NOT used — no real sends)"},
+  "seed_data_creation": "None. Temporarily wrote notes to Amy COUFFON (first client by name) then restored to original empty value.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Iteration 17 confirmed all 4 fixes (notes flicker, sorting, desktop-only Catalogue, sticky Email+WhatsApp send modal footers) and full CRM regression. Auth bypass: page.add_init_script(\"localStorage.setItem('sr_auth','true');\"). Send buttons on /quotes list have data-testid=send-quote-{uuid}; on /invoices list have send-invoice-{uuid}. No backend testing performed this iteration (per request).",
+  "rca_of_issue": "Previous flicker RCA confirmed fixed: invalidate('clients') in onUpdated was nulling the cached clients list mid-typing, causing CRM to render the loading spinner and unmount ClientDetail; the user's in-progress typing was lost when the textarea remounted with stale client.notes. Fix: onUpdated now calls patchCacheItem('clients', id, updatedClient) which updates that single item in place. ClientDetail's notes-fetch useEffect dep [client.id] (not [client]) also prevents re-running when only client.notes/updated_at change."
+}

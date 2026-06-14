@@ -51,6 +51,23 @@ export const DataCacheProvider = ({ children }) => {
     setCache((prev) => ({ ...prev, [key]: null }));
   }, []);
 
+  // Update a single item in a cached list locally, without nulling/refetching the whole list.
+  const patchCacheItem = useCallback((key, id, partial) => {
+    setCache((prev) => {
+      const list = prev[key];
+      if (!Array.isArray(list)) return prev;
+      return { ...prev, [key]: list.map((it) => (it.id === id ? { ...it, ...partial } : it)) };
+    });
+  }, []);
+
+  const removeCacheItem = useCallback((key, id) => {
+    setCache((prev) => {
+      const list = prev[key];
+      if (!Array.isArray(list)) return prev;
+      return { ...prev, [key]: list.filter((it) => it.id !== id) };
+    });
+  }, []);
+
   const invalidateAll = useCallback(() => {
     fetchedAt.current = {};
     setCache({ quotes: null, invoices: null, clients: null, profiles: null, catalog: null, stats: null });
@@ -85,6 +102,8 @@ export const DataCacheProvider = ({ children }) => {
       fetchStats,
       invalidate,
       invalidateAll,
+      patchCacheItem,
+      removeCacheItem,
       prefetchEssentials,
     }}>
       {children}

@@ -8,6 +8,8 @@ import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowUpDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useDataCache } from '@/context/DataCacheContext';
 
@@ -50,6 +52,20 @@ const renderNotesPreview = (notes) => {
   });
 };
 
+// Sum of all computed lines (only meaningful when there are several)
+const computeNotesTotal = (notes) => {
+  if (!notes) return null;
+  let sum = 0, count = 0;
+  notes.split('\n').forEach((line) => {
+    const t = line.trim();
+    if (t && /[+\-*/xX×÷]/.test(t) && /^[\d+\-*/().,xX×÷\s]+$/.test(t)) {
+      const r = evalExpression(t);
+      if (r !== null) { sum += r; count += 1; }
+    }
+  });
+  return count > 1 ? Math.round(sum * 100) / 100 : null;
+};
+
 const statusColor = (status, type) => {
   if (type === 'invoice') {
     return { paid: 'bg-emerald-100 text-emerald-700', pending: 'bg-red-100 text-red-700', partial: 'bg-amber-100 text-amber-700' }[status] || 'bg-gray-100 text-gray-600';
@@ -78,10 +94,10 @@ const ClientDetail = ({ client, onBack, onUpdated, onDeleted }) => {
   const debounceRef = useRef(null);
 
   useEffect(() => {
-    setNotes(client.notes || '');
-    setForm({ name: client.name, phone: client.phone, email: client.email || '', address: client.address });
     axios.get(`${API}/clients/${client.id}/timeline`).then(r => setData(r.data)).catch(() => {});
-  }, [client.id, client.notes, client.name, client.phone, client.email, client.address]);
+  }, [client.id]);
+
+  const notesTotal = useMemo(() => computeNotesTotal(notes), [notes]);
 
   // Debounced auto-save of notes
   useEffect(() => {
@@ -194,6 +210,12 @@ const ClientDetail = ({ client, onBack, onUpdated, onDeleted }) => {
             />
             <div className="text-sm text-slate-700 bg-amber-50/50 border border-amber-100 rounded-md p-3 font-mono leading-relaxed min-h-[120px]" data-testid="client-notes-preview">
               {notes ? renderNotesPreview(notes) : <span className="text-slate-400 not-italic">Tapez une opération : <strong>10x100</strong> → résultat instantané</span>}
+              {notes && notesTotal !== null && (
+                <div className="mt-2 pt-2 border-t border-amber-200 flex items-center justify-between font-bold text-emerald-700" data-testid="notes-total-row">
+                  <span className="text-[11px] uppercase tracking-wider">Total</span>
+                  <span data-testid="notes-total">{notesTotal.toLocaleString('fr-FR')} €</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -255,10 +277,11 @@ const ClientDetail = ({ client, onBack, onUpdated, onDeleted }) => {
 };
 
 const CRM = () => {
-  const { cache, fetchClients, invalidate } = useDataCache();
+  const { cache, fetchClients, invalidate, patchCacheItem, removeCacheItem } = useDataCache();
   const clients = cache.clients || [];
   const [loading, setLoading] = useState(cache.clients === null);
   const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('name');
   const [selectedId, setSelectedId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [createForm, setCreateForm] = useState({ name: '', address: '', phone: '', email: '', notes: '' });
@@ -270,15 +293,23 @@ const CRM = () => {
   }, [fetchClients]);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return [...clients].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'fr', { sensitivity: 'base' }));
-    const q = normalize(search);
-    return clients.filter(c =>
-      normalize(c.name).includes(q) ||
-      normalize(c.phone).includes(q) ||
-      normalize(c.email).includes(q) ||
-      normalize(c.address).includes(q)
-    ).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'fr', { sensitivity: 'base' }));
-  }, [clients, search]);
+    const base = !search.trim()
+      ? [...clients]
+      : clients.filter(c => {
+          const q = normalize(search);
+          return normalize(c.name).includes(q) ||
+            normalize(c.phone).includes(q) ||
+            normalize(c.email).includes(q) ||
+            normalize(c.address).includes(q);
+        });
+    const ts = (c) => new Date(c.updated_at || c.created_at || 0).getTime() || 0;
+    const cmp = {
+      name: (a, b) => (a.name || '').localeCompare(b.name || '', 'fr', { sensitivity: 'base' }),
+      recent: (a, b) => ts(b) - ts(a),
+      created: (a, b) => (new Date(b.created_at || 0).getTime() || 0) - (new Date(a.created_at || 0).getTime() || 0),
+    }[sortBy] || ((a, b) => 0);
+    return base.sort(cmp);
+  }, [clients, search, sortBy]);
 
   const selected = filtered.find(c => c.id === selectedId) || clients.find(c => c.id === selectedId);
 
@@ -319,7 +350,7 @@ const CRM = () => {
         <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-3 h-[calc(100vh-200px)]">
           {/* List */}
           <div className={`bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col ${selected ? 'hidden lg:flex' : 'flex'}`}>
-            <div className="p-3 border-b border-slate-100">
+            <div className="p-3 border-b border-slate-100 space-y-2">
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                 <Input
@@ -329,6 +360,19 @@ const CRM = () => {
                   className="pl-8 h-9 text-sm"
                   data-testid="crm-search-input"
                 />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="h-8 text-xs" data-testid="crm-sort-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name" data-testid="crm-sort-name">Nom (A → Z)</SelectItem>
+                    <SelectItem value="recent" data-testid="crm-sort-recent">Récemment modifié</SelectItem>
+                    <SelectItem value="created" data-testid="crm-sort-created">Récemment ajouté</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <ul className="flex-1 overflow-y-auto divide-y divide-slate-50">
@@ -361,8 +405,8 @@ const CRM = () => {
                 key={selected.id}
                 client={selected}
                 onBack={() => setSelectedId(null)}
-                onUpdated={(updated) => { invalidate('clients'); fetchClients({ force: true }); }}
-                onDeleted={() => { setSelectedId(null); invalidate('clients'); fetchClients({ force: true }); }}
+                onUpdated={(updated) => patchCacheItem('clients', updated.id, { ...updated, updated_at: new Date().toISOString() })}
+                onDeleted={() => { removeCacheItem('clients', selected.id); setSelectedId(null); }}
               />
             ) : (
               <div className="flex-1 flex items-center justify-center text-center p-8">

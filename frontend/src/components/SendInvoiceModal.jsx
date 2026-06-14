@@ -299,8 +299,9 @@ const SendInvoiceModal = ({ invoice, onClose, onSent }) => {
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="p-5 border-t border-slate-100 flex gap-3">
+        {/* Sticky footer: Email + WhatsApp toujours visibles */}
+        <div className="sticky bottom-0 bg-white border-t border-slate-100 z-10">
+        <div className="px-5 pt-4 pb-2 flex gap-3">
           <Button onClick={onClose} variant="outline" className="flex-1" data-testid="cancel-send-btn">
             Annuler
           </Button>
@@ -315,14 +316,14 @@ const SendInvoiceModal = ({ invoice, onClose, onSent }) => {
             ) : sending ? (
               <><Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> Envoi en cours...</>
             ) : (
-              <><Send className="w-4 h-4 mr-1.5" /> Envoyer</>
+              <><Send className="w-4 h-4 mr-1.5" /> Envoyer par email</>
             )}
           </Button>
 
         </div>
 
         {/* WhatsApp */}
-        <div className="px-5 pb-5 -mt-2">
+        <div className="px-5 pb-4 pt-1">
           <button
             onClick={() => {
               const phoneRaw = invoice?.client_phone || "";
@@ -361,6 +362,7 @@ const SendInvoiceModal = ({ invoice, onClose, onSent }) => {
             </svg>
             Envoyer par WhatsApp
           </button>
+        </div>
         </div>
       </div>
     </div>

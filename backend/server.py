@@ -310,6 +310,7 @@ class Client(BaseModel):
     email: Optional[str] = ""
     notes: Optional[str] = ""
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[str] = None
 
 class Service(BaseModel):
     description: str
@@ -575,6 +576,8 @@ async def create_client(input: ClientCreate):
     client_obj = Client(**input.model_dump())
     doc = client_obj.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['created_at']
+    client_obj.updated_at = doc['updated_at']
     await db.clients.insert_one(doc)
     return client_obj
 
@@ -595,7 +598,9 @@ async def update_client(client_id: str, input: ClientCreate):
     c = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not c:
         raise HTTPException(status_code=404, detail="Client non trouvé")
-    await db.clients.update_one({"id": client_id}, {"$set": input.model_dump()})
+    update_data = input.model_dump()
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    await db.clients.update_one({"id": client_id}, {"$set": update_data})
     updated = await db.clients.find_one({"id": client_id}, {"_id": 0})
     return fix_datetime(updated)
 
@@ -609,7 +614,7 @@ async def delete_client(client_id: str):
 @api_router.patch("/clients/{client_id}/notes")
 async def update_client_notes(client_id: str, body: dict):
     notes = body.get("notes", "")
-    res = await db.clients.update_one({"id": client_id}, {"$set": {"notes": notes}})
+    res = await db.clients.update_one({"id": client_id}, {"$set": {"notes": notes, "updated_at": datetime.now(timezone.utc).isoformat()}})
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Client non trouvé")
     return {"status": "success"}
