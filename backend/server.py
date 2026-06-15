@@ -1547,7 +1547,7 @@ async def trigger_relances_now():
 async def send_preview_emails(body: dict = Body(...)):
     """Envoie les 4 templates de relance en aperçu à l'adresse spécifiée."""
     to_email = body.get("email", "rubensrzs03@gmail.com")
-    base_url = os.environ.get("PUBLIC_APP_URL", "https://client-timeline-hub.preview.emergentagent.com")
+    base_url = os.environ.get("PUBLIC_APP_URL", "https://smart-notes-crm.preview.emergentagent.com")
     public_link = f"{base_url}/devis/public/preview"
     fmt = dict(quote_number="D-2025-042", client_name="Ruben Suarez", total_net="3 250.00", work_location="Votre chantier test")
     sent = []
@@ -1575,7 +1575,7 @@ async def send_single_preview(day: int, body: dict = Body(...)):
     if day not in [3, 7, 14, 30]:
         raise HTTPException(status_code=400, detail="Jour invalide")
     to_email = body.get("email", "rubensrzs03@gmail.com")
-    base_url = os.environ.get("PUBLIC_APP_URL", "https://client-timeline-hub.preview.emergentagent.com")
+    base_url = os.environ.get("PUBLIC_APP_URL", "https://smart-notes-crm.preview.emergentagent.com")
     public_link = f"{base_url}/devis/public/preview"
     fmt = dict(quote_number="D-2025-042", client_name="Ruben Suarez", total_net="3 250.00", work_location="Votre chantier test")
     tmpl = await db.relance_templates.find_one({"day": day}, {"_id": 0})

@@ -43,7 +43,7 @@
   ],
   "success_rate": {"backend": "100% (6/6)", "frontend": "100% (22/22 assertions)"},
   "test_credentials": {"pin": "0330 (auth bypassed via localStorage.sr_auth=true)", "test_email": "rubensrzs03@gmail.com (NOT used — no real sends)"},
-  "seed_data_creation": "None permanent. Temporarily wrote multi-line notes to Amy COUFFON (id=ea78c81b-2b57-48f7-9f00-d570f0cbe9ab) and MEURET Steve (via pytest fixture). Both restored to original empty value and verified via GET /api/clients.",
+  "seed_data_creation": "None permanent. Temporarily wrote multi-line notes to Amy COUFFON (id=smart-notes-crm) and MEURET Steve (via pytest fixture). Both restored to original empty value and verified via GET /api/clients.",
   "retest_needed": false,
   "should_main_agent_self_test": true,
   "context_for_next_testing_agent": "Iter 18 confirms (a) NEW Dashboard Performance section (analytics-section, kpi-conversion/delay/signed, revenue-chart-card with recharts BarChart, top-clients-card with top-client-0..N) renders correctly with real backend data, and (b) NEW CRM SmartNotes inline-calc editor (client-notes-editor with notes-line-{i}, notes-line-result-{i}, notes-total) handles arithmetic (x,+,-,*,/), Enter/Backspace structural edits, cursor stability, autosave persistence, and navigation round-trip. Backend pytest /app/backend/tests/test_iteration18_analytics.py validates /api/stats/analytics shape + PATCH /api/clients/{id}/notes. No critical bugs found.",
