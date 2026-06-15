@@ -117,6 +117,13 @@ Application web pour créer des devis et factures professionnels et personnalis�
 - **Mini-dashboard analytics "Performance"** sur l'Accueil: 3 KPI (taux de conversion signés/envoyés, délai moyen de signature, total signé), graphique CA des 6 derniers mois (recharts BarChart), top 5 clients facturés (barres de progression). Endpoint backend `GET /api/stats/analytics`. Composant `AnalyticsSection.jsx`. Cache `fetchAnalytics`.
 - Tests: iteration_18.json — backend 6/6 pytest, frontend 22/22 PASS.
 
+## Implémenté le 14/06/2026 (session 3 — retours utilisateur)
+- **Calculs en pourcentage** dans le bloc-notes : `1000-30%` = 700, `1000+20%` = 1200, `1000*30%` = 300, `30%` = 0,3 (+ tous les calculs existants). Logique `evalExpression` réécrite (evalCore + patterns %).
+- **Création client allégée** : seul le **nom** est obligatoire. Téléphone, email, adresse et note sont optionnels (style "Notes iPhone" — on peut juste mettre un nom et noter directement). Backend `ClientCreate` : phone/address désormais Optional. Champ Note ajouté à la création.
+- **KPI mobile** : "Total signé" ne passe plus le € à la ligne (whitespace-nowrap + montant arrondi + espace insécable).
+- **Dates dans la timeline** : badges "Envoyé le 28 avr.", "Ouvert le 24 avr.", "Signé le …", "Perdu le …".
+- Tests: iteration_19.json — frontend 16/16 PASS.
+
 ### P0 — À confirmer avec l'utilisateur
 - Le profil par défaut actuel est "Câble Ethernet Ugreen" (semble être un profil de test). L'utilisateur voudra probablement définir "SR Rénovation" comme profil par défaut (page Profil / bouton 'définir par défaut').
 
