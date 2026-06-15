@@ -17,23 +17,54 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const normalize = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-// Evaluate simple arithmetic expressions inside notes: "10x100", "10*100", "5+7", "(2+3)*4"
-const evalExpression = (expr) => {
-  const cleaned = expr.replace(/[xX×]/g, '*').replace(/[÷]/g, '/').replace(/\s/g, '');
-  if (!/^[\d+\-*/().,]+$/.test(cleaned)) return null;
+const round2 = (v) => Math.round(v * 100) / 100;
+const toNum = (s) => { const n = parseFloat(String(s).replace(',', '.')); return isFinite(n) ? n : null; };
+
+const fmtDate = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? '' : d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+};
+
+// Core arithmetic eval (no % sign). Sandboxed by a strict regex.
+const evalCore = (raw) => {
+  const cleaned = raw.replace(/[xX×]/g, '*').replace(/[÷]/g, '/').replace(/\s/g, '');
+  if (!cleaned || !/^[\d+\-*/().,]+$/.test(cleaned)) return null;
   const safe = cleaned.replace(/,/g, '.');
   try {
     // eslint-disable-next-line no-new-func
     const val = Function(`"use strict"; return (${safe})`)();
-    if (typeof val !== 'number' || !isFinite(val)) return null;
-    return Math.round(val * 100) / 100;
+    return (typeof val === 'number' && isFinite(val)) ? round2(val) : null;
   } catch { return null; }
+};
+
+// Evaluate a line, with calculator-style percentages:
+// 1000-30% = 700, 1000+20% = 1200, 1000*30% = 300, 10x100-30% = 700, 30% = 0.3
+const evalExpression = (expr) => {
+  const e = expr.replace(/[xX×]/g, '*').replace(/[÷]/g, '/').replace(/\s/g, '');
+  let m;
+  if ((m = e.match(/^(.+?)([+\-])([\d.,]+)%$/))) {
+    const base = evalCore(m[1]); const pct = toNum(m[3]);
+    if (base === null || pct === null) return null;
+    const delta = base * pct / 100;
+    return round2(m[2] === '-' ? base - delta : base + delta);
+  }
+  if ((m = e.match(/^(.+?)([*/])([\d.,]+)%$/))) {
+    const base = evalCore(m[1]); const pct = toNum(m[3]);
+    if (base === null || pct === null) return null;
+    if (m[2] === '/') return pct === 0 ? null : round2(base / (pct / 100));
+    return round2(base * (pct / 100));
+  }
+  if ((m = e.match(/^([\d.,]+)%$/))) {
+    const n = toNum(m[1]); return n !== null ? round2(n / 100) : null;
+  }
+  return evalCore(e);
 };
 
 // Compute the math result of a single note line, or null.
 const lineResult = (line) => {
   const t = (line || '').trim();
-  if (t && /[+\-*/xX×÷]/.test(t) && /^[\d+\-*/().,xX×÷\s]+$/.test(t)) {
+  if (t && /[+\-*/xX×÷%]/.test(t) && /^[\d+\-*/().,xX×÷%\s]+$/.test(t)) {
     return evalExpression(t);
   }
   return null;
@@ -123,11 +154,8 @@ const computeNotesTotal = (notes) => {
   if (!notes) return null;
   let sum = 0, count = 0;
   notes.split('\n').forEach((line) => {
-    const t = line.trim();
-    if (t && /[+\-*/xX×÷]/.test(t) && /^[\d+\-*/().,xX×÷\s]+$/.test(t)) {
-      const r = evalExpression(t);
-      if (r !== null) { sum += r; count += 1; }
-    }
+    const r = lineResult(line);
+    if (r !== null) { sum += r; count += 1; }
   });
   return count > 1 ? Math.round(sum * 100) / 100 : null;
 };
@@ -269,7 +297,7 @@ const ClientDetail = ({ client, onBack, onUpdated, onDeleted }) => {
             <SmartNotes
               value={notes}
               onChange={setNotes}
-              placeholder="Ex : 10x100, + déplacement 50, 200/4…"
+              placeholder="Ex : 10x100, 1000-30%, + déplacement 50…"
             />
             {notesTotal !== null && (
               <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between font-bold text-emerald-700" data-testid="notes-total-row">
@@ -278,7 +306,7 @@ const ClientDetail = ({ client, onBack, onUpdated, onDeleted }) => {
               </div>
             )}
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">Tapez une opération (10x100, 50+25…) — le résultat s'affiche à droite de la ligne. Entrée pour une nouvelle ligne.</p>
+          <p className="text-[11px] text-slate-400 mt-1">Calculs auto : 10x100, 50+25, 1000-30%… le résultat s'affiche à droite. Entrée = nouvelle ligne.</p>
         </div>
 
         {/* Timeline */}
@@ -302,10 +330,10 @@ const ClientDetail = ({ client, onBack, onUpdated, onDeleted }) => {
                     </div>
                     <div className="flex flex-wrap gap-1.5 mt-1.5">
                       {e.work_location && <span className="text-[10px] text-slate-400">{e.work_location}</span>}
-                      {e.sent_at && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded flex items-center gap-1"><Send className="w-2.5 h-2.5" /> Envoyé</span>}
-                      {e.opened_at && <span className="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded font-semibold">Ouvert {e.open_count > 1 ? `${e.open_count}×` : ''}</span>}
-                      {e.signed_at && <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded flex items-center gap-1"><CheckCircle className="w-2.5 h-2.5" /> Signé</span>}
-                      {e.lost_at && <span className="text-[10px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded flex items-center gap-1"><XCircle className="w-2.5 h-2.5" /> Perdu</span>}
+                      {e.sent_at && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded flex items-center gap-1"><Send className="w-2.5 h-2.5" /> Envoyé le {fmtDate(e.sent_at)}</span>}
+                      {e.opened_at && <span className="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded font-semibold">Ouvert {e.open_count > 1 ? `${e.open_count}× ` : ''}le {fmtDate(e.opened_at)}</span>}
+                      {e.signed_at && <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded flex items-center gap-1"><CheckCircle className="w-2.5 h-2.5" /> Signé le {fmtDate(e.signed_at)}</span>}
+                      {e.lost_at && <span className="text-[10px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded flex items-center gap-1"><XCircle className="w-2.5 h-2.5" /> Perdu le {fmtDate(e.lost_at)}</span>}
                     </div>
                   </Link>
                 </li>
@@ -321,9 +349,9 @@ const ClientDetail = ({ client, onBack, onUpdated, onDeleted }) => {
           <DialogHeader><DialogTitle>Modifier le client</DialogTitle></DialogHeader>
           <div className="space-y-3 py-2">
             <div><Label className="text-xs text-slate-500">Nom *</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} data-testid="edit-client-name" /></div>
-            <div><Label className="text-xs text-slate-500">Téléphone *</Label><Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} data-testid="edit-client-phone" /></div>
+            <div><Label className="text-xs text-slate-500">Téléphone <span className="text-slate-300">(optionnel)</span></Label><Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} data-testid="edit-client-phone" /></div>
             <div><Label className="text-xs text-slate-500">Email</Label><Input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} data-testid="edit-client-email" /></div>
-            <div><Label className="text-xs text-slate-500">Adresse *</Label><Textarea rows={2} value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} data-testid="edit-client-address" /></div>
+            <div><Label className="text-xs text-slate-500">Adresse <span className="text-slate-300">(optionnel)</span></Label><Textarea rows={2} value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} data-testid="edit-client-address" /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setEditingProfile(false)}>Annuler</Button>
@@ -375,8 +403,8 @@ const CRM = () => {
   const selected = filtered.find(c => c.id === selectedId) || clients.find(c => c.id === selectedId);
 
   const handleCreate = async () => {
-    if (!createForm.name || !createForm.phone || !createForm.address) {
-      return toast.error('Nom, téléphone et adresse requis');
+    if (!createForm.name.trim()) {
+      return toast.error('Le nom est requis');
     }
     try {
       const r = await axios.post(`${API}/clients`, createForm);
@@ -487,10 +515,12 @@ const CRM = () => {
         <DialogContent className="sm:max-w-md" data-testid="crm-create-dialog">
           <DialogHeader><DialogTitle>Nouveau client</DialogTitle></DialogHeader>
           <div className="space-y-3 py-2">
-            <div><Label className="text-xs text-slate-500">Nom complet *</Label><Input value={createForm.name} onChange={e => setCreateForm({ ...createForm, name: e.target.value })} data-testid="crm-create-name" /></div>
-            <div><Label className="text-xs text-slate-500">Téléphone *</Label><Input value={createForm.phone} onChange={e => setCreateForm({ ...createForm, phone: e.target.value })} data-testid="crm-create-phone" /></div>
-            <div><Label className="text-xs text-slate-500">Email</Label><Input value={createForm.email} onChange={e => setCreateForm({ ...createForm, email: e.target.value })} data-testid="crm-create-email" /></div>
-            <div><Label className="text-xs text-slate-500">Adresse *</Label><Textarea rows={2} value={createForm.address} onChange={e => setCreateForm({ ...createForm, address: e.target.value })} data-testid="crm-create-address" /></div>
+            <div><Label className="text-xs text-slate-500">Nom *</Label><Input autoFocus value={createForm.name} onChange={e => setCreateForm({ ...createForm, name: e.target.value })} placeholder="Nom du client" data-testid="crm-create-name" /></div>
+            <div><Label className="text-xs text-slate-500">Téléphone <span className="text-slate-300">(optionnel)</span></Label><Input value={createForm.phone} onChange={e => setCreateForm({ ...createForm, phone: e.target.value })} data-testid="crm-create-phone" /></div>
+            <div><Label className="text-xs text-slate-500">Email <span className="text-slate-300">(optionnel)</span></Label><Input value={createForm.email} onChange={e => setCreateForm({ ...createForm, email: e.target.value })} data-testid="crm-create-email" /></div>
+            <div><Label className="text-xs text-slate-500">Adresse <span className="text-slate-300">(optionnel)</span></Label><Textarea rows={2} value={createForm.address} onChange={e => setCreateForm({ ...createForm, address: e.target.value })} data-testid="crm-create-address" /></div>
+            <div><Label className="text-xs text-slate-500">Note <span className="text-slate-300">(optionnel)</span></Label><Textarea rows={2} value={createForm.notes} onChange={e => setCreateForm({ ...createForm, notes: e.target.value })} placeholder="Notez directement quelque chose…" data-testid="crm-create-notes" /></div>
+            <p className="text-[11px] text-slate-400">Seul le nom est obligatoire. Vous pourrez compléter le reste plus tard.</p>
           </div>
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setShowCreate(false)}>Annuler</Button>

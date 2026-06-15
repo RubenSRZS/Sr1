@@ -5,6 +5,7 @@ import { TrendingUp, Clock, Trophy, BarChart3 } from 'lucide-react';
 import { useDataCache } from '@/context/DataCacheContext';
 
 const euro = (n) => `${(n || 0).toLocaleString('fr-FR')} €`;
+const euroShort = (n) => `${Math.round(n || 0).toLocaleString('fr-FR')}\u00A0€`;
 
 const KpiTile = ({ label, value, sub, icon: Icon, color, dark, testid }) => (
   <Card className={`p-4 border-0 shadow-sm ${dark ? 'bg-slate-800' : 'bg-white'}`} data-testid={testid}>
@@ -14,7 +15,7 @@ const KpiTile = ({ label, value, sub, icon: Icon, color, dark, testid }) => (
       </div>
       <span className={`text-[11px] uppercase tracking-wider ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{label}</span>
     </div>
-    <div className="text-2xl font-bold" style={{ color }}>{value}</div>
+    <div className="text-lg sm:text-2xl font-bold leading-tight whitespace-nowrap" style={{ color }}>{value}</div>
     {sub && <div className={`text-[11px] mt-0.5 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>{sub}</div>}
   </Card>
 );
@@ -65,7 +66,7 @@ const AnalyticsSection = ({ dark }) => {
         />
         <KpiTile
           label="Total signé" color="#f97316" dark={dark} icon={Trophy} testid="kpi-signed"
-          value={euro(a.total_signed)}
+          value={euroShort(a.total_signed)}
           sub="devis acceptés"
         />
       </div>

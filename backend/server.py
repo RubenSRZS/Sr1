@@ -296,8 +296,8 @@ class ProfileCreate(BaseModel):
 
 class ClientCreate(BaseModel):
     name: str
-    address: str
-    phone: str
+    address: Optional[str] = ""
+    phone: Optional[str] = ""
     email: Optional[str] = ""
     notes: Optional[str] = ""
 

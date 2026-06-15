@@ -1,0 +1,47 @@
+{
+  "summary": "Iteration 19 — Validated 4 user-requested fixes + regression on SR Rénovation. ALL PASS (frontend 100%). (1) MOBILE KPI NO-WRAP @390x844: kpi-conversion='17.9%' (22.5px), kpi-delay='0.4 j' (22.5px), kpi-signed='6 594 €' (22.5px) — every value rendered on a SINGLE line (height ~ text-lg line-height; computed whiteSpace=nowrap; euro symbol does not wrap below the number). (2) NAME-ONLY CLIENT CREATION: crm-create-dialog opened, 'Nom *' marker present + 4×'(optionnel)' on phone/email/address/note (incl. crm-create-notes). Created 'TEST_NameOnly' with name only → toast 'Client créé' shown; client-detail panel opened automatically with the new client; NO 'téléphone et adresse requis' error. Cleanup: delete-client-btn (with confirm() accepted via dialog handler) returned 'Client supprimé' and the entry disappeared from the list. (3) PERCENTAGE CALC inline in SmartNotes (done on the TEST_NameOnly empty client — no real client mutated): notes-line-result-0 for '1000-30%' = '= 700'; result-1 '1000+20%' = '= 1 200'; result-2 '1000*30%' = '= 300'; result-3 '30%' = '= 0,3'; regression result-4 '10x100' = '= 1 000'; result-5 '50+25' = '= 75'. Total row showed 3 275,3 €. (4) TIMELINE DATES on Amy COUFFON (id ea78c81b-…): 3 timeline items render with date-stamped badges — 'Envoyé le 28 avr.', 'Envoyé le 01 mai', 'Envoyé le 08 avr.', 'Ouvert le 24 avr.' (French short date format day+month abbreviated as required). Regression: Dashboard /api/analytics-section + revenue-chart-card + top-clients-card all still render. No console errors (only one benign aria-describedby warning from Radix DialogContent). No real emails sent. No persistent test data left in DB.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "CRM create-dialog and edit-dialog", "issues": ["Minor (non-blocking) a11y warning: Radix Dialog throws 'Missing Description or aria-describedby for {DialogContent}'. Suggest adding <DialogDescription> or aria-describedby for screen reader support. Does NOT block functionality."]}
+    ]
+  },
+  "test_results": {
+    "mobile_kpi_conversion_no_wrap": "PASS — value height 22.5px, whiteSpace=nowrap, text '17.9%'",
+    "mobile_kpi_delay_no_wrap": "PASS — value height 22.5px, whiteSpace=nowrap, text '0.4 j'",
+    "mobile_kpi_signed_no_wrap": "PASS — value height 22.5px, whiteSpace=nowrap, text '6 594 €' (NBSP before €, euroShort rounded)",
+    "name_only_dialog_labels": "PASS — 'Nom *' required + 4× '(optionnel)' on phone/email/address/note",
+    "name_only_create_submit": "PASS — toast 'Client créé', client-detail opens with TEST_NameOnly, NO 'téléphone et adresse requis' error",
+    "name_only_cleanup_delete": "PASS — delete-client-btn + confirm → 'Client supprimé'; TEST_NameOnly removed from list",
+    "percentage_1000_minus_30pct": "PASS — '= 700'",
+    "percentage_1000_plus_20pct": "PASS — '= 1 200'",
+    "percentage_1000_mul_30pct": "PASS — '= 300'",
+    "percentage_30pct_alone": "PASS — '= 0,3'",
+    "regression_10x100": "PASS — '= 1 000'",
+    "regression_50plus25": "PASS — '= 75'",
+    "regression_notes_total": "PASS — Total row sums all 6 lines to 3 275,3 €",
+    "timeline_dates_amy_couffon": "PASS — badges include 'Envoyé le 28 avr.', 'Envoyé le 01 mai', 'Envoyé le 08 avr.', 'Ouvert le 24 avr.' (French short date)",
+    "regression_dashboard_analytics_section": "PASS — analytics-section + revenue-chart-card + top-clients-card all render",
+    "no_real_emails_sent": "PASS — no email send actions triggered during this run"
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "evalExpression percentage regex is ordered correctly: ([+\\-]) before ([*/]) so '1000-30%' is parsed as base±delta% (=700) and '1000*30%' as base*pct (=300). The strict regex /^[\\d+\\-*/().,]+$/ on evalCore prevents injection. Sandboxed Function() is safe.",
+    "lineResult gate /[+\\-*/xX×÷%]/ now includes %, so a single '30%' line shows '= 0,3'. Confirmed in UI.",
+    "AnalyticsSection.KpiTile: value div uses 'text-lg sm:text-2xl whitespace-nowrap' — verified at 390px viewport with all 3 KPIs single-lining (22.5px height). euroShort uses Math.round + '\\u00A0€' (NBSP) so the euro never wraps below the number.",
+    "Backend ClientCreate now has Optional default '' for address & phone; handleCreate only blocks empty name. Verified UI accepts name-only submission.",
+    "Timeline: fmtDate returns French toLocaleDateString('fr-FR', {day:'2-digit', month:'short'}) — produces '28 avr.' format as required. Badges conditionally render only when timestamp exists (e.sent_at/opened_at/signed_at/lost_at).",
+    "Minor (non-blocking): Radix DialogContent emits an a11y warning 'Missing Description or aria-describedby' on every dialog open (crm-create-dialog, edit-client-dialog). Adding <DialogDescription> or aria-describedby='{undefined}' would silence it without functional impact."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend-only per request)", "frontend": "100% (16/16 assertions)"},
+  "test_credentials": {"pin": "0330 (auth bypassed via add_init_script localStorage.sr_auth=true)"},
+  "seed_data_creation": "Created and DELETED 'TEST_NameOnly' client during the run. Percentage tests were performed in that TEST client's empty notes so NO real client was mutated. Amy COUFFON's notes were not touched. Verified TEST_NameOnly absent from list at end.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Iter 19 confirms all 4 user complaints fixed: (1) mobile KPI no-wrap via whitespace-nowrap + euroShort+NBSP; (2) name-only client creation works (backend Optional fields + frontend validation only on name); (3) SmartNotes inline percentage calc (-%, +%, *%, /% and standalone N%); (4) timeline badges show dates via fmtDate. Use the same approach: create a TEST_ client to play with notes (don't mutate real data), and clean up with delete-client-btn after. Auth bypass via add_init_script('window.localStorage.setItem(sr_auth,true)') before first nav.",
+  "rca_of_issue": "N/A — feature validation, no bugs found."
+}
