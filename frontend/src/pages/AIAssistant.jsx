@@ -20,6 +20,16 @@ const AIAssistant = () => {
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState(null);
 
+  // Charger les notes du CRM si présentes
+  React.useEffect(() => {
+    const prefilledInput = sessionStorage.getItem('ai_prefilled_input');
+    if (prefilledInput) {
+      setUserInput(prefilledInput);
+      sessionStorage.removeItem('ai_prefilled_input');
+      toast.success('Notes du CRM chargées !');
+    }
+  }, []);
+
   // Initialiser la reconnaissance vocale
   React.useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {

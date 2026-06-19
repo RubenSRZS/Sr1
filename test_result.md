@@ -178,7 +178,26 @@ backend:
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the new invoice sending feature with both email types (Avec avis and Simple). Verify navigation to /invoices page, send invoice modal functionality, email type selection, form fields, and button behaviors."
+user_problem_statement: "Test the SR Rénovation CRM page improvements on mobile (390x844px). Verify: 1) Default sort order is 'Récemment modifié', 2) Reduced white space in notes section, 3) Copy to AI button functionality, 4) Emergent badge is hidden."
+
+frontend:
+  - task: "Mobile CRM Page Improvements (390x844px)"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/CRM.jsx, /app/frontend/src/pages/AIAssistant.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Starting comprehensive mobile testing (390x844px portrait) of CRM page improvements. Testing 4 scenarios: 1) Default sort order (P0), 2) Reduced white space in notes section (P0), 3) Copy to AI button (P0), 4) Emergent badge hidden (P1)"
+        - working: false
+          agent: "testing"
+          comment: "Initial testing revealed TEST 1 FAILED: Default sort was 'Nom (A → Z)' instead of 'Récemment modifié'. The sortBy state was initialized with 'name' instead of 'recent' in CRM.jsx line 393. Tests 2, 3, and 4 all passed successfully."
+        - working: true
+          agent: "testing"
+          comment: "✅ ALL MOBILE CRM PAGE IMPROVEMENTS FULLY FUNCTIONAL. Comprehensive testing completed with all 4 tests passed after fix: 1) TEST 1 (P0) - Default Sort Order: ✅ PASSED - Sort dropdown now shows 'Récemment modifié' as default (fixed by changing useState('name') to useState('recent') in line 393), clients list correctly sorted with recently modified first, 2) TEST 2 (P0) - Reduced White Space: ✅ PASSED - Notes section has min-h-[80px] with actual height of 80px, no excessive white space below BLOC-NOTES section, 3) TEST 3 (P0) - Copy to AI Button: ✅ PASSED - Button found with correct label 'Copier vers l'IA', has Sparkles icon, gradient background (from-blue-500 to-purple-600), successfully navigates to /ai-assistant page, notes pre-filled correctly in AI Assistant textarea ('Test notes: 100x50, carrelage, salle de bain'), toast message 'Notes copiées vers l'IA' displayed, 4) TEST 4 (P1) - Emergent Badge Hidden: ✅ PASSED - Element with id='emergent-badge' exists but is NOT VISIBLE (display: none applied). All mobile viewport (390x844px) improvements verified and working correctly. No console errors detected. Feature is production-ready."
 
 frontend:
   - task: "Invoice Sending Feature with Email Types"
@@ -238,7 +257,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Invoice Sending Feature with Email Types"
+    - "Mobile CRM Page Improvements (390x844px)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -292,3 +311,5 @@ agent_communication:
       message: "✅ SIGNATURE WORKFLOW TESTING COMPLETED SUCCESSFULLY - Comprehensive testing of the complete signature workflow as requested in French review completed with 4/5 tests passed (only email rate limit issue). Key achievements: 1) Successfully found and used unsigned quote for testing signature flow, 2) Public quote retrieval working perfectly with all required fields (GET /api/public/quote/{token}), 3) Quote signature with PDF attachment fully functional (POST /api/public/quote/{token}/sign) - quote correctly marked as 'accepted' with selected_option: 2, signature_data stored, and signed_at timestamp recorded, 4) Email sending functionality verified (POST /api/quotes/{quote_id}/send-email) - quote status updated to 'sent' with recipient email stored and public token generated, 5) All critical verifications completed: quote acceptance, option selection, signature storage, email notifications. The signature workflow with corrections is fully functional and production-ready. Minor: One email test failed due to rate limiting (2 requests/second limit), but functionality is confirmed working."
     - agent: "testing"
       message: "✅ INVOICE SENDING FEATURE WITH EMAIL TYPES TESTING COMPLETED SUCCESSFULLY - Comprehensive testing of the new invoice sending feature completed with all tests passed (7/7). Key achievements: 1) PIN authentication (0330) works perfectly with individual digit inputs, 2) Successfully navigated to /invoices page with 'Mes Factures' title and FACT-01 invoice card visible, 3) Send invoice modal opens correctly displaying invoice info (FACT-01 — LECOMTE JOCELYNE) with 'PDF joint automatiquement' message, 4) Email type selection fully functional - 'Avec avis' selected by default, switching to 'Simple' reduces message from 558 to 274 characters and removes 'Google' keyword, switching back restores full message with review request, 5) All form fields verified - email pre-filled (shoplecomte@sfr.fr), subject contains 'Votre facture', message textarea editable, reset button works, 6) Button behaviors correct - 'Envoyer' button enabled/disabled based on email presence, 'Annuler' closes modal, 7) No console errors. UI is clean, professional, and responsive. Feature is production-ready."
+    - agent: "testing"
+      message: "✅ MOBILE CRM PAGE IMPROVEMENTS TESTING COMPLETED SUCCESSFULLY - Comprehensive mobile testing (390x844px portrait) completed with all 4 tests passed after one fix. Test Results: 1) TEST 1 (P0) Default Sort Order: Initially FAILED (showed 'Nom (A → Z)'), FIXED by changing line 393 in CRM.jsx from useState('name') to useState('recent'), now shows 'Récemment modifié' as default with correct sorting, 2) TEST 2 (P0) Reduced White Space: PASSED - Notes section has min-h-[80px] with no excessive white space (actual height 80px), 3) TEST 3 (P0) Copy to AI Button: PASSED - Button has correct label, Sparkles icon, gradient background, successfully navigates to /ai-assistant with notes pre-filled ('Test notes: 100x50, carrelage, salle de bain'), toast message displayed, 4) TEST 4 (P1) Emergent Badge Hidden: PASSED - Badge exists but not visible (display: none). All mobile improvements verified working. No console errors. Production-ready."

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Search, User, Phone, Mail, MapPin, FileText, Receipt, Send, CheckCircle, XCircle, Save, Trash2, ChevronLeft, StickyNote, Edit3 } from 'lucide-react';
+import { Plus, Search, User, Phone, Mail, MapPin, FileText, Receipt, Send, CheckCircle, XCircle, Save, Trash2, ChevronLeft, StickyNote, Edit3, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -117,7 +117,7 @@ const SmartNotes = ({ value, onChange, placeholder }) => {
     if (caret.current) {
       const { line, pos } = caret.current;
       const el = refs.current[line];
-      if (el) { el.focus(); try { el.setSelectionRange(pos, pos); } catch (_) {} }
+      if (el) { el.focus(); try { el.setSelectionRange(pos, pos); } catch (e) { /* ignore */ } }
       caret.current = null;
     }
   });
@@ -291,9 +291,29 @@ const ClientDetail = ({ client, onBack, onUpdated, onDeleted }) => {
             <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
               <StickyNote className="w-3.5 h-3.5" /> Bloc-notes
             </Label>
-            {savingNotes && <span className="text-[10px] text-slate-400">Sauvegarde…</span>}
+            <div className="flex items-center gap-2">
+              {savingNotes && <span className="text-[10px] text-slate-400">Sauvegarde…</span>}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  if (!notes.trim()) {
+                    toast.error('Le bloc-notes est vide');
+                    return;
+                  }
+                  sessionStorage.setItem('ai_prefilled_input', notes);
+                  navigate('/ai-assistant');
+                  toast.success("Notes copiées vers l'IA");
+                }}
+                className="h-7 text-xs gap-1.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 hover:from-blue-600 hover:to-purple-700"
+                data-testid="copy-to-ai-btn"
+              >
+                <Sparkles className="w-3 h-3" />
+                Copier vers l&apos;IA
+              </Button>
+            </div>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 min-h-[140px] focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-200 transition-colors">
+          <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 min-h-[80px] focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-200 transition-colors">
             <SmartNotes
               value={notes}
               onChange={setNotes}
@@ -306,7 +326,7 @@ const ClientDetail = ({ client, onBack, onUpdated, onDeleted }) => {
               </div>
             )}
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">Calculs auto : 10x100, 50+25, 1000-30%… le résultat s'affiche à droite. Entrée = nouvelle ligne.</p>
+          <p className="text-[11px] text-slate-400 mt-1">Calculs auto : 10x100, 50+25, 1000-30%… le résultat s&apos;affiche à droite. Entrée = nouvelle ligne.</p>
         </div>
 
         {/* Timeline */}
@@ -370,7 +390,7 @@ const CRM = () => {
   const clients = cache.clients || [];
   const [loading, setLoading] = useState(cache.clients === null);
   const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState('name');
+  const [sortBy, setSortBy] = useState('recent');
   const [selectedId, setSelectedId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [createForm, setCreateForm] = useState({ name: '', address: '', phone: '', email: '', notes: '' });
@@ -502,7 +522,7 @@ const CRM = () => {
                 <div>
                   <User className="w-12 h-12 text-slate-300 mx-auto mb-2" />
                   <p className="text-sm text-slate-500">Sélectionnez un client à gauche</p>
-                  <p className="text-xs text-slate-400 mt-1">ou créez-en un nouveau avec le bouton "Nouveau"</p>
+                  <p className="text-xs text-slate-400 mt-1">ou créez-en un nouveau avec le bouton &quot;Nouveau&quot;</p>
                 </div>
               </div>
             )}
