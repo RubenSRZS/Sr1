@@ -1,8 +1,8 @@
 # Test Credentials — SR Rénovation
 
 ## App access (PIN)
-- PIN code: `0330`
-- Playwright bypass (recommended): `page.add_init_script("localStorage.setItem('sr_auth','true');")` BEFORE first navigation, OR fill the 4 inputs `data-testid=pin-digit-0..3` with `0330`.
+- PIN code: `033003` (6 chiffres, renforcé — juin 2026)
+- Playwright: fill the 6 inputs `data-testid=pin-digit-0..5` with `0`,`3`,`3`,`0`,`0`,`3` (focus first input, then keyboard.press each digit). localStorage `sr_auth='true'` bypass may not persist via the screenshot tool.
 
 ## Email (testing only)
 - ONLY use `rubensrzs03@gmail.com` for any email test.

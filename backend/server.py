@@ -1200,10 +1200,14 @@ async def get_settings():
     if not settings:
         settings = {
             "id": "app_settings",
-            "pin": os.environ.get("DEFAULT_PIN", "0330"),
+            "pin": os.environ.get("DEFAULT_PIN", "033003"),
             "admin_email": ADMIN_EMAIL,
         }
         await db.settings.insert_one(settings)
+    elif settings.get("pin") == "0330":
+        # Migration: ancien code 4 chiffres -> nouveau code renforcé 6 chiffres
+        await db.settings.update_one({"id": "app_settings"}, {"$set": {"pin": "033003"}})
+        settings["pin"] = "033003"
     return settings
 
 @api_router.post("/auth/verify-pin")

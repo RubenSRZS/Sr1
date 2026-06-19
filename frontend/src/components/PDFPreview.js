@@ -55,7 +55,11 @@ const PDF_THEMES = {
     primary: '#1e40af', primaryLight: '#3b82f6',
     accent: '#f97316', accentLight: '#fb923c',
     logoTop: LOGO_SARL_URL, logoTopMax: '220px',
+    logoTopHCompact: '36px', logoTopHFull: '52px',
     showFlag: true,
+    headerBg: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 40%, #f97316 100%)',
+    headerStyle: 'wave',
+    headerText: 'white', headerLabel: 'rgba(255,255,255,0.75)', headerDate: 'rgba(255,255,255,0.85)',
     clientName: '#1e3a5f',
     cardCompanyBg: '#eff6ff', cardClientBg: '#fff7ed',
     insuranceText: '#1d4ed8', insuranceBorder: '#bfdbfe',
@@ -67,13 +71,18 @@ const PDF_THEMES = {
     logoBottom: LOGO_SR2_URL,
     footerTagline: 'Nettoyage toitures, façades et terrasses',
     footerFromProfile: false,
+    showTvaNotice: true,
   },
   sd_renovation: {
     id: 'sd_renovation',
     primary: '#2f6b66', primaryLight: '#3f8f88',
     accent: '#cf6a23', accentLight: '#e2853f',
-    logoTop: LOGO_SD_URL, logoTopMax: '240px',
+    logoTop: LOGO_SD_URL, logoTopMax: '300px',
+    logoTopHCompact: '48px', logoTopHFull: '70px',
     showFlag: false,
+    headerBg: '#ffffff',
+    headerStyle: 'bar',
+    headerText: '#234e4a', headerLabel: '#cf6a23', headerDate: '#6b7280',
     clientName: '#1f4a47',
     cardCompanyBg: '#eafaf7', cardClientBg: '#fdf2e9',
     insuranceText: '#0f766e', insuranceBorder: '#a7e3db',
@@ -85,6 +94,7 @@ const PDF_THEMES = {
     logoBottom: LOGO_SD_URL,
     footerTagline: "Rénovation & travaux tous corps d'état",
     footerFromProfile: true,
+    showTvaNotice: false,
   },
 };
 
@@ -279,21 +289,25 @@ const PDFDocument = ({ document, type, compact = false }) => {
   return (
     <div className="bg-white" style={{ width: '100%', maxWidth: '794px', minHeight: compact ? 'auto' : '297mm', fontFamily: "'Manrope', 'Inter', sans-serif", fontSize: fs, lineHeight: 1.4 }} data-testid="pdf-document">
       {/* Header */}
-      <div style={{ background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.primaryLight} 40%, ${theme.accent} 100%)` }}>
+      <div style={{ background: theme.headerBg }}>
         <div style={{ padding: compact ? '10px 14px' : '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <img src={theme.logoTop} alt={document.company?.company_name || 'Logo'} style={{ height: compact ? '36px' : '52px', objectFit: 'contain', maxWidth: theme.logoTopMax }} />
+          <img src={theme.logoTop} alt={document.company?.company_name || 'Logo'} style={{ height: compact ? theme.logoTopHCompact : theme.logoTopHFull, objectFit: 'contain', maxWidth: theme.logoTopMax }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {theme.showFlag && <img src={LOGO_DRAPEAU_URL} alt="France" style={{ height: compact ? '28px' : '42px', objectFit: 'contain' }} />}
-            <div style={{ textAlign: 'right', color: 'white' }}>
-              <div style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em', opacity: 0.75 }}>{isQuote ? 'DEVIS' : 'FACTURE'}</div>
-              <div style={{ fontSize: compact ? '22px' : '34px', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1 }}>{number || 'XX'}</div>
-              <div style={{ fontSize: '11px', opacity: 0.85 }}>{document.date}</div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 700, color: theme.headerLabel }}>{isQuote ? 'DEVIS' : 'FACTURE'}</div>
+              <div style={{ fontSize: compact ? '22px' : '34px', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1, color: theme.headerText }}>{number || 'XX'}</div>
+              <div style={{ fontSize: '11px', color: theme.headerDate }}>{document.date}</div>
             </div>
           </div>
         </div>
-        <svg viewBox="0 0 1440 40" style={{ display: 'block', width: '100%', height: '14px' }} preserveAspectRatio="none">
-          <path d="M0,20 C360,40 720,0 1080,20 C1260,30 1380,10 1440,20 L1440,40 L0,40 Z" fill="white" />
-        </svg>
+        {theme.headerStyle === 'bar' ? (
+          <div style={{ height: '5px', background: `linear-gradient(90deg, ${theme.primary} 0%, ${theme.primary} 55%, ${theme.accent} 100%)` }} />
+        ) : (
+          <svg viewBox="0 0 1440 40" style={{ display: 'block', width: '100%', height: '14px' }} preserveAspectRatio="none">
+            <path d="M0,20 C360,40 720,0 1080,20 C1260,30 1380,10 1440,20 L1440,40 L0,40 Z" fill="white" />
+          </svg>
+        )}
       </div>
 
       {/* Body */}
@@ -482,9 +496,11 @@ const PDFDocument = ({ document, type, compact = false }) => {
         )}
 
         {/* TVA */}
+        {theme.showTvaNotice && (
         <div style={{ textAlign: 'center', fontSize: compact ? '8px' : '9px', color: '#9ca3af', fontStyle: 'italic', marginBottom: '8px' }}>
           TVA non applicable, art. 293 B du CGI
         </div>
+        )}
 
         {/* Signatures */}
         {isQuote && (

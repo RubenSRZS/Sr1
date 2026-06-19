@@ -5,14 +5,14 @@ import { toast } from 'sonner';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const PinScreen = ({ onSuccess }) => {
-  const [pin, setPin] = useState(['', '', '', '']);
+  const [pin, setPin] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [showRecover, setShowRecover] = useState(false);
   const [showChange, setShowChange] = useState(false);
   const [currentPin, setCurrentPin] = useState('');
-  const [newPin, setNewPin] = useState(['', '', '', '']);
-  const inputRefs = [useRef(), useRef(), useRef(), useRef()];
-  const newPinRefs = [useRef(), useRef(), useRef(), useRef()];
+  const [newPin, setNewPin] = useState(['', '', '', '', '', '']);
+  const inputRefs = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef()];
+  const newPinRefs = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef()];
 
   useEffect(() => { inputRefs[0].current?.focus(); }, []);
 
@@ -21,7 +21,7 @@ const PinScreen = ({ onSuccess }) => {
     const next = [...pin];
     next[index] = value;
     setPin(next);
-    if (value && index < 3) inputRefs[index + 1].current?.focus();
+    if (value && index < 5) inputRefs[index + 1].current?.focus();
     if (next.every(d => d !== '')) verifyPin(next.join(''));
   };
 
@@ -43,7 +43,7 @@ const PinScreen = ({ onSuccess }) => {
         onSuccess();
       } else {
         toast.error('Code incorrect');
-        setPin(['', '', '', '']);
+        setPin(['', '', '', '', '', '']);
         inputRefs[0].current?.focus();
       }
     } catch { toast.error('Erreur de connexion'); }
@@ -64,7 +64,7 @@ const PinScreen = ({ onSuccess }) => {
 
   const handleChangePin = async () => {
     const code = newPin.join('');
-    if (code.length !== 4) return toast.error('Nouveau code à 4 chiffres requis');
+    if (code.length !== 6) return toast.error('Nouveau code à 6 chiffres requis');
     setLoading(true);
     try {
       const res = await fetch(`${API}/auth/change-pin`, {
@@ -75,7 +75,7 @@ const PinScreen = ({ onSuccess }) => {
         toast.success('Code modifié avec succès');
         setShowChange(false);
         setCurrentPin('');
-        setNewPin(['', '', '', '']);
+        setNewPin(['', '', '', '', '', '']);
       } else {
         const data = await res.json();
         toast.error(data.detail);
@@ -89,7 +89,7 @@ const PinScreen = ({ onSuccess }) => {
     const next = [...newPin];
     next[index] = value;
     setNewPin(next);
-    if (value && index < 3) newPinRefs[index + 1].current?.focus();
+    if (value && index < 5) newPinRefs[index + 1].current?.focus();
   };
 
   return (
@@ -110,7 +110,7 @@ const PinScreen = ({ onSuccess }) => {
           <div className="bg-slate-800/50 backdrop-blur border border-blue-500/30 rounded-2xl p-8" data-testid="pin-entry">
             <h2 className="text-white text-center text-lg font-semibold mb-6">Entrez votre code</h2>
             
-            <div className="flex justify-center gap-3 mb-8">
+            <div className="flex justify-center gap-2 mb-8">
               {pin.map((d, i) => (
                 <input
                   key={i}
@@ -122,7 +122,7 @@ const PinScreen = ({ onSuccess }) => {
                   onChange={e => handleDigit(i, e.target.value)}
                   onKeyDown={e => handleKeyDown(i, e)}
                   disabled={loading}
-                  className="w-14 h-16 text-center text-2xl font-bold rounded-xl bg-slate-700/50 border-2 border-blue-500 text-white focus:border-orange-400 focus:outline-none transition-colors"
+                  className="w-11 h-14 text-center text-xl font-bold rounded-xl bg-slate-700/50 border-2 border-blue-500 text-white focus:border-orange-400 focus:outline-none transition-colors"
                   data-testid={`pin-digit-${i}`}
                 />
               ))}
@@ -160,7 +160,7 @@ const PinScreen = ({ onSuccess }) => {
               <input
                 type="tel"
                 inputMode="numeric"
-                maxLength={4}
+                maxLength={6}
                 value={currentPin}
                 onChange={e => setCurrentPin(e.target.value.replace(/\D/g, ''))}
                 className="w-full h-12 text-center text-xl font-bold rounded-lg bg-slate-700/50 border border-blue-500 text-white focus:border-orange-400 focus:outline-none tracking-widest"
@@ -170,7 +170,7 @@ const PinScreen = ({ onSuccess }) => {
 
             <div className="mb-6">
               <label className="text-slate-400 text-sm mb-2 block">Nouveau code</label>
-              <div className="flex justify-center gap-3">
+              <div className="flex justify-center gap-2">
                 {newPin.map((d, i) => (
                   <input
                     key={i}
@@ -180,7 +180,7 @@ const PinScreen = ({ onSuccess }) => {
                     maxLength={1}
                     value={d}
                     onChange={e => handleNewPinDigit(i, e.target.value)}
-                    className="w-14 h-14 text-center text-xl font-bold rounded-lg bg-slate-700/50 border border-blue-500 text-white focus:border-orange-400 focus:outline-none"
+                    className="w-11 h-14 text-center text-xl font-bold rounded-lg bg-slate-700/50 border border-blue-500 text-white focus:border-orange-400 focus:outline-none"
                     data-testid={`new-pin-digit-${i}`}
                   />
                 ))}
