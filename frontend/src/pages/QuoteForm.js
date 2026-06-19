@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download, Copy, Moon, Sun, ChevronUp, ChevronDown, Building2, Search } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download, Copy, Moon, Sun, ChevronUp, ChevronDown, Building2, Search, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { PDFDocument, downloadPDF, BRAND_BLUE, BRAND_ORANGE } from '@/components/PDFPreview';
+import { PDFDocument, downloadPDF, BRAND_BLUE, BRAND_ORANGE, PDF_TEMPLATE_OPTIONS } from '@/components/PDFPreview';
 import { useTheme } from '@/context/ThemeContext';
 import { useFormPersist } from '@/context/FormPersistContext';
 import { DiagnosticSection } from '@/components/DiagnosticSection';
@@ -304,6 +304,7 @@ const QuoteForm = () => {
   const [draftRestored, setDraftRestored] = useState(false);
   const [profiles, setProfiles] = useState([]);
   const [selectedProfileId, setSelectedProfileId] = useState('');
+  const [templateOverride, setTemplateOverride] = useState('');
   const [catalogSearch, setCatalogSearch] = useState('');
 
   const initialFormState = {
@@ -449,6 +450,7 @@ const QuoteForm = () => {
       axios.get(`${API}/quotes/${id}`).then(r => {
         const q = r.data;
         if (q.profile_id) setSelectedProfileId(q.profile_id);
+        if (q.company?.template) setTemplateOverride(q.company.template);
         
         // Charger les options dynamiques : priorité au nouveau format additional_options,
         // sinon rétro-compatibilité avec les anciens champs option_2 / option_3.
@@ -669,6 +671,7 @@ const QuoteForm = () => {
     const cEmail = showNewClient ? newClient.email : client?.email || '';
 
     const prof = profiles.find(p => p.id === selectedProfileId);
+    const effectiveTemplate = templateOverride || prof?.pdf_template || 'sr_renovation';
     const company = prof ? {
       company_name: prof.company_name || '',
       account_holder: prof.account_holder || '',
@@ -682,7 +685,8 @@ const QuoteForm = () => {
       bank_name: prof.bank_name || '',
       insurance_rc_pro: prof.insurance_rc_pro || '',
       insurance_decennale: prof.insurance_decennale || '',
-    } : null;
+      template: effectiveTemplate,
+    } : { template: effectiveTemplate };
 
     // Options dynamiques avec totaux calculés
     const additional_options = additionalOptions
@@ -716,7 +720,7 @@ const QuoteForm = () => {
     };
 
     return doc;
-  }, [formData, newClient, showNewClient, clients, id, totals1, additionalOptions, profiles, selectedProfileId]);
+  }, [formData, newClient, showNewClient, clients, id, totals1, additionalOptions, profiles, selectedProfileId, templateOverride]);
 
   const handleDownloadPDF = useCallback(async () => {
     await downloadPDF(previewDoc, 'quote');
@@ -742,6 +746,7 @@ const QuoteForm = () => {
         custom_quote_number: formData.custom_quote_number || null,
         quote_title: formData.quote_title || '',
         profile_id: selectedProfileId || null,
+        template: templateOverride || (profiles.find(p => p.id === selectedProfileId)?.pdf_template) || null,
         work_location: formData.work_location,
         work_surface: '',
         diagnostic: formData.diagnostic,
@@ -810,6 +815,15 @@ const QuoteForm = () => {
                 </SelectContent>
               </Select>
             )}
+            <Select value={templateOverride || (profiles.find(p => p.id === selectedProfileId)?.pdf_template) || 'sr_renovation'} onValueChange={setTemplateOverride}>
+              <SelectTrigger data-testid="template-select-mobile" className="h-8 w-auto gap-1 bg-white/15 border-white/30 text-white text-xs px-2 hover:bg-white/25">
+                <Palette className="h-3.5 w-3.5" />
+                <SelectValue placeholder="Modèle" />
+              </SelectTrigger>
+              <SelectContent>
+                {PDF_TEMPLATE_OPTIONS.map(t => <SelectItem key={t.id} value={t.id} data-testid={`template-option-${t.id}`}>{t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
             <button onClick={toggleDarkMode} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" data-testid="dark-mode-toggle-form">
               {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
@@ -832,6 +846,15 @@ const QuoteForm = () => {
                 </SelectContent>
               </Select>
             )}
+            <Select value={templateOverride || (profiles.find(p => p.id === selectedProfileId)?.pdf_template) || 'sr_renovation'} onValueChange={setTemplateOverride}>
+              <SelectTrigger data-testid="template-select-desktop" className={`h-9 w-auto gap-1.5 text-sm px-3 ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white'}`}>
+                <Palette className="h-4 w-4" style={{ color: BRAND_ORANGE }} />
+                <SelectValue placeholder="Modèle PDF" />
+              </SelectTrigger>
+              <SelectContent className={darkMode ? 'bg-slate-700 border-slate-600' : ''}>
+                {PDF_TEMPLATE_OPTIONS.map(t => <SelectItem key={t.id} value={t.id} className={darkMode ? 'text-white hover:bg-slate-600' : ''} data-testid={`template-option-desktop-${t.id}`}>{t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
             <button onClick={toggleDarkMode} className={`p-2 rounded-full transition-colors ${darkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
               {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>

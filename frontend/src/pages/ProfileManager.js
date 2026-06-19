@@ -3,6 +3,8 @@ import { Plus, Edit3, Trash2, Check, X, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PDF_TEMPLATE_OPTIONS } from '@/components/PDFPreview';
 import { toast } from 'sonner';
 import axios from 'axios';
 
@@ -26,6 +28,7 @@ const ProfileManager = () => {
     insurance_decennale: '',
     insurance_rc_pro: '',
     website: '',
+    pdf_template: 'sr_renovation',
   });
 
   useEffect(() => {
@@ -59,6 +62,7 @@ const ProfileManager = () => {
       insurance_decennale: '',
       insurance_rc_pro: '',
       website: '',
+      pdf_template: 'sr_renovation',
     });
   };
 
@@ -78,6 +82,7 @@ const ProfileManager = () => {
       insurance_decennale: profile.insurance_decennale || '',
       insurance_rc_pro: profile.insurance_rc_pro || '',
       website: profile.website || '',
+      pdf_template: profile.pdf_template || 'sr_renovation',
     });
   };
 
@@ -252,6 +257,18 @@ const ProfileManager = () => {
                 onChange={e => setFormData({...formData, insurance_rc_pro: e.target.value})}
                 placeholder="N° contrat + Nom assurance"
               />
+            </div>
+            <div className="md:col-span-2">
+              <h4 className="font-semibold text-sm text-slate-700 mb-2 mt-2">Modèle de devis / facture (PDF)</h4>
+              <Select value={formData.pdf_template || 'sr_renovation'} onValueChange={v => setFormData({...formData, pdf_template: v})}>
+                <SelectTrigger data-testid="profile-template-select">
+                  <SelectValue placeholder="Choisir un modèle" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PDF_TEMPLATE_OPTIONS.map(t => <SelectItem key={t.id} value={t.id} data-testid={`profile-template-option-${t.id}`}>{t.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-400 mt-1">Le modèle (couleurs &amp; logos) appliqué aux PDF de ce profil. Modifiable aussi à la création d'un devis.</p>
             </div>
           </div>
           <div className="flex gap-2 mt-6">

@@ -277,6 +277,7 @@ class Profile(BaseModel):
     insurance_rc_pro: str = ""
     website: str = ""
     is_default: bool = False
+    pdf_template: str = "sr_renovation"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 class ProfileCreate(BaseModel):
@@ -293,6 +294,7 @@ class ProfileCreate(BaseModel):
     insurance_decennale: str = ""
     insurance_rc_pro: str = ""
     website: str = ""
+    pdf_template: str = "sr_renovation"
 
 class ClientCreate(BaseModel):
     name: str
@@ -356,6 +358,7 @@ class QuoteCreate(BaseModel):
     additional_options: Optional[List[OptionBlock]] = []  # Options dynamiques illimitées
     notes: Optional[str] = ""
     selected_option: Optional[int] = None  # Option choisie par le client (1, 2, 3...)
+    template: Optional[str] = None  # Override du template PDF pour ce devis
 
 class Quote(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -437,6 +440,8 @@ class InvoiceCreate(BaseModel):
     acompte_paid: float = 0.0
     payment_status: str = "pending"  # 'pending', 'paid', 'partial'
     notes: Optional[str] = ""
+    profile_id: Optional[str] = None
+    template: Optional[str] = None  # Override du template PDF pour cette facture
 
 class Invoice(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -461,6 +466,8 @@ class Invoice(BaseModel):
     reste_a_payer: float
     payment_status: str = "pending"
     notes: Optional[str] = ""
+    profile_id: Optional[str] = None
+    company: Optional[dict] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class CatalogItem(BaseModel):
@@ -530,6 +537,7 @@ async def resolve_company(profile_id):
         "bank_name": profile.get("bank_name", ""),
         "insurance_rc_pro": profile.get("insurance_rc_pro", ""),
         "insurance_decennale": profile.get("insurance_decennale", ""),
+        "template": profile.get("pdf_template", "sr_renovation"),
     }
     return profile.get("id"), company
 
@@ -818,6 +826,8 @@ async def create_quote(input: QuoteCreate):
     client_data = await get_or_create_client(input.client_id, input.new_client)
     client_id = client_data["id"]
     resolved_profile_id, company_snapshot = await resolve_company(input.profile_id)
+    if input.template and company_snapshot is not None:
+        company_snapshot["template"] = input.template
 
     # Option 1 calculations
     total_brut = sum(s.total for s in input.services)
@@ -934,6 +944,8 @@ async def update_quote(quote_id: str, input: QuoteCreate):
 
     client_data = await get_or_create_client(input.client_id, input.new_client)
     resolved_profile_id, company_snapshot = await resolve_company(input.profile_id)
+    if input.template and company_snapshot is not None:
+        company_snapshot["template"] = input.template
 
     # Option 1 calculations
     total_brut = sum(s.total for s in input.services)
@@ -1040,6 +1052,9 @@ async def delete_quote(quote_id: str):
 async def create_invoice(input: InvoiceCreate):
     client_data = await get_or_create_client(input.client_id, input.new_client)
     client_id = client_data["id"]
+    resolved_profile_id, company_snapshot = await resolve_company(input.profile_id)
+    if input.template and company_snapshot is not None:
+        company_snapshot["template"] = input.template
 
     total_brut = sum(s.total for s in input.services)
     remise_from_pct = round(total_brut * input.remise_percent / 100, 2) if input.remise_percent > 0 else 0
@@ -1074,6 +1089,8 @@ async def create_invoice(input: InvoiceCreate):
         reste_a_payer=reste_a_payer,
         payment_status=input.payment_status if input.payment_status else ("paid" if reste_a_payer <= 0 else ("partial" if input.acompte_paid > 0 else "pending")),
         notes=input.notes or "",
+        profile_id=resolved_profile_id,
+        company=company_snapshot,
     )
     doc = invoice.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
@@ -1135,6 +1152,8 @@ async def create_invoice_from_quote(quote_id: str, options: Optional[ConvertQuot
         reste_a_payer=reste,
         payment_status=payment_status,
         notes=q.get("notes", ""),
+        profile_id=q.get("profile_id"),
+        company=q.get("company"),
     )
     doc = invoice.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
@@ -1547,7 +1566,7 @@ async def trigger_relances_now():
 async def send_preview_emails(body: dict = Body(...)):
     """Envoie les 4 templates de relance en aperçu à l'adresse spécifiée."""
     to_email = body.get("email", "rubensrzs03@gmail.com")
-    base_url = os.environ.get("PUBLIC_APP_URL", "https://smart-notes-crm.preview.emergentagent.com")
+    base_url = os.environ.get("PUBLIC_APP_URL", "https://invoice-hub-736.preview.emergentagent.com")
     public_link = f"{base_url}/devis/public/preview"
     fmt = dict(quote_number="D-2025-042", client_name="Ruben Suarez", total_net="3 250.00", work_location="Votre chantier test")
     sent = []
@@ -1575,7 +1594,7 @@ async def send_single_preview(day: int, body: dict = Body(...)):
     if day not in [3, 7, 14, 30]:
         raise HTTPException(status_code=400, detail="Jour invalide")
     to_email = body.get("email", "rubensrzs03@gmail.com")
-    base_url = os.environ.get("PUBLIC_APP_URL", "https://smart-notes-crm.preview.emergentagent.com")
+    base_url = os.environ.get("PUBLIC_APP_URL", "https://invoice-hub-736.preview.emergentagent.com")
     public_link = f"{base_url}/devis/public/preview"
     fmt = dict(quote_number="D-2025-042", client_name="Ruben Suarez", total_net="3 250.00", work_location="Votre chantier test")
     tmpl = await db.relance_templates.find_one({"day": day}, {"_id": 0})

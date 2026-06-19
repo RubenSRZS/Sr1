@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download, Moon, Sun, Building2, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { PDFDocument, downloadPDF, BRAND_BLUE, BRAND_ORANGE } from '@/components/PDFPreview';
+import { PDFDocument, downloadPDF, BRAND_BLUE, BRAND_ORANGE, PDF_TEMPLATE_OPTIONS } from '@/components/PDFPreview';
 import { useTheme } from '@/context/ThemeContext';
 import { useFormPersist } from '@/context/FormPersistContext';
 
@@ -39,6 +39,9 @@ const InvoiceForm = () => {
   const [showPreviewMobile, setShowPreviewMobile] = useState(false);
   const [showNewClient, setShowNewClient] = useState(false);
   const [draftRestored, setDraftRestored] = useState(false);
+  const [profiles, setProfiles] = useState([]);
+  const [selectedProfileId, setSelectedProfileId] = useState('');
+  const [templateOverride, setTemplateOverride] = useState('');
 
   const [formData, setFormData] = useState({
     client_id: '',
@@ -59,6 +62,13 @@ const InvoiceForm = () => {
   useEffect(() => {
     axios.get(`${API}/clients`).then(r => setClients(r.data)).catch(() => {});
     axios.get(`${API}/catalog`).then(r => setCatalog(r.data)).catch(() => {});
+    axios.get(`${API}/profiles`).then(r => {
+      setProfiles(r.data || []);
+      if (!id) {
+        const def = (r.data || []).find(p => p.is_default) || (r.data || [])[0];
+        if (def) setSelectedProfileId(prev => prev || def.id);
+      }
+    }).catch(() => {});
     // Restore draft on mount (only for new invoices)
     if (!id && invoiceFormData && !draftRestored) {
       const restored = invoiceFormData.data;
@@ -75,6 +85,8 @@ const InvoiceForm = () => {
     if (id) {
       axios.get(`${API}/invoices/${id}`).then(r => {
         const inv = r.data;
+        if (inv.profile_id) setSelectedProfileId(inv.profile_id);
+        if (inv.company?.template) setTemplateOverride(inv.company.template);
         setFormData({
           client_id: inv.client_id,
           custom_invoice_number: inv.invoice_number || '',
@@ -137,8 +149,19 @@ const InvoiceForm = () => {
     const cAddr = showNewClient ? newClient.address : client?.address || '';
     const cPhone = showNewClient ? newClient.phone : client?.phone || '';
     const cEmail = showNewClient ? newClient.email : client?.email || '';
+    const prof = profiles.find(p => p.id === selectedProfileId);
+    const effectiveTemplate = templateOverride || prof?.pdf_template || 'sr_renovation';
+    const company = prof ? {
+      company_name: prof.company_name || '', account_holder: prof.account_holder || '',
+      address: prof.address || '', phone: prof.phone || '', email: prof.email || '',
+      website: prof.website || '', siret: prof.siret || '', iban: prof.iban || '',
+      bic: prof.bic || '', bank_name: prof.bank_name || '',
+      insurance_rc_pro: prof.insurance_rc_pro || '', insurance_decennale: prof.insurance_decennale || '',
+      template: effectiveTemplate,
+    } : { template: effectiveTemplate };
     return {
       invoice_number: formData.custom_invoice_number || (id ? undefined : 'XX'),
+      company,
       client_name: cName, client_address: cAddr, client_phone: cPhone, client_email: cEmail,
       date: new Date().toLocaleDateString('fr-FR'),
       work_location: formData.work_location,
@@ -149,7 +172,7 @@ const InvoiceForm = () => {
       acompte_paid: formData.acompte_paid,
       notes: formData.notes,
     };
-  }, [formData, newClient, showNewClient, clients, id, totals]);
+  }, [formData, newClient, showNewClient, clients, id, totals, profiles, selectedProfileId, templateOverride]);
 
   const handleDownloadPDF = useCallback(async () => {
     await downloadPDF(previewDoc, 'invoice');
@@ -179,6 +202,8 @@ const InvoiceForm = () => {
         acompte_paid: formData.acompte_paid,
         payment_status: formData.payment_status || 'pending',
         notes: formData.notes,
+        profile_id: selectedProfileId || null,
+        template: templateOverride || (profiles.find(p => p.id === selectedProfileId)?.pdf_template) || null,
       };
       await axios.post(`${API}/invoices`, payload);
       clearInvoiceForm();
@@ -202,18 +227,62 @@ const InvoiceForm = () => {
             </Button>
             <h1 className="text-lg font-bold">{id ? 'Voir la facture' : 'Nouvelle facture'}</h1>
           </div>
-          <button onClick={toggleDarkMode} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" data-testid="dark-mode-toggle-invoice">
-            {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
+          <div className="flex items-center gap-2">
+            {!id && profiles.length > 0 && (
+              <Select value={selectedProfileId} onValueChange={setSelectedProfileId}>
+                <SelectTrigger data-testid="invoice-profile-select-mobile" className="h-8 w-auto gap-1 bg-white/15 border-white/30 text-white text-xs px-2">
+                  <Building2 className="h-3.5 w-3.5" />
+                  <SelectValue placeholder="Profil" />
+                </SelectTrigger>
+                <SelectContent>
+                  {profiles.map(p => <SelectItem key={p.id} value={p.id} data-testid={`invoice-profile-option-${p.id}`}>{p.company_name || p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+            <Select value={templateOverride || (profiles.find(p => p.id === selectedProfileId)?.pdf_template) || 'sr_renovation'} onValueChange={setTemplateOverride}>
+              <SelectTrigger data-testid="invoice-template-select-mobile" className="h-8 w-auto gap-1 bg-white/15 border-white/30 text-white text-xs px-2">
+                <Palette className="h-3.5 w-3.5" />
+                <SelectValue placeholder="Modèle" />
+              </SelectTrigger>
+              <SelectContent>
+                {PDF_TEMPLATE_OPTIONS.map(t => <SelectItem key={t.id} value={t.id} data-testid={`invoice-template-option-${t.id}`}>{t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <button onClick={toggleDarkMode} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" data-testid="dark-mode-toggle-invoice">
+              {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="hidden lg:flex lg:items-center lg:justify-between mb-4">
           <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{id ? 'Voir la facture' : 'Nouvelle facture'}</h1>
-          <button onClick={toggleDarkMode} className={`p-2 rounded-full transition-colors ${darkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
-            {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </button>
+          <div className="flex items-center gap-2">
+            {!id && profiles.length > 0 && (
+              <Select value={selectedProfileId} onValueChange={setSelectedProfileId}>
+                <SelectTrigger data-testid="invoice-profile-select-desktop" className={`h-9 w-auto gap-1.5 text-sm px-3 ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white'}`}>
+                  <Building2 className="h-4 w-4" style={{ color: BRAND_BLUE }} />
+                  <SelectValue placeholder="Profil" />
+                </SelectTrigger>
+                <SelectContent className={darkMode ? 'bg-slate-700 border-slate-600' : ''}>
+                  {profiles.map(p => <SelectItem key={p.id} value={p.id} className={darkMode ? 'text-white hover:bg-slate-600' : ''} data-testid={`invoice-profile-option-desktop-${p.id}`}>{p.company_name || p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+            <Select value={templateOverride || (profiles.find(p => p.id === selectedProfileId)?.pdf_template) || 'sr_renovation'} onValueChange={setTemplateOverride}>
+              <SelectTrigger data-testid="invoice-template-select-desktop" className={`h-9 w-auto gap-1.5 text-sm px-3 ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white'}`}>
+                <Palette className="h-4 w-4" style={{ color: BRAND_ORANGE }} />
+                <SelectValue placeholder="Modèle PDF" />
+              </SelectTrigger>
+              <SelectContent className={darkMode ? 'bg-slate-700 border-slate-600' : ''}>
+                {PDF_TEMPLATE_OPTIONS.map(t => <SelectItem key={t.id} value={t.id} className={darkMode ? 'text-white hover:bg-slate-600' : ''} data-testid={`invoice-template-option-desktop-${t.id}`}>{t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <button onClick={toggleDarkMode} className={`p-2 rounded-full transition-colors ${darkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+              {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
         <form onSubmit={handleSubmit} className="flex gap-5">
           {/* LEFT - Form */}

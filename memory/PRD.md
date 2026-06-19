@@ -12,6 +12,18 @@ Application web pour créer des devis et factures professionnels et personnalis�
 
 ## Fonctionnalités implémentées
 
+### Templates PDF multiples (Juin 2026)
+- Système de thèmes paramétrable dans `PDFPreview.js` (`PDF_THEMES` + `getTheme` + `ACTIVE_THEME`).
+- Template `sr_renovation` (défaut) = rendu d'origine STRICTEMENT inchangé (bleu+orange, logos SR, drapeau, partenaires).
+- Nouveau template `sd_renovation` = couleurs vert sapin (#2f6b66) + orange (#cf6a23), logo SD transparent (header + footer), sans logos partenaires SR, sans signature Ruben, pied de page basé sur les infos du profil.
+- Logo SD optimisé en base64 webp (~33KB) dans `lib/logoConstants.js` (LOGO_SD_B64).
+- Champ `pdf_template` ajouté au modèle Profile (backend) + sélecteur dans ProfileManager.
+- `resolve_company` injecte `template` dans le snapshot company (devis ET factures).
+- Sélecteur discret "Modèle PDF" (icône Palette) dans QuoteForm + InvoiceForm (override par document, mobile + desktop).
+- InvoiceForm dispose maintenant aussi d'un sélecteur de Profil (les factures portent profile_id + company snapshot).
+- Profil "SD Renovation" (David) configuré par défaut sur le template `sd_renovation`.
+- ⚠️ Le template S.R. Rénovation ne doit JAMAIS être modifié/supprimé.
+
 ### Core
 - Dashboard, clients CRUD, devis/factures avec aperçu PDF en temps réel
 - Catalogue de services avec catégories et couleurs (accès depuis Accueil)

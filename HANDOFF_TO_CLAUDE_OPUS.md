@@ -409,7 +409,7 @@ Un padding a été ajouté pour éviter que la barre de navigation ne soit masqu
 
 #### Frontend `.env`
 ```
-REACT_APP_BACKEND_URL=https://smart-notes-crm.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://invoice-hub-736.preview.emergentagent.com
 ```
 
 #### Backend `.env`
@@ -421,7 +421,7 @@ SENDER_EMAIL=...
 ADMIN_EMAIL=...
 REPLY_TO_EMAIL=...
 GEMINI_API_KEY=...
-PUBLIC_APP_URL=https://smart-notes-crm.preview.emergentagent.com
+PUBLIC_APP_URL=https://invoice-hub-736.preview.emergentagent.com
 CORS_ORIGINS=*
 ```
 

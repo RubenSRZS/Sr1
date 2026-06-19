@@ -31,7 +31,7 @@ const LOGO_GOOGLE_B64 = "data:image/webp;base64,UklGRmASAABXRUJQVlA4WAoAAAAQAAAA
 const LOGO_SIGN_B64 = "data:image/webp;base64,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";
 
 // Import base64 logos from separate file
-import { LOGO_SARL_B64 } from '../lib/logoConstants';
+import { LOGO_SARL_B64, LOGO_SD_B64 } from '../lib/logoConstants';
 
 const LOGO_B64_MAP = {
   [LOGO_SARL_URL]: LOGO_SARL_B64,
@@ -43,6 +43,60 @@ const LOGO_B64_MAP = {
   [LOGO_GOOGLE_URL]: LOGO_GOOGLE_B64,
   [LOGO_SIGN_URL]: LOGO_SIGN_B64,
 };
+
+// ============ TEMPLATES / THÈMES PDF ============
+// IMPORTANT : le thème "sr_renovation" reproduit EXACTEMENT le rendu d'origine.
+// Ne JAMAIS modifier ses valeurs. Les nouveaux templates sont des ajouts.
+const LOGO_SD_URL = LOGO_SD_B64; // data URI (rendu navigateur + html2canvas + fetch)
+
+const PDF_THEMES = {
+  sr_renovation: {
+    id: 'sr_renovation',
+    primary: '#1e40af', primaryLight: '#3b82f6',
+    accent: '#f97316', accentLight: '#fb923c',
+    logoTop: LOGO_SARL_URL, logoTopMax: '220px',
+    showFlag: true,
+    clientName: '#1e3a5f',
+    cardCompanyBg: '#eff6ff', cardClientBg: '#fff7ed',
+    insuranceText: '#1d4ed8', insuranceBorder: '#bfdbfe',
+    diagBoxBorder: '#dbeafe', diagBg: '#dbeafe', diagText: '#2563eb',
+    payAltBg: '#f0f9ff', payAltBorder: '#bae6fd', payAltText: '#0369a1',
+    sigBorderCompany: '#93c5fd', sigBorderClient: '#fdba74',
+    signatureLogo: LOGO_SIGN_URL,
+    showPartnerLogos: true,
+    logoBottom: LOGO_SR2_URL,
+    footerTagline: 'Nettoyage toitures, façades et terrasses',
+    footerFromProfile: false,
+  },
+  sd_renovation: {
+    id: 'sd_renovation',
+    primary: '#2f6b66', primaryLight: '#3f8f88',
+    accent: '#cf6a23', accentLight: '#e2853f',
+    logoTop: LOGO_SD_URL, logoTopMax: '240px',
+    showFlag: false,
+    clientName: '#1f4a47',
+    cardCompanyBg: '#eafaf7', cardClientBg: '#fdf2e9',
+    insuranceText: '#0f766e', insuranceBorder: '#a7e3db',
+    diagBoxBorder: '#cdeee9', diagBg: '#d2f0ec', diagText: '#0f766e',
+    payAltBg: '#effaf8', payAltBorder: '#a7e3db', payAltText: '#0f766e',
+    sigBorderCompany: '#8fd6cd', sigBorderClient: '#f0b483',
+    signatureLogo: null,
+    showPartnerLogos: false,
+    logoBottom: LOGO_SD_URL,
+    footerTagline: "Rénovation & travaux tous corps d'état",
+    footerFromProfile: true,
+  },
+};
+
+const getTheme = (templateId) => PDF_THEMES[templateId] || PDF_THEMES.sr_renovation;
+// Liste des templates disponibles (pour les sélecteurs UI)
+export const PDF_TEMPLATE_OPTIONS = [
+  { id: 'sr_renovation', name: 'S.R. Rénovation (défaut)' },
+  { id: 'sd_renovation', name: 'SD Rénovation' },
+];
+// Thème actif pour le rendu courant (défini de façon synchrone par PDFDocument
+// avant le rendu des sous-composants ServicesTable / TotalsSection).
+let ACTIVE_THEME = PDF_THEMES.sr_renovation;
 
 import { DIAGNOSTIC_GROUPS } from './DiagnosticSection';
 
@@ -101,12 +155,14 @@ const getPaymentInstallments = (totalNet, paymentPlan) => {
   }
 };
 
-const ServicesTable = ({ services, title, compact, showLineNumbers = true }) => (
+const ServicesTable = ({ services, title, compact, showLineNumbers = true }) => {
+  const t = ACTIVE_THEME;
+  return (
   <div style={{ marginBottom: '12px' }}>
-    {title && <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: BRAND_BLUE, borderBottom: `2px solid ${BRAND_BLUE}`, paddingBottom: '4px', marginBottom: '6px' }}>{title}</div>}
+    {title && <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: t.primary, borderBottom: `2px solid ${t.primary}`, paddingBottom: '4px', marginBottom: '6px' }}>{title}</div>}
     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: compact ? '9px' : '11px' }}>
       <thead>
-        <tr style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${BRAND_BLUE} 60%, ${BRAND_ORANGE} 100%)` }}>
+        <tr style={{ background: `linear-gradient(90deg, ${t.primary} 0%, ${t.primary} 60%, ${t.accent} 100%)` }}>
           {showLineNumbers && <th style={{ textAlign: 'center', padding: '7px 4px', color: 'white', fontWeight: 600, width: '28px', verticalAlign: 'middle' }}>N°</th>}
           <th style={{ textAlign: 'left', padding: '7px 8px', color: 'white', fontWeight: 600, verticalAlign: 'middle' }}>Description</th>
           <th style={{ textAlign: 'center', padding: '7px 6px', color: 'white', fontWeight: 600, width: '38px', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>Qté</th>
@@ -119,15 +175,15 @@ const ServicesTable = ({ services, title, compact, showLineNumbers = true }) => 
         {services && services.length > 0 ? services.map((s, i) => (
           <tr key={i} style={{ background: i % 2 === 0 ? 'white' : '#f8fafc', borderBottom: `1px solid ${i === services.length - 1 ? '#e2e8f0' : '#f1f5f9'}` }}>
             {showLineNumbers && (
-              <td style={{ padding: '6px 4px', textAlign: 'center', color: BRAND_BLUE, fontWeight: 700, fontSize: compact ? '10px' : '12px', verticalAlign: 'top', borderRight: '1px solid #e2e8f0' }}>
+              <td style={{ padding: '6px 4px', textAlign: 'center', color: t.primary, fontWeight: 700, fontSize: compact ? '10px' : '12px', verticalAlign: 'top', borderRight: '1px solid #e2e8f0' }}>
                 {i + 1}
               </td>
             )}
             <td style={{ padding: '6px 8px', color: '#374151', verticalAlign: 'top', whiteSpace: 'pre-line' }}>
               {s.description || '—'}
               {s.remise_type === 'amount' && Number(s.remise_montant || 0) > 0
-                ? <span style={{ marginLeft: '4px', fontSize: '9px', color: BRAND_ORANGE }}>(-{Number(s.remise_montant).toFixed(2)} €)</span>
-                : Number(s.remise_percent || 0) > 0 && <span style={{ marginLeft: '4px', fontSize: '9px', color: BRAND_ORANGE }}>(-{s.remise_percent}%)</span>
+                ? <span style={{ marginLeft: '4px', fontSize: '9px', color: t.accent }}>(-{Number(s.remise_montant).toFixed(2)} €)</span>
+                : Number(s.remise_percent || 0) > 0 && <span style={{ marginLeft: '4px', fontSize: '9px', color: t.accent }}>(-{s.remise_percent}%)</span>
               }
             </td>
             <td style={{ padding: '6px 6px', textAlign: 'center', color: '#6b7280', verticalAlign: 'top', borderLeft: '1px solid #f1f5f9' }}>{s.quantity}</td>
@@ -141,15 +197,17 @@ const ServicesTable = ({ services, title, compact, showLineNumbers = true }) => 
       </tbody>
     </table>
   </div>
-);
+  );
+};
 
 const TotalsSection = ({ remise, remiseTotale, totalBrut, remisePercent, totalNet, acompte30, isQuote, label, compact, paymentPlan }) => {
+  const t = ACTIVE_THEME;
   const effectiveRemise = Number(remiseTotale !== undefined ? remiseTotale : (remise || 0));
   const installments = isQuote ? getPaymentInstallments(totalNet, paymentPlan) : null;
   return (
     <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
       <div style={{ width: compact ? '100%' : '250px' }}>
-        {label && <div style={{ fontSize: '9px', fontWeight: 700, color: BRAND_BLUE, marginBottom: '4px' }}>{label}</div>}
+        {label && <div style={{ fontSize: '9px', fontWeight: 700, color: t.primary, marginBottom: '4px' }}>{label}</div>}
         {effectiveRemise > 0 && (
           <>
             {Number(totalBrut || 0) > 0 && (
@@ -158,14 +216,14 @@ const TotalsSection = ({ remise, remiseTotale, totalBrut, remisePercent, totalNe
                 <span style={{ fontWeight: 600 }}>{Number(totalBrut).toFixed(2)} €</span>
               </div>
             )}
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 10px', borderRadius: '5px', marginBottom: '4px', background: '#fff7ed', color: BRAND_ORANGE, fontSize: compact ? '9px' : '11px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 10px', borderRadius: '5px', marginBottom: '4px', background: t.cardClientBg, color: t.accent, fontSize: compact ? '9px' : '11px' }}>
               <span>Remise{remiseTotale === undefined && Number(remisePercent) > 0 ? ` (${remisePercent}%)` : ''}</span>
               <span style={{ fontWeight: 600 }}>-{effectiveRemise.toFixed(2)} €</span>
             </div>
           </>
         )}
         {/* TOTAL NET — hero */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: compact ? '8px 10px' : '10px 12px', borderRadius: '8px', background: `linear-gradient(135deg, ${BRAND_BLUE}, ${BRAND_BLUE_LIGHT})`, color: 'white', fontWeight: 700, fontSize: compact ? '12px' : '14px', marginBottom: '3px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: compact ? '8px 10px' : '10px 12px', borderRadius: '8px', background: `linear-gradient(135deg, ${t.primary}, ${t.primaryLight})`, color: 'white', fontWeight: 700, fontSize: compact ? '12px' : '14px', marginBottom: '3px' }}>
           <span>TOTAL NET (TTC)</span>
           <span>{Number(totalNet || 0).toFixed(2)} €</span>
         </div>
@@ -177,7 +235,7 @@ const TotalsSection = ({ remise, remiseTotale, totalBrut, remisePercent, totalNe
         )}
         {/* Custom payment plan */}
         {isQuote && installments && installments.map((inst, idx) => (
-          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 10px', borderRadius: '5px', background: idx === 0 ? `linear-gradient(135deg, ${BRAND_ORANGE}, ${BRAND_ORANGE_LIGHT})` : '#f0f9ff', border: idx === 0 ? 'none' : `1px solid #bae6fd`, color: idx === 0 ? 'white' : '#0369a1', fontWeight: 600, fontSize: compact ? '9px' : '11px', marginBottom: '3px' }}>
+          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 10px', borderRadius: '5px', background: idx === 0 ? `linear-gradient(135deg, ${t.accent}, ${t.accentLight})` : t.payAltBg, border: idx === 0 ? 'none' : `1px solid ${t.payAltBorder}`, color: idx === 0 ? 'white' : t.payAltText, fontWeight: 600, fontSize: compact ? '9px' : '11px', marginBottom: '3px' }}>
             <span>{inst.label}</span>
             <span>{inst.amount.toFixed(2)} €</span>
           </div>
@@ -185,11 +243,11 @@ const TotalsSection = ({ remise, remiseTotale, totalBrut, remisePercent, totalNe
         {/* Default acompte_solde plan */}
         {isQuote && !installments && Number(acompte30 || 0) > 0 && (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 10px', borderRadius: '5px', background: `linear-gradient(135deg, ${BRAND_ORANGE}, ${BRAND_ORANGE_LIGHT})`, color: 'white', fontWeight: 600, fontSize: compact ? '9px' : '11px', marginBottom: '3px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 10px', borderRadius: '5px', background: `linear-gradient(135deg, ${t.accent}, ${t.accentLight})`, color: 'white', fontWeight: 600, fontSize: compact ? '9px' : '11px', marginBottom: '3px' }}>
               <span>Acompte à la signature (30%)</span>
               <span>{Number(acompte30).toFixed(2)} €</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 10px', borderRadius: '5px', background: '#f0f9ff', border: `1px solid #bae6fd`, color: '#0369a1', fontWeight: 600, fontSize: compact ? '9px' : '11px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 10px', borderRadius: '5px', background: t.payAltBg, border: `1px solid ${t.payAltBorder}`, color: t.payAltText, fontWeight: 600, fontSize: compact ? '9px' : '11px' }}>
               <span>Solde à la réalisation (70%)</span>
               <span>{(Number(totalNet || 0) - Number(acompte30 || 0)).toFixed(2)} €</span>
             </div>
@@ -215,15 +273,17 @@ const PDFDocument = ({ document, type, compact = false }) => {
   const paymentPlan = document.payment_plan || 'acompte_solde';
   const showLineNumbers = document.show_line_numbers !== false;
   const multipleOptions = hasDynamic || hasOption2 || hasOption3;
+  const theme = getTheme(document.company?.template);
+  ACTIVE_THEME = theme;
 
   return (
     <div className="bg-white" style={{ width: '100%', maxWidth: '794px', minHeight: compact ? 'auto' : '297mm', fontFamily: "'Manrope', 'Inter', sans-serif", fontSize: fs, lineHeight: 1.4 }} data-testid="pdf-document">
       {/* Header */}
-      <div style={{ background: `linear-gradient(135deg, ${BRAND_BLUE} 0%, ${BRAND_BLUE_LIGHT} 40%, ${BRAND_ORANGE} 100%)` }}>
+      <div style={{ background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.primaryLight} 40%, ${theme.accent} 100%)` }}>
         <div style={{ padding: compact ? '10px 14px' : '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <img src={LOGO_SARL_URL} alt="SR Rénovation SARL" style={{ height: compact ? '36px' : '52px', objectFit: 'contain', maxWidth: '220px' }} />
+          <img src={theme.logoTop} alt={document.company?.company_name || 'Logo'} style={{ height: compact ? '36px' : '52px', objectFit: 'contain', maxWidth: theme.logoTopMax }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src={LOGO_DRAPEAU_URL} alt="France" style={{ height: compact ? '28px' : '42px', objectFit: 'contain' }} />
+            {theme.showFlag && <img src={LOGO_DRAPEAU_URL} alt="France" style={{ height: compact ? '28px' : '42px', objectFit: 'contain' }} />}
             <div style={{ textAlign: 'right', color: 'white' }}>
               <div style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em', opacity: 0.75 }}>{isQuote ? 'DEVIS' : 'FACTURE'}</div>
               <div style={{ fontSize: compact ? '22px' : '34px', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1 }}>{number || 'XX'}</div>
@@ -240,8 +300,8 @@ const PDFDocument = ({ document, type, compact = false }) => {
       <div style={{ padding: compact ? '8px 12px 12px' : '10px 20px 14px' }}>
         {/* Company + Client cards */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
-          <div style={{ borderRadius: '8px', padding: '10px', background: '#eff6ff', borderLeft: `3px solid ${BRAND_BLUE}` }}>
-            <div style={{ fontSize: '8px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: BRAND_BLUE, marginBottom: '3px' }}>Entreprise</div>
+          <div style={{ borderRadius: '8px', padding: '10px', background: theme.cardCompanyBg, borderLeft: `3px solid ${theme.primary}` }}>
+            <div style={{ fontSize: '8px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.primary, marginBottom: '3px' }}>Entreprise</div>
             <div style={{ fontWeight: 700, fontSize: '12px' }}>{document.company?.company_name || document.company?.account_holder || 'Ruben SUAREZ-SAR'}</div>
             <div style={{ fontSize: '10px', color: '#4b5563', lineHeight: 1.55 }}>
               {document.company ? (
@@ -251,14 +311,14 @@ const PDFDocument = ({ document, type, compact = false }) => {
                   {document.company.website ? <>{document.company.website}<br /></> : null}
                   {document.company.siret ? <>SIRET: {document.company.siret}</> : null}
                   {(document.company.insurance_rc_pro || document.company.insurance_decennale) && (
-                    <div style={{ marginTop: '5px', paddingTop: '5px', borderTop: '1px dashed #bfdbfe', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <div style={{ marginTop: '5px', paddingTop: '5px', borderTop: `1px dashed ${theme.insuranceBorder}`, display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       {document.company.insurance_rc_pro && (
-                        <span style={{ fontSize: '8px', color: '#1d4ed8', fontWeight: 600 }}>
+                        <span style={{ fontSize: '8px', color: theme.insuranceText, fontWeight: 600 }}>
                           RC Pro : {document.company.insurance_rc_pro}
                         </span>
                       )}
                       {document.company.insurance_decennale && (
-                        <span style={{ fontSize: '8px', color: '#1d4ed8', fontWeight: 600 }}>
+                        <span style={{ fontSize: '8px', color: theme.insuranceText, fontWeight: 600 }}>
                           Décennale : {document.company.insurance_decennale}
                         </span>
                       )}
@@ -270,9 +330,9 @@ const PDFDocument = ({ document, type, compact = false }) => {
               )}
             </div>
           </div>
-          <div style={{ borderRadius: '8px', padding: '10px', background: '#fff7ed', borderLeft: `3px solid ${BRAND_ORANGE}` }}>
-            <div style={{ fontSize: '8px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: BRAND_ORANGE, marginBottom: '3px' }}>Client</div>
-            <div style={{ fontWeight: 700, fontSize: '12px', color: '#1e3a5f' }}>{document.client_name || '—'}</div>
+          <div style={{ borderRadius: '8px', padding: '10px', background: theme.cardClientBg, borderLeft: `3px solid ${theme.accent}` }}>
+            <div style={{ fontSize: '8px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.accent, marginBottom: '3px' }}>Client</div>
+            <div style={{ fontWeight: 700, fontSize: '12px', color: theme.clientName }}>{document.client_name || '—'}</div>
             <div style={{ fontSize: '10px', color: '#4b5563', lineHeight: 1.55 }}>
               {document.client_address || '—'}<br />{document.client_phone || '—'}{document.client_email ? <><br />{document.client_email}</> : null}
             </div>
@@ -281,16 +341,16 @@ const PDFDocument = ({ document, type, compact = false }) => {
 
         {/* Work location */}
         <div style={{ borderRadius: '6px', padding: '5px 10px', marginBottom: '8px', background: '#f8fafc', fontSize: compact ? '9px' : '10px' }}>
-          <strong style={{ color: BRAND_BLUE }}>Lieu des travaux:</strong> {document.work_location || '—'}
+          <strong style={{ color: theme.primary }}>Lieu des travaux:</strong> {document.work_location || '—'}
         </div>
 
         {/* Diagnostic */}
         {isQuote && diagLines.length > 0 && (
-          <div style={{ borderRadius: '8px', padding: '8px 10px', marginBottom: '8px', border: '1px solid #dbeafe', background: '#f8fafc' }}>
-            <div style={{ fontSize: '8px', fontWeight: 700, textTransform: 'uppercase', color: BRAND_BLUE, marginBottom: '5px' }}>Diagnostic</div>
+          <div style={{ borderRadius: '8px', padding: '8px 10px', marginBottom: '8px', border: `1px solid ${theme.diagBoxBorder}`, background: '#f8fafc' }}>
+            <div style={{ fontSize: '8px', fontWeight: 700, textTransform: 'uppercase', color: theme.primary, marginBottom: '5px' }}>Diagnostic</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
               {diagLines.map((line, idx) => (
-                <span key={idx} style={{ display: 'inline-flex', alignItems: 'center', fontSize: '9px', padding: '2px 7px', borderRadius: '4px', background: '#dbeafe', color: '#2563eb', fontWeight: 500 }}>
+                <span key={idx} style={{ display: 'inline-flex', alignItems: 'center', fontSize: '9px', padding: '2px 7px', borderRadius: '4px', background: theme.diagBg, color: theme.diagText, fontWeight: 500 }}>
                   {line}
                 </span>
               ))}
@@ -300,8 +360,8 @@ const PDFDocument = ({ document, type, compact = false }) => {
 
         {/* Quote Title */}
         {isQuote && document.quote_title && (
-          <div style={{ textAlign: 'center', marginBottom: '10px', padding: '8px', background: '#f8fafc', borderRadius: '6px', borderLeft: `3px solid ${BRAND_BLUE}` }}>
-            <div style={{ fontWeight: 700, fontSize: compact ? '12px' : '14px', color: BRAND_BLUE }}>{document.quote_title}</div>
+          <div style={{ textAlign: 'center', marginBottom: '10px', padding: '8px', background: '#f8fafc', borderRadius: '6px', borderLeft: `3px solid ${theme.primary}` }}>
+            <div style={{ fontWeight: 700, fontSize: compact ? '12px' : '14px', color: theme.primary }}>{document.quote_title}</div>
           </div>
         )}
 
@@ -400,13 +460,13 @@ const PDFDocument = ({ document, type, compact = false }) => {
         {!isQuote && (
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
             <div style={{ width: compact ? '100%' : '250px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderRadius: '8px', background: `linear-gradient(135deg, ${BRAND_BLUE}, ${BRAND_BLUE_LIGHT})`, color: 'white', fontWeight: 700, fontSize: compact ? '12px' : '14px', marginBottom: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderRadius: '8px', background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryLight})`, color: 'white', fontWeight: 700, fontSize: compact ? '12px' : '14px', marginBottom: '4px' }}>
                 <span>TOTAL NET (TTC)</span><span>{Number(document.total_net || 0).toFixed(2)} €</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', borderRadius: '5px', background: '#f0fdf4', color: '#16a34a', fontSize: compact ? '9px' : '11px', marginBottom: '3px' }}>
                 <span>Acompte versé</span><span style={{ fontWeight: 600 }}>{Number(document.acompte_paid || 0).toFixed(2)} €</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', borderRadius: '5px', background: '#f0f9ff', border: '1px solid #bae6fd', color: '#0369a1', fontWeight: 700, fontSize: compact ? '9px' : '11px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', borderRadius: '5px', background: theme.payAltBg, border: `1px solid ${theme.payAltBorder}`, color: theme.payAltText, fontWeight: 700, fontSize: compact ? '9px' : '11px' }}>
                 <span>RESTE À PAYER</span><span>{Number(document.reste_a_payer || 0).toFixed(2)} €</span>
               </div>
             </div>
@@ -429,12 +489,12 @@ const PDFDocument = ({ document, type, compact = false }) => {
         {/* Signatures */}
         {isQuote && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
-            <div style={{ border: '1px dashed #93c5fd', borderRadius: '8px', padding: '8px 10px', textAlign: 'center', minHeight: '75px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ fontSize: '8px', fontWeight: 600, color: BRAND_BLUE }}>Signature entreprise</div>
-              <img src={LOGO_SIGN_URL} alt="Signature" style={{ height: '40px', objectFit: 'contain' }} />
+            <div style={{ border: `1px dashed ${theme.sigBorderCompany}`, borderRadius: '8px', padding: '8px 10px', textAlign: 'center', minHeight: '75px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: '8px', fontWeight: 600, color: theme.primary }}>Signature entreprise</div>
+              {theme.signatureLogo ? <img src={theme.signatureLogo} alt="Signature" style={{ height: '40px', objectFit: 'contain' }} /> : <div style={{ height: '40px' }} />}
             </div>
-            <div style={{ border: '1px dashed #fdba74', borderRadius: '8px', padding: '8px 10px', minHeight: '75px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div style={{ fontSize: '8px', fontWeight: 600, color: BRAND_ORANGE }}>Bon pour accord — Signature client</div>
+            <div style={{ border: `1px dashed ${theme.sigBorderClient}`, borderRadius: '8px', padding: '8px 10px', minHeight: '75px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: '8px', fontWeight: 600, color: theme.accent }}>Bon pour accord — Signature client</div>
               {document.signature_data ? (
                 <div style={{ textAlign: 'center' }}>
                   <img src={document.signature_data} alt="Signature client" style={{ height: '40px', objectFit: 'contain' }} />
@@ -451,21 +511,31 @@ const PDFDocument = ({ document, type, compact = false }) => {
         {/* Footer */}
         <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '8px' }}>
           {/* Partner logos */}
+          {theme.showPartnerLogos && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '22px', flexWrap: 'wrap', marginBottom: '7px' }}>
             <img src={LOGO_BP_URL} alt="Banque Populaire" style={{ height: compact ? '38px' : '58px', objectFit: 'contain' }} />
             <img src={LOGO_CMA_URL} alt="Chambre des Métiers" style={{ height: compact ? '32px' : '44px', objectFit: 'contain' }} />
             <img src={LOGO_GITES_URL} alt="Gîtes de France" style={{ height: compact ? '32px' : '44px', objectFit: 'contain' }} />
             <img src={LOGO_GOOGLE_URL} alt="Google Avis" style={{ height: compact ? '32px' : '44px', objectFit: 'contain' }} />
           </div>
+          )}
           {/* Info grid */}
+          {theme.footerFromProfile ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', textAlign: 'center', fontSize: compact ? '7px' : '8px', color: '#6b7280', marginBottom: '5px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontWeight: 700, color: BRAND_BLUE }}>Assurance</div><div>RC Pro · Banque Populaire</div></div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontWeight: 700, color: BRAND_BLUE }}>Paiement</div><div>Chèque · Espèces · Virement</div></div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontWeight: 700, color: BRAND_BLUE }}>Contact</div><div>06 80 33 45 46</div><div style={{ color: BRAND_BLUE }}>sr-renovation.fr</div></div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontWeight: 700, color: theme.primary }}>Assurance</div><div>{document.company?.insurance_decennale ? 'RC Pro · Décennale' : 'RC Pro'}</div></div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontWeight: 700, color: theme.primary }}>Paiement</div><div>Chèque · Espèces · Virement</div></div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontWeight: 700, color: theme.primary }}>Contact</div>{document.company?.phone ? <div>{document.company.phone}</div> : null}{document.company?.website ? <div style={{ color: theme.primary }}>{document.company.website}</div> : null}</div>
           </div>
+          ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', textAlign: 'center', fontSize: compact ? '7px' : '8px', color: '#6b7280', marginBottom: '5px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontWeight: 700, color: theme.primary }}>Assurance</div><div>RC Pro · Banque Populaire</div></div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontWeight: 700, color: theme.primary }}>Paiement</div><div>Chèque · Espèces · Virement</div></div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontWeight: 700, color: theme.primary }}>Contact</div><div>06 80 33 45 46</div><div style={{ color: theme.primary }}>sr-renovation.fr</div></div>
+          </div>
+          )}
           <div style={{ textAlign: 'center', borderTop: '1px solid #f3f4f6', paddingTop: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-            <img src={LOGO_SR2_URL} alt="Sr-Renovation.fr" style={{ height: compact ? '24px' : '32px', objectFit: 'contain' }} />
-            <span style={{ fontSize: '9px', color: '#9ca3af' }}>Nettoyage toitures, façades et terrasses</span>
+            {theme.logoBottom ? <img src={theme.logoBottom} alt={document.company?.company_name || 'Logo'} style={{ height: compact ? '24px' : '32px', objectFit: 'contain' }} /> : null}
+            <span style={{ fontSize: '9px', color: '#9ca3af' }}>{theme.footerTagline}</span>
           </div>
         </div>
       </div>
