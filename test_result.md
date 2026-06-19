@@ -178,7 +178,7 @@ backend:
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the SR Rénovation CRM page improvements on mobile (390x844px). Verify: 1) Default sort order is 'Récemment modifié', 2) Reduced white space in notes section, 3) Copy to AI button functionality, 4) Emergent badge is hidden."
+user_problem_statement: "Test the CRM mobile scroll fix on SR Rénovation app (390x844px portrait). Verify natural page scrolling, no large empty white space below BLOC-NOTES section, minimal notes section height, reasonable spacing between BLOC-NOTES and HISTORIQUE, and 'Copier vers l'IA' button visibility."
 
 frontend:
   - task: "Mobile CRM Page Improvements (390x844px)"
@@ -198,6 +198,9 @@ frontend:
         - working: true
           agent: "testing"
           comment: "✅ ALL MOBILE CRM PAGE IMPROVEMENTS FULLY FUNCTIONAL. Comprehensive testing completed with all 4 tests passed after fix: 1) TEST 1 (P0) - Default Sort Order: ✅ PASSED - Sort dropdown now shows 'Récemment modifié' as default (fixed by changing useState('name') to useState('recent') in line 393), clients list correctly sorted with recently modified first, 2) TEST 2 (P0) - Reduced White Space: ✅ PASSED - Notes section has min-h-[80px] with actual height of 80px, no excessive white space below BLOC-NOTES section, 3) TEST 3 (P0) - Copy to AI Button: ✅ PASSED - Button found with correct label 'Copier vers l'IA', has Sparkles icon, gradient background (from-blue-500 to-purple-600), successfully navigates to /ai-assistant page, notes pre-filled correctly in AI Assistant textarea ('Test notes: 100x50, carrelage, salle de bain'), toast message 'Notes copiées vers l'IA' displayed, 4) TEST 4 (P1) - Emergent Badge Hidden: ✅ PASSED - Element with id='emergent-badge' exists but is NOT VISIBLE (display: none applied). All mobile viewport (390x844px) improvements verified and working correctly. No console errors detected. Feature is production-ready."
+        - working: true
+          agent: "testing"
+          comment: "✅ MOBILE CRM SCROLL FIX VERIFIED SUCCESSFULLY. Comprehensive testing on mobile (390x844px portrait) with client 'Mme Autsin' completed with all requirements met: 1) ✅ Natural Page Scrolling: Overflow check confirms 'overflowY': 'visible' with 'hasInnerScroll': False on mobile - the entire detail view scrolls naturally, NOT an inner scrollable box, 2) ✅ 'Copier vers l'IA' Button Visible: Button found and visible in BLOC-NOTES section with correct styling (Sparkles icon, gradient background), 3) ✅ No Large Empty White Space: Visual inspection of screenshots confirms NO excessive white space below BLOC-NOTES section - HISTORIQUE section appears directly after with reasonable spacing, 4) ✅ Minimal Notes Section Height: Notes box has min-h-[80px] as expected, actual height of 288px is due to client having real notes content (120m2, Terre cuite, allalzld, ozkeke, izkkz, kzkzns) - section correctly expands to fit content without excessive padding, 5) ✅ Smooth Scrolling: User can scroll through all content smoothly from top to bottom without being stuck in an inner box. Technical verification: Body section has 'overflow': 'visible' on mobile (width < 1024px), confirming lg:overflow-y-auto class only applies on desktop. No console errors detected. Mobile scroll behavior is working as intended - the white space issue has been fixed."
 
 frontend:
   - task: "Invoice Sending Feature with Email Types"
@@ -257,7 +260,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Mobile CRM Page Improvements (390x844px)"
+    - "Mobile CRM Scroll Fix (390x844px)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -313,3 +316,5 @@ agent_communication:
       message: "✅ INVOICE SENDING FEATURE WITH EMAIL TYPES TESTING COMPLETED SUCCESSFULLY - Comprehensive testing of the new invoice sending feature completed with all tests passed (7/7). Key achievements: 1) PIN authentication (0330) works perfectly with individual digit inputs, 2) Successfully navigated to /invoices page with 'Mes Factures' title and FACT-01 invoice card visible, 3) Send invoice modal opens correctly displaying invoice info (FACT-01 — LECOMTE JOCELYNE) with 'PDF joint automatiquement' message, 4) Email type selection fully functional - 'Avec avis' selected by default, switching to 'Simple' reduces message from 558 to 274 characters and removes 'Google' keyword, switching back restores full message with review request, 5) All form fields verified - email pre-filled (shoplecomte@sfr.fr), subject contains 'Votre facture', message textarea editable, reset button works, 6) Button behaviors correct - 'Envoyer' button enabled/disabled based on email presence, 'Annuler' closes modal, 7) No console errors. UI is clean, professional, and responsive. Feature is production-ready."
     - agent: "testing"
       message: "✅ MOBILE CRM PAGE IMPROVEMENTS TESTING COMPLETED SUCCESSFULLY - Comprehensive mobile testing (390x844px portrait) completed with all 4 tests passed after one fix. Test Results: 1) TEST 1 (P0) Default Sort Order: Initially FAILED (showed 'Nom (A → Z)'), FIXED by changing line 393 in CRM.jsx from useState('name') to useState('recent'), now shows 'Récemment modifié' as default with correct sorting, 2) TEST 2 (P0) Reduced White Space: PASSED - Notes section has min-h-[80px] with no excessive white space (actual height 80px), 3) TEST 3 (P0) Copy to AI Button: PASSED - Button has correct label, Sparkles icon, gradient background, successfully navigates to /ai-assistant with notes pre-filled ('Test notes: 100x50, carrelage, salle de bain'), toast message displayed, 4) TEST 4 (P1) Emergent Badge Hidden: PASSED - Badge exists but not visible (display: none). All mobile improvements verified working. No console errors. Production-ready."
+    - agent: "testing"
+      message: "✅ MOBILE CRM SCROLL FIX VERIFIED - Tested mobile scroll behavior (390x844px) with client 'Mme Autsin'. All requirements met: 1) Natural page scrolling confirmed (overflowY: visible, no inner scroll box), 2) 'Copier vers l'IA' button visible in BLOC-NOTES section, 3) No large empty white space below BLOC-NOTES, 4) Notes section has minimal height (min-h-[80px], expands naturally for content), 5) HISTORIQUE appears directly after notes with reasonable spacing, 6) Smooth scrolling through all content. Technical: Body section has 'overflow: visible' on mobile, lg:overflow-y-auto only applies on desktop (width >= 1024px). The white space issue has been fixed - mobile scroll behavior is working correctly."

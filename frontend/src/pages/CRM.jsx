@@ -230,7 +230,7 @@ const ClientDetail = ({ client, onBack, onUpdated, onDeleted }) => {
   const totalInvoiced = data.stats?.total_invoiced || 0;
 
   return (
-    <div className="flex flex-col h-full" data-testid="client-detail">
+    <div className="flex flex-col lg:h-full" data-testid="client-detail">
       {/* Header */}
       <div className="border-b border-gray-100 px-4 sm:px-5 py-3 flex items-center gap-2 bg-white">
         <Button variant="ghost" size="sm" onClick={onBack} className="lg:hidden h-8 px-2" data-testid="back-to-list-btn">
@@ -265,7 +265,7 @@ const ClientDetail = ({ client, onBack, onUpdated, onDeleted }) => {
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 space-y-5">
+      <div className="lg:flex-1 lg:overflow-y-auto px-4 sm:px-5 py-4 space-y-5 pb-20 lg:pb-4">
         {/* Contact */}
         <Card className="p-4 border border-slate-200 shadow-none">
           <div className="space-y-1.5 text-sm">
@@ -456,7 +456,7 @@ const CRM = () => {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-3 h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-3 lg:h-[calc(100vh-200px)]">
           {/* List */}
           <div className={`bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col ${selected ? 'hidden lg:flex' : 'flex'}`}>
             <div className="p-3 border-b border-slate-100 space-y-2">
