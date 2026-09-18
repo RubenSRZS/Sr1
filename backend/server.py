@@ -11,8 +11,10 @@ from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import json
+import re
+from zoneinfo import ZoneInfo
 from google import genai
 from google.genai import types
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -358,6 +360,81 @@ async def run_relances():
             logger.error(f"Relance error quote {q.get('id','?')}: {e}")
     logger.info(f"Relances run done: {count} sent")
 
+def build_callback_reminder_html(c: dict, when_label: str, crm_link: str) -> str:
+    label = " ".join(x for x in [c.get("civility"), c.get("name"), c.get("city"), c.get("source")] if x)
+    phone = (c.get("phone") or "").strip()
+    digits = re.sub(r"\D", "", phone)
+    wa = f"https://wa.me/{'33' + digits[1:] if digits.startswith('0') else digits}" if digits else ""
+    notes_html = (c.get("notes") or "").replace("\n", "<br>")
+    rows = "".join(
+        f'<tr><td style="color:#6b7280;font-size:12px;padding:4px 0;width:90px;vertical-align:top;">{k}</td><td style="color:#1e293b;font-size:13px;padding:4px 0;">{v}</td></tr>'
+        for k, v in [("Téléphone", f'<a href="tel:{digits}" style="color:#1d4ed8;font-weight:700;text-decoration:none;font-size:16px;">{phone}</a>' if phone else "—"),
+                     ("Chantier", c.get("chantier") or "—"),
+                     ("Adresse", c.get("address") or c.get("city") or "—"),
+                     ("Notes", notes_html or "—")]
+    )
+    return f"""<!DOCTYPE html><html lang="fr"><body style="margin:0;padding:24px 12px;background:#f0f2f5;font-family:'Segoe UI',Arial,sans-serif;">
+<table role="presentation" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);width:100%;">
+<tr><td style="background:#f97316;padding:20px 24px;color:#fff;">
+  <div style="font-size:12px;opacity:.85;text-transform:uppercase;letter-spacing:1px;">Rappel client — {when_label}</div>
+  <div style="font-size:22px;font-weight:800;margin-top:4px;">{label}</div>
+</td></tr>
+<tr><td style="padding:20px 24px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">{rows}</table>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:18px;"><tr>
+    <td style="padding-right:4px;"><a href="tel:{digits}" style="display:block;background:#1d4ed8;color:#fff;text-decoration:none;padding:12px;border-radius:10px;font-weight:700;text-align:center;font-size:14px;">Appeler</a></td>
+    {"<td style='padding-left:4px;'><a href='" + wa + "' style='display:block;background:#16a34a;color:#fff;text-decoration:none;padding:12px;border-radius:10px;font-weight:700;text-align:center;font-size:14px;'>WhatsApp</a></td>" if wa else ""}
+  </tr></table>
+  <p style="text-align:center;margin:18px 0 0;"><a href="{crm_link}" style="color:#64748b;font-size:12px;">Ouvrir la fiche dans le CRM</a></p>
+</td></tr></table></body></html>"""
+
+async def send_callback_reminder(c: dict, to_email: str) -> bool:
+    paris = ZoneInfo("Europe/Paris")
+    t = c.get("callback_time") or ""
+    when_label = f"aujourd'hui à {t}" if t else "aujourd'hui"
+    base_url = os.environ.get("PUBLIC_APP_URL", "")
+    html = build_callback_reminder_html(c, when_label, f"{base_url}/crm" if base_url else "#")
+    label = " ".join(x for x in [c.get("civility"), c.get("name"), c.get("city")] if x)
+    params = {
+        "from": f"SR Renovation CRM <{SENDER_EMAIL}>",
+        "to": [to_email],
+        "subject": f"📞 Rappeler {label}{' à ' + t if t else ''} — {c.get('chantier') or 'client'}",
+        "html": html,
+    }
+    await asyncio.to_thread(resend.Emails.send, params)
+    logger.info(f"Callback reminder sent for client {c.get('id')} at {datetime.now(paris).isoformat()}")
+    return True
+
+async def run_callback_reminders(to_override: Optional[str] = None, only_client_id: Optional[str] = None) -> int:
+    """Toutes les 5 min : email 10 min avant l'heure de rappel (08:00 si pas d'heure)."""
+    to_email = to_override or ADMIN_EMAIL
+    if not to_email or not SENDER_EMAIL:
+        return 0
+    paris = ZoneInfo("Europe/Paris")
+    now = datetime.now(paris)
+    today = now.strftime("%Y-%m-%d")
+    query = {"callback_at": today, "reminder_sent_at": None} if not only_client_id else {"id": only_client_id}
+    query_alt = {"callback_at": today, "reminder_sent_at": {"$exists": False}}
+    docs = await db.clients.find(query, {"_id": 0}).to_list(500)
+    if not only_client_id:
+        docs += await db.clients.find(query_alt, {"_id": 0}).to_list(500)
+    sent = 0
+    for c in docs:
+        try:
+            hh, mm = 8, 10
+            if c.get("callback_time"):
+                hh, mm = [int(x) for x in c["callback_time"].split(":")[:2]]
+            target = now.replace(hour=hh, minute=mm, second=0, microsecond=0) - timedelta(minutes=10)
+            if not only_client_id and now < target:
+                continue
+            await send_callback_reminder(c, to_email)
+            if not to_override:
+                await db.clients.update_one({"id": c["id"]}, {"$set": {"reminder_sent_at": datetime.now(timezone.utc).isoformat()}})
+            sent += 1
+        except Exception as e:
+            logger.error(f"Callback reminder error client {c.get('id')}: {e}")
+    return sent
+
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
@@ -414,7 +491,7 @@ class ClientCreate(BaseModel):
     callback_time: Optional[str] = ""
     source: Optional[str] = ""
     civility: Optional[str] = ""
-    country: Optional[str] = "FR"
+    zone: Optional[str] = ""
 
 class ClientQuickUpdate(BaseModel):
     name: Optional[str] = None
@@ -428,7 +505,7 @@ class ClientQuickUpdate(BaseModel):
     callback_time: Optional[str] = None
     source: Optional[str] = None
     civility: Optional[str] = None
-    country: Optional[str] = None
+    zone: Optional[str] = None
 
 class Client(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -444,7 +521,7 @@ class Client(BaseModel):
     callback_time: Optional[str] = ""
     source: Optional[str] = ""
     civility: Optional[str] = ""
-    country: Optional[str] = "FR"
+    zone: Optional[str] = ""
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: Optional[str] = None
 
@@ -732,6 +809,23 @@ async def get_clients():
     clients = await db.clients.find({}, {"_id": 0}).to_list(1000)
     return [fix_datetime(c) for c in clients]
 
+ZONE_NAMES = {"JU": "Jura (39)", "HS": "Haute-Savoie (74)", "CH": "Suisse"}
+
+def _guess_zone(c: dict) -> str:
+    text = f"{c.get('address', '')} {c.get('city', '')}"
+    phone = (c.get("phone") or "").replace(" ", "")
+    if re.search(r"\b39\d{3}\b", text):
+        return "JU"
+    if re.search(r"\b74\d{3}\b", text):
+        return "HS"
+    if phone.startswith("+41") or phone.startswith("0041") or re.search(r"\bsuisse\b|\bgen[eè]ve\b|\blausanne\b|\bnyon\b|\bvaud\b", text, re.I):
+        return "CH"
+    if re.search(r"\bjura\b|\blons\b|\bdole\b|\bpoligny\b|\bsaint-claude\b|\bchampagnole\b", text, re.I):
+        return "JU"
+    if re.search(r"\bannecy\b|\bannemasse\b|\bthonon\b|\bhaute-savoie\b", text, re.I):
+        return "HS"
+    return ""
+
 def _client_stage(quotes: list, invoices: list) -> str:
     if invoices:
         return "invoiced"
@@ -766,6 +860,8 @@ async def clients_overview():
         for i in ci:
             dates.append(str(i.get("created_at") or ""))
         c["stage"] = _client_stage(cq, ci)
+        if not c.get("zone"):
+            c["zone"] = _guess_zone(c)
         c["last_activity"] = max(dates) if dates else ""
         c["quotes_count"] = len(cq)
         c["invoices_count"] = len(ci)
@@ -814,6 +910,8 @@ async def update_client_notes(client_id: str, body: dict):
 async def quick_update_client(client_id: str, body: ClientQuickUpdate):
     update = {k: v for k, v in body.model_dump().items() if v is not None}
     update["updated_at"] = datetime.now(timezone.utc).isoformat()
+    if "callback_at" in update or "callback_time" in update:
+        update["reminder_sent_at"] = None
     res = await db.clients.update_one({"id": client_id}, {"$set": update})
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Client non trouvé")
@@ -837,7 +935,7 @@ def _gemini_json(prompt: str, temperature: float = 0.2) -> dict:
 class AITextBody(BaseModel):
     text: str
     client_name: Optional[str] = ""
-    country: Optional[str] = "FR"
+    zone: Optional[str] = ""
 
 @api_router.post("/ai/parse-contact")
 async def ai_parse_contact(body: AITextBody):
@@ -854,8 +952,9 @@ NOTES EN VRAC :
 RÈGLES :
 - civility : "Mr" ou "Mme" si identifiable (monsieur, madame, prénom clairement féminin/masculin), sinon ""
 - name : nom du client SANS civilité (Prénom Nom ou Nom seul, corrige les majuscules). Si inconnu : "Contact sans nom"
-- phone : numéro formaté (France : "06 12 34 56 78" ; Suisse : "+41 79 123 45 67"). Le client est en {'Suisse' if body.country == 'CH' else 'France'} par défaut. Vide si absent
-- source : code du canal par lequel le client a connu l'artisan : "RN" (site / Google naturel / référencement), "FB" (Facebook), "GA" (Google Ads / annonce), "LS" (Local Service Google), "TK" (TikTok), "BO" (bouche à oreille / recommandation). "" si non mentionné
+- phone : numéro formaté (France : "06 12 34 56 78" ; Suisse : "+41 79 123 45 67"). Zone par défaut de l'artisan pour cet appel : {ZONE_NAMES.get(body.zone or '', 'non précisée')}. Vide si absent
+- zone : "JU" (Jura, dép. 39 : Lons-le-Saunier, Dole, Poligny, Saint-Claude…), "HS" (Haute-Savoie, dép. 74 : Annecy, Annemasse, Thonon…), "CH" (Suisse : Genève, Lausanne, Nyon, Vaud…). Déduis-la de la ville / indicatif ; sinon utilise la zone par défaut ci-dessus ("" si aucune)
+- source : code du canal par lequel le client a connu l'artisan : "RN" (site / Google naturel / référencement), "FB" (Facebook), "GA" (Google Ads / annonce), "LS" (Local Service Google), "TK" (TikTok). "" si non mentionné
 - callback_time : heure de rappel "HH:MM" si mentionnée (ex: "17h" -> "17:00"), sinon ""
 - email : vide si absent
 - city : ville/commune (vide si absente)
@@ -865,7 +964,7 @@ RÈGLES :
 - notes : le reste des informations utiles, réécrit en lignes courtes commençant par "• " (une info par ligne, ex: "• Mousse importante côté nord", "• Disponible le matin"). Ne répète pas nom/tél/ville
 - N'invente rien.
 
-Réponds UNIQUEMENT en JSON : {{"civility":"","name":"","phone":"","email":"","city":"","address":"","chantier":"","source":"","callback_at":null,"callback_time":"","notes":""}}"""
+Réponds UNIQUEMENT en JSON : {{"civility":"","name":"","phone":"","email":"","city":"","address":"","chantier":"","source":"","zone":"","callback_at":null,"callback_time":"","notes":""}}"""
     try:
         data = await asyncio.to_thread(_gemini_json, prompt)
         return {"status": "success", "data": data}
@@ -895,6 +994,16 @@ Réponds UNIQUEMENT en JSON : {{"notes": "texte final avec \\n entre les lignes"
     except Exception as e:
         logger.error(f"AI tidy-notes failed: {e}")
         raise HTTPException(status_code=500, detail="L'IA n'a pas pu ranger les notes")
+
+class ReminderRunBody(BaseModel):
+    to: Optional[str] = None
+    client_id: Optional[str] = None
+
+@api_router.post("/crm/reminders/run")
+async def run_reminders_now(body: ReminderRunBody):
+    """Déclenchement manuel (test) : envoie le rappel d'un client précis ou ceux dus maintenant."""
+    sent = await run_callback_reminders(to_override=body.to, only_client_id=body.client_id)
+    return {"status": "success", "sent": sent}
 
 @api_router.get("/clients/{client_id}/timeline")
 async def client_timeline(client_id: str):
@@ -2525,6 +2634,7 @@ async def startup_migrate():
     # Start scheduler
     if not scheduler.running:
         scheduler.add_job(run_relances, CronTrigger(hour=8, minute=0, timezone='Europe/Paris'), id='relances_daily', replace_existing=True)
+        scheduler.add_job(run_callback_reminders, 'interval', minutes=5, id='callback_reminders', replace_existing=True)
         scheduler.start()
         logger.info("APScheduler started — relances daily at 08:00 Europe/Paris")
     # Assign public_token to quotes that don't have one

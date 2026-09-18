@@ -74,7 +74,7 @@ const Dashboard = () => {
           {[
             { label: 'Clients', value: stats?.total_clients || 0, icon: Users, color: '#f59e0b', link: '/clients' },
             { label: 'Devis', value: stats?.total_quotes || 0, icon: FileText, color: '#3b82f6', link: '/quotes' },
-            { label: 'Factures', value: stats?.total_invoices || 0, icon: Receipt, color: '#10b981', link: '/invoices' },
+            { label: 'Factures', value: stats?.total_invoices || 0, icon: Receipt, color: '#8b5cf6', link: '/invoices' },
             { label: "Chiffre d'affaires", value: `${(stats?.revenue?.total || 0).toFixed(0)}€`, icon: null, color: '#3b82f6', link: null },
           ].map((s, i) => {
             const CardContent = (
@@ -107,7 +107,7 @@ const Dashboard = () => {
           </Link>
           <Link to="/invoices/new" data-testid="quick-new-invoice">
             <div className="rounded-xl p-5 text-white flex items-center justify-between group transition-all hover:scale-[1.01] hover:shadow-lg"
-              style={{ background: 'linear-gradient(135deg, #f97316 0%, #fb923c 100%)' }}
+              style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)' }}
             >
               <div className="flex items-center gap-3">
                 <div className="h-11 w-11 bg-white/20 rounded-lg flex items-center justify-center">

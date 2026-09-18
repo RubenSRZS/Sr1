@@ -1,11 +1,12 @@
 export const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// Code couleur global : contact = ambre, devis = bleu, signé = vert, facturé = violet, perdu = rose
 export const STAGES = {
-  contact: { label: 'Nouveau contact', dot: 'bg-slate-400', chip: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' },
-  quote_draft: { label: 'Devis en cours', dot: 'bg-amber-400', chip: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' },
+  contact: { label: 'Nouveau contact', dot: 'bg-amber-500', chip: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200' },
+  quote_draft: { label: 'Devis en cours', dot: 'bg-sky-400', chip: 'bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300' },
   quote_sent: { label: 'Devis envoyé', dot: 'bg-blue-500', chip: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
   signed: { label: 'Signé', dot: 'bg-emerald-500', chip: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
-  invoiced: { label: 'Facturé', dot: 'bg-orange-500', chip: 'bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' },
+  invoiced: { label: 'Facturé', dot: 'bg-violet-500', chip: 'bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300' },
   lost: { label: 'Perdu', dot: 'bg-rose-400', chip: 'bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-300' },
 };
 
@@ -18,10 +19,12 @@ export const FILTERS = [
   { key: 'lost', label: 'Perdus' },
 ];
 
-export const COUNTRIES = [
-  { code: 'FR', flag: '🇫🇷', label: 'France' },
-  { code: 'CH', flag: '🇨🇭', label: 'Suisse' },
+export const ZONES = [
+  { code: 'JU', short: '39', label: 'Jura', chip: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
+  { code: 'HS', short: '74', label: 'Hte-Savoie', chip: 'bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300' },
+  { code: 'CH', short: 'CH', label: 'Suisse', chip: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300' },
 ];
+export const zoneOf = (code) => ZONES.find((z) => z.code === code) || null;
 
 export const SOURCES = [
   { code: 'RN', label: 'Référencement naturel' },
@@ -29,7 +32,6 @@ export const SOURCES = [
   { code: 'GA', label: 'Google Ads' },
   { code: 'LS', label: 'Local Service' },
   { code: 'TK', label: 'TikTok' },
-  { code: 'BO', label: 'Bouche à oreille' },
 ];
 
 export const CIVILITIES = ['Mr', 'Mme'];
@@ -59,32 +61,11 @@ export const exportVCard = (c) => {
     `N:${esc(label)};;;;`, `FN:${esc(label)}`,
     c.phone ? `TEL;TYPE=CELL:${c.phone.replace(/[^\d+]/g, '')}` : null,
     c.email ? `EMAIL:${c.email}` : null,
-    (c.address || c.city) ? `ADR;TYPE=HOME:;;${esc(c.address || '')};${esc(c.city || '')};;;${c.country === 'CH' ? 'Suisse' : 'France'}` : null,
+    (c.address || c.city) ? `ADR;TYPE=HOME:;;${esc(c.address || '')};${esc(c.city || '')};;;${c.zone === 'CH' ? 'Suisse' : 'France'}` : null,
     c.chantier ? `NOTE:${esc(c.chantier)}` : null,
     'END:VCARD',
   ].filter(Boolean);
   return downloadOrShare(`${label.replace(/[^\w\- ]/g, '')}.vcf`, 'text/vcard', lines.join('\r\n'));
-};
-
-const pad = (n) => String(n).padStart(2, '0');
-const icsLocal = (d) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
-
-export const exportReminder = (c) => {
-  if (!c.callback_at) return Promise.resolve('none');
-  const [h, m] = (c.callback_time || '09:00').split(':').map(Number);
-  const start = new Date(`${c.callback_at}T00:00:00`); start.setHours(h || 9, m || 0, 0, 0);
-  const end = new Date(start.getTime() + 15 * 60000);
-  const label = contactLabel(c) || c.name;
-  const lines = [
-    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//SR Renovation//CRM//FR',
-    'BEGIN:VEVENT', `UID:${c.id}-${c.callback_at}@sr-renovation`, `DTSTAMP:${icsLocal(new Date())}Z`,
-    `DTSTART:${icsLocal(start)}`, `DTEND:${icsLocal(end)}`,
-    `SUMMARY:${esc(`Rappeler ${label}`)}`,
-    `DESCRIPTION:${esc([c.phone, c.chantier, c.notes].filter(Boolean).join('\n'))}`,
-    'BEGIN:VALARM', 'TRIGGER:-PT0M', 'ACTION:DISPLAY', `DESCRIPTION:${esc(`Rappeler ${label}`)}`, 'END:VALARM',
-    'END:VEVENT', 'END:VCALENDAR',
-  ];
-  return downloadOrShare(`rappel-${(c.name || 'client').replace(/[^\w\-]/g, '')}.ics`, 'text/calendar', lines.join('\r\n'));
 };
 
 export const normalize = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Search, Bell, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useDataCache } from '@/context/DataCacheContext';
-import { QuickCapture, CountryToggle } from '@/components/crm/QuickCapture';
+import { QuickCapture, ZoneToggle } from '@/components/crm/QuickCapture';
 import { ClientCard } from '@/components/crm/ClientCard';
 import { ClientSheet } from '@/components/crm/ClientSheet';
 import { API, FILTERS, normalize, todayISO } from '@/components/crm/crmUtils';
@@ -12,11 +12,11 @@ const CRM = () => {
   const { invalidate } = useDataCache();
   const [clients, setClients] = useState(null);
   const [filter, setFilter] = useState('all');
-  const [country, setCountry] = useState(() => localStorage.getItem('crm_country') || 'FR');
+  const [zone, setZone] = useState(() => localStorage.getItem('crm_zone') || 'all');
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState(null);
 
-  const pickCountry = (c) => { setCountry(c); localStorage.setItem('crm_country', c); };
+  const pickZone = (z) => { setZone(z); localStorage.setItem('crm_zone', z); };
 
   const load = useCallback(async () => {
     const res = await axios.get(`${API}/clients/overview`);
@@ -30,19 +30,19 @@ const CRM = () => {
   const onDelete = (id) => { invalidate('clients'); setClients((l) => (l || []).filter((c) => c.id !== id)); };
 
   const today = todayISO();
-  const inCountry = useCallback((c) => country === 'all' || (c.country || 'FR') === country, [country]);
-  const reminders = useMemo(() => (clients || []).filter((c) => inCountry(c) && c.callback_at && c.callback_at <= today).sort((a, b) => a.callback_at.localeCompare(b.callback_at)), [clients, today, inCountry]);
+  const inZone = useCallback((c) => zone === 'all' || (c.zone || '') === zone, [zone]);
+  const reminders = useMemo(() => (clients || []).filter((c) => inZone(c) && c.callback_at && c.callback_at <= today).sort((a, b) => a.callback_at.localeCompare(b.callback_at)), [clients, today, inZone]);
 
   const visible = useMemo(() => {
     const q = normalize(search);
     return (clients || [])
-      .filter(inCountry)
+      .filter(inZone)
       .filter((c) => filter === 'all' || (filter === 'reminders' ? !!c.callback_at : c.stage === filter))
       .filter((c) => !q || normalize(`${c.civility} ${c.name} ${c.phone} ${c.city} ${c.address} ${c.chantier} ${c.source} ${c.notes}`).includes(q))
       .sort((a, b) => filter === 'reminders' ? (a.callback_at || '').localeCompare(b.callback_at || '') : (b.last_activity || '').localeCompare(a.last_activity || ''));
-  }, [clients, filter, search, inCountry]);
+  }, [clients, filter, search, inZone]);
 
-  const counts = useMemo(() => (clients || []).filter(inCountry).reduce((acc, c) => { acc.all = (acc.all || 0) + 1; acc[c.stage] = (acc[c.stage] || 0) + 1; if (c.callback_at) acc.reminders = (acc.reminders || 0) + 1; return acc; }, {}), [clients, inCountry]);
+  const counts = useMemo(() => (clients || []).filter(inZone).reduce((acc, c) => { acc.all = (acc.all || 0) + 1; acc[c.stage] = (acc[c.stage] || 0) + 1; if (c.callback_at) acc.reminders = (acc.reminders || 0) + 1; return acc; }, {}), [clients, inZone]);
   const selected = clients?.find((c) => c.id === selectedId) || null;
 
   return (
@@ -53,10 +53,10 @@ const CRM = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50 tracking-tight whitespace-nowrap">Mes clients</h1>
             <p className="text-sm text-slate-400 mt-1">{clients ? `${counts.all || 0} fiches` : 'Chargement…'}</p>
           </div>
-          <CountryToggle value={country} onChange={pickCountry} allowAll />
+          <ZoneToggle value={zone} onChange={pickZone} allowAll />
         </header>
 
-        <QuickCapture country={country === 'all' ? 'FR' : country} onCountryChange={pickCountry} onCreated={onCreated} />
+        <QuickCapture zone={zone === 'all' ? 'JU' : zone} onZoneChange={pickZone} onCreated={onCreated} />
 
         {reminders.length > 0 && (
           <section data-testid="reminders-strip" className="rounded-2xl border border-orange-200 dark:border-orange-900/50 bg-orange-50/60 dark:bg-orange-950/20 p-4">

@@ -104,13 +104,13 @@ const InvoicesList = () => {
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={`px-4 py-3 text-xs font-semibold whitespace-nowrap border-b-2 transition-colors flex items-center gap-1 ${
-                activeTab === tab.key ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                activeTab === tab.key ? 'border-violet-500 text-violet-600' : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
               data-testid={`tab-invoices-${tab.key}`}
             >
               {tab.label}
               {counts[tab.key] > 0 && (
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${activeTab === tab.key ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${activeTab === tab.key ? 'bg-violet-100 text-violet-700' : 'bg-gray-100 text-gray-500'}`}>
                   {counts[tab.key]}
                 </span>
               )}
@@ -142,7 +142,7 @@ const InvoicesList = () => {
           <Card key={inv.id} className="bg-white border border-slate-200 shadow-md rounded-xl p-4 mb-4 hover:shadow-lg hover:border-slate-300 transition-all" data-testid={`invoice-card-${inv.id}`}>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <Receipt className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                <Receipt className="h-4 w-4 text-violet-600 flex-shrink-0" />
                 <span className="font-semibold text-sm">{inv.invoice_number}</span>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${payColor(inv.payment_status)}`}>{payLabel(inv.payment_status)}</span>
               </div>

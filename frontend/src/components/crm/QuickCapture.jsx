@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { API, COUNTRIES, SOURCES, CIVILITIES, contactLabel } from './crmUtils';
+import { API, ZONES, SOURCES, CIVILITIES, contactLabel } from './crmUtils';
 
-const EMPTY = { civility: '', name: '', phone: '', email: '', city: '', address: '', chantier: '', source: '', callback_at: '', callback_time: '', notes: '' };
+const EMPTY = { zone: '', civility: '', name: '', phone: '', email: '', city: '', address: '', chantier: '', source: '', callback_at: '', callback_time: '', notes: '' };
 
 const Field = ({ label, testId, className = '', ...props }) => (
   <label className={`block ${className}`}>
@@ -22,18 +22,18 @@ const Chip = ({ active, onClick, children, testId, className = '' }) => (
   </button>
 );
 
-export const CountryToggle = ({ value, onChange, allowAll = false, size = 'md' }) => (
-  <div data-testid="country-toggle" className={`inline-flex rounded-full bg-slate-100 dark:bg-slate-800 p-0.5 ${size === 'sm' ? 'text-xs' : 'text-sm'}`}>
-    {(allowAll ? [{ code: 'all', flag: '', label: 'Tous' }, ...COUNTRIES] : COUNTRIES).map((c) => (
-      <button key={c.code} type="button" data-testid={`country-${c.code}`} onClick={() => onChange(c.code)}
-        className={`px-3 ${size === 'sm' ? 'h-7' : 'h-8'} rounded-full font-medium transition-colors ${value === c.code ? 'bg-white dark:bg-slate-950 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-800'}`}>
-        {c.flag ? <span className={c.code !== 'all' && allowAll ? 'sm:mr-1' : 'mr-1'}>{c.flag}</span> : null}<span className={allowAll && c.code !== 'all' ? 'hidden sm:inline' : ''}>{c.label}</span>
+export const ZoneToggle = ({ value, onChange, allowAll = false, size = 'md' }) => (
+  <div data-testid="zone-toggle" className={`inline-flex rounded-full bg-slate-100 dark:bg-slate-800 p-0.5 ${size === 'sm' ? 'text-xs' : 'text-sm'}`}>
+    {(allowAll ? [{ code: 'all', short: 'Tous', label: 'Tous' }, ...ZONES] : ZONES).map((z) => (
+      <button key={z.code} type="button" data-testid={`zone-${z.code}`} onClick={() => onChange(z.code)}
+        className={`${size === 'sm' ? 'h-7 px-2.5' : 'h-8 px-3'} rounded-full font-medium transition-colors ${value === z.code ? 'bg-white dark:bg-slate-950 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-800'}`}>
+        <span className="sm:hidden">{z.short}</span><span className="hidden sm:inline">{z.label}</span>
       </button>
     ))}
   </div>
 );
 
-export const QuickCapture = ({ country, onCountryChange, onCreated }) => {
+export const QuickCapture = ({ zone, onZoneChange, onCreated }) => {
   const [raw, setRaw] = useState('');
   const [focused, setFocused] = useState(false);
   const [draft, setDraft] = useState(null);
@@ -44,9 +44,9 @@ export const QuickCapture = ({ country, onCountryChange, onCreated }) => {
     if (!raw.trim()) return;
     setParsing(true);
     try {
-      const res = await axios.post(`${API}/ai/parse-contact`, { text: raw, country });
+      const res = await axios.post(`${API}/ai/parse-contact`, { text: raw, zone });
       const d = res.data.data || {};
-      setDraft({ ...EMPTY, ...d, callback_at: d.callback_at || '', callback_time: d.callback_time || '' });
+      setDraft({ ...EMPTY, ...d, zone: d.zone || zone, callback_at: d.callback_at || '', callback_time: d.callback_time || '' });
     } catch (e) {
       toast.error(e.response?.data?.detail || "L'IA n'a pas pu analyser — remplis la fiche à la main");
       setDraft({ ...EMPTY, notes: raw });
@@ -59,7 +59,7 @@ export const QuickCapture = ({ country, onCountryChange, onCreated }) => {
     if (!draft.name.trim()) { toast.error('Le nom est obligatoire'); return; }
     setSaving(true);
     try {
-      const payload = { ...draft, country, address: draft.address || draft.city, callback_at: draft.callback_at || null };
+      const payload = { ...draft, zone: draft.zone || zone, address: draft.address || draft.city, callback_at: draft.callback_at || null };
       const res = await axios.post(`${API}/clients`, payload);
       toast.success(`Fiche ${contactLabel(res.data)} créée`);
       setRaw(''); setDraft(null);
@@ -85,7 +85,7 @@ export const QuickCapture = ({ country, onCountryChange, onCreated }) => {
             <p className="text-xs text-slate-400 truncate">Tape en vrac, l'IA range tout dans la fiche.</p>
           </div>
         </div>
-        <CountryToggle value={country} onChange={onCountryChange} size="sm" />
+        <ZoneToggle value={zone} onChange={onZoneChange} size="sm" />
       </div>
 
       {!draft ? (
@@ -112,6 +112,8 @@ export const QuickCapture = ({ country, onCountryChange, onCreated }) => {
         <div data-testid="quick-capture-draft" className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             {CIVILITIES.map((c) => <Chip key={c} testId={`draft-civility-${c}`} active={draft.civility === c} onClick={() => setVal('civility', c)}>{c}</Chip>)}
+            <span className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
+            {ZONES.map((z) => <Chip key={z.code} testId={`draft-zone-${z.code}`} active={draft.zone === z.code} onClick={() => setDraft((p) => ({ ...p, zone: z.code }))}>{z.label}</Chip>)}
             <span className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
             {SOURCES.map((s) => <Chip key={s.code} testId={`draft-source-${s.code}`} active={draft.source === s.code} onClick={() => setVal('source', s.code)} title={s.label}>{s.code}</Chip>)}
           </div>
