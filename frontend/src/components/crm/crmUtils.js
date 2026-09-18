@@ -11,12 +11,81 @@ export const STAGES = {
 
 export const FILTERS = [
   { key: 'all', label: 'Tous' },
-  { key: 'contact', label: 'Contacts' },
+  { key: 'reminders', label: 'À rappeler' },
   { key: 'quote_sent', label: 'Devis envoyés' },
   { key: 'signed', label: 'Signés' },
   { key: 'invoiced', label: 'Facturés' },
   { key: 'lost', label: 'Perdus' },
 ];
+
+export const COUNTRIES = [
+  { code: 'FR', flag: '🇫🇷', label: 'France' },
+  { code: 'CH', flag: '🇨🇭', label: 'Suisse' },
+];
+
+export const SOURCES = [
+  { code: 'RN', label: 'Référencement naturel' },
+  { code: 'FB', label: 'Facebook' },
+  { code: 'GA', label: 'Google Ads' },
+  { code: 'LS', label: 'Local Service' },
+  { code: 'TK', label: 'TikTok' },
+  { code: 'BO', label: 'Bouche à oreille' },
+];
+
+export const CIVILITIES = ['Mr', 'Mme'];
+
+// "Mr Dupont Belfort FB" — the exact naming the user uses in his phone contacts
+export const contactLabel = (c) => [c.civility, c.name, c.city, c.source].map((s) => (s || '').trim()).filter(Boolean).join(' ');
+
+const downloadOrShare = async (filename, mime, content) => {
+  const file = new File([content], filename, { type: mime });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: filename }); return 'shared'; } catch (e) { if (e.name === 'AbortError') return 'cancel'; }
+  }
+  const url = URL.createObjectURL(file);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  return 'downloaded';
+};
+
+const esc = (s) => (s || '').replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;');
+
+export const exportVCard = (c) => {
+  const label = contactLabel(c) || c.name;
+  const lines = [
+    'BEGIN:VCARD', 'VERSION:3.0',
+    `N:${esc(label)};;;;`, `FN:${esc(label)}`,
+    c.phone ? `TEL;TYPE=CELL:${c.phone.replace(/[^\d+]/g, '')}` : null,
+    c.email ? `EMAIL:${c.email}` : null,
+    (c.address || c.city) ? `ADR;TYPE=HOME:;;${esc(c.address || '')};${esc(c.city || '')};;;${c.country === 'CH' ? 'Suisse' : 'France'}` : null,
+    c.chantier ? `NOTE:${esc(c.chantier)}` : null,
+    'END:VCARD',
+  ].filter(Boolean);
+  return downloadOrShare(`${label.replace(/[^\w\- ]/g, '')}.vcf`, 'text/vcard', lines.join('\r\n'));
+};
+
+const pad = (n) => String(n).padStart(2, '0');
+const icsLocal = (d) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+
+export const exportReminder = (c) => {
+  if (!c.callback_at) return Promise.resolve('none');
+  const [h, m] = (c.callback_time || '09:00').split(':').map(Number);
+  const start = new Date(`${c.callback_at}T00:00:00`); start.setHours(h || 9, m || 0, 0, 0);
+  const end = new Date(start.getTime() + 15 * 60000);
+  const label = contactLabel(c) || c.name;
+  const lines = [
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//SR Renovation//CRM//FR',
+    'BEGIN:VEVENT', `UID:${c.id}-${c.callback_at}@sr-renovation`, `DTSTAMP:${icsLocal(new Date())}Z`,
+    `DTSTART:${icsLocal(start)}`, `DTEND:${icsLocal(end)}`,
+    `SUMMARY:${esc(`Rappeler ${label}`)}`,
+    `DESCRIPTION:${esc([c.phone, c.chantier, c.notes].filter(Boolean).join('\n'))}`,
+    'BEGIN:VALARM', 'TRIGGER:-PT0M', 'ACTION:DISPLAY', `DESCRIPTION:${esc(`Rappeler ${label}`)}`, 'END:VALARM',
+    'END:VEVENT', 'END:VCALENDAR',
+  ];
+  return downloadOrShare(`rappel-${(c.name || 'client').replace(/[^\w\-]/g, '')}.ics`, 'text/calendar', lines.join('\r\n'));
+};
 
 export const normalize = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 

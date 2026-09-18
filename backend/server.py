@@ -411,7 +411,10 @@ class ClientCreate(BaseModel):
     city: Optional[str] = ""
     chantier: Optional[str] = ""
     callback_at: Optional[str] = None
+    callback_time: Optional[str] = ""
     source: Optional[str] = ""
+    civility: Optional[str] = ""
+    country: Optional[str] = "FR"
 
 class ClientQuickUpdate(BaseModel):
     name: Optional[str] = None
@@ -422,7 +425,10 @@ class ClientQuickUpdate(BaseModel):
     city: Optional[str] = None
     chantier: Optional[str] = None
     callback_at: Optional[str] = None
+    callback_time: Optional[str] = None
     source: Optional[str] = None
+    civility: Optional[str] = None
+    country: Optional[str] = None
 
 class Client(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -435,7 +441,10 @@ class Client(BaseModel):
     city: Optional[str] = ""
     chantier: Optional[str] = ""
     callback_at: Optional[str] = None
+    callback_time: Optional[str] = ""
     source: Optional[str] = ""
+    civility: Optional[str] = ""
+    country: Optional[str] = "FR"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: Optional[str] = None
 
@@ -828,6 +837,7 @@ def _gemini_json(prompt: str, temperature: float = 0.2) -> dict:
 class AITextBody(BaseModel):
     text: str
     client_name: Optional[str] = ""
+    country: Optional[str] = "FR"
 
 @api_router.post("/ai/parse-contact")
 async def ai_parse_contact(body: AITextBody):
@@ -842,8 +852,11 @@ NOTES EN VRAC :
 {body.text}
 
 RÈGLES :
-- name : nom du client (Prénom Nom ou Nom seul, corrige les majuscules). Si inconnu : "Contact sans nom"
-- phone : numéro au format "06 12 34 56 78" (vide si absent)
+- civility : "Mr" ou "Mme" si identifiable (monsieur, madame, prénom clairement féminin/masculin), sinon ""
+- name : nom du client SANS civilité (Prénom Nom ou Nom seul, corrige les majuscules). Si inconnu : "Contact sans nom"
+- phone : numéro formaté (France : "06 12 34 56 78" ; Suisse : "+41 79 123 45 67"). Le client est en {'Suisse' if body.country == 'CH' else 'France'} par défaut. Vide si absent
+- source : code du canal par lequel le client a connu l'artisan : "RN" (site / Google naturel / référencement), "FB" (Facebook), "GA" (Google Ads / annonce), "LS" (Local Service Google), "TK" (TikTok), "BO" (bouche à oreille / recommandation). "" si non mentionné
+- callback_time : heure de rappel "HH:MM" si mentionnée (ex: "17h" -> "17:00"), sinon ""
 - email : vide si absent
 - city : ville/commune (vide si absente)
 - address : adresse complète si donnée, sinon la ville
@@ -852,7 +865,7 @@ RÈGLES :
 - notes : le reste des informations utiles, réécrit en lignes courtes commençant par "• " (une info par ligne, ex: "• Mousse importante côté nord", "• Disponible le matin"). Ne répète pas nom/tél/ville
 - N'invente rien.
 
-Réponds UNIQUEMENT en JSON : {{"name":"","phone":"","email":"","city":"","address":"","chantier":"","callback_at":null,"notes":""}}"""
+Réponds UNIQUEMENT en JSON : {{"civility":"","name":"","phone":"","email":"","city":"","address":"","chantier":"","source":"","callback_at":null,"callback_time":"","notes":""}}"""
     try:
         data = await asyncio.to_thread(_gemini_json, prompt)
         return {"status": "success", "data": data}

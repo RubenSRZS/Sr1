@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Search, Bell, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useDataCache } from '@/context/DataCacheContext';
-import { QuickCapture } from '@/components/crm/QuickCapture';
+import { QuickCapture, CountryToggle } from '@/components/crm/QuickCapture';
 import { ClientCard } from '@/components/crm/ClientCard';
 import { ClientSheet } from '@/components/crm/ClientSheet';
 import { API, FILTERS, normalize, todayISO } from '@/components/crm/crmUtils';
@@ -12,8 +12,11 @@ const CRM = () => {
   const { invalidate } = useDataCache();
   const [clients, setClients] = useState(null);
   const [filter, setFilter] = useState('all');
+  const [country, setCountry] = useState(() => localStorage.getItem('crm_country') || 'FR');
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState(null);
+
+  const pickCountry = (c) => { setCountry(c); localStorage.setItem('crm_country', c); };
 
   const load = useCallback(async () => {
     const res = await axios.get(`${API}/clients/overview`);
@@ -27,30 +30,33 @@ const CRM = () => {
   const onDelete = (id) => { invalidate('clients'); setClients((l) => (l || []).filter((c) => c.id !== id)); };
 
   const today = todayISO();
-  const reminders = useMemo(() => (clients || []).filter((c) => c.callback_at && c.callback_at <= today).sort((a, b) => a.callback_at.localeCompare(b.callback_at)), [clients, today]);
+  const inCountry = useCallback((c) => country === 'all' || (c.country || 'FR') === country, [country]);
+  const reminders = useMemo(() => (clients || []).filter((c) => inCountry(c) && c.callback_at && c.callback_at <= today).sort((a, b) => a.callback_at.localeCompare(b.callback_at)), [clients, today, inCountry]);
 
   const visible = useMemo(() => {
     const q = normalize(search);
     return (clients || [])
-      .filter((c) => filter === 'all' || c.stage === filter || (filter === 'contact' && c.stage === 'quote_draft'))
-      .filter((c) => !q || normalize(`${c.name} ${c.phone} ${c.city} ${c.address} ${c.chantier} ${c.notes}`).includes(q))
-      .sort((a, b) => (b.last_activity || '').localeCompare(a.last_activity || ''));
-  }, [clients, filter, search]);
+      .filter(inCountry)
+      .filter((c) => filter === 'all' || (filter === 'reminders' ? !!c.callback_at : c.stage === filter))
+      .filter((c) => !q || normalize(`${c.civility} ${c.name} ${c.phone} ${c.city} ${c.address} ${c.chantier} ${c.source} ${c.notes}`).includes(q))
+      .sort((a, b) => filter === 'reminders' ? (a.callback_at || '').localeCompare(b.callback_at || '') : (b.last_activity || '').localeCompare(a.last_activity || ''));
+  }, [clients, filter, search, inCountry]);
 
-  const counts = useMemo(() => (clients || []).reduce((acc, c) => { const k = c.stage === 'quote_draft' ? 'contact' : c.stage; acc[k] = (acc[k] || 0) + 1; return acc; }, {}), [clients]);
+  const counts = useMemo(() => (clients || []).filter(inCountry).reduce((acc, c) => { acc.all = (acc.all || 0) + 1; acc[c.stage] = (acc[c.stage] || 0) + 1; if (c.callback_at) acc.reminders = (acc.reminders || 0) + 1; return acc; }, {}), [clients, inCountry]);
   const selected = clients?.find((c) => c.id === selectedId) || null;
 
   return (
     <div data-testid="crm-page" className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-24">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
-        <header className="flex items-end justify-between">
+        <header className="flex items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">Mes clients</h1>
-            <p className="text-sm text-slate-400 mt-1">{clients ? `${clients.length} fiches` : 'Chargement…'}</p>
+            <p className="text-sm text-slate-400 mt-1">{clients ? `${counts.all || 0} fiches` : 'Chargement…'}</p>
           </div>
+          <CountryToggle value={country} onChange={pickCountry} allowAll />
         </header>
 
-        <QuickCapture onCreated={onCreated} />
+        <QuickCapture country={country === 'all' ? 'FR' : country} onCountryChange={pickCountry} onCreated={onCreated} />
 
         {reminders.length > 0 && (
           <section data-testid="reminders-strip" className="rounded-2xl border border-orange-200 dark:border-orange-900/50 bg-orange-50/60 dark:bg-orange-950/20 p-4">
@@ -58,9 +64,9 @@ const CRM = () => {
             <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
               {reminders.map((c) => (
                 <button key={c.id} type="button" data-testid={`reminder-${c.id}`} onClick={() => setSelectedId(c.id)} className="shrink-0 rounded-xl bg-white dark:bg-slate-900 border border-orange-200 dark:border-orange-900/50 px-3 py-2 text-left hover:border-orange-400 transition-colors">
-                  <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">{c.name}</div>
+                  <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">{c.civility ? `${c.civility} ` : ''}{c.name}</div>
                   <div className="text-xs text-slate-500 truncate max-w-[180px]">{c.chantier || c.city || c.phone || '—'}</div>
-                  <div className={`text-[11px] font-medium mt-0.5 ${c.callback_at < today ? 'text-rose-600' : 'text-orange-600'}`}>{c.callback_at < today ? 'En retard' : "Aujourd'hui"}</div>
+                  <div className={`text-[11px] font-medium mt-0.5 ${c.callback_at < today ? 'text-rose-600' : 'text-orange-600'}`}>{c.callback_at < today ? 'En retard' : "Aujourd'hui"}{c.callback_time ? ` · ${c.callback_time}` : ''}</div>
                 </button>
               ))}
             </div>
@@ -70,7 +76,7 @@ const CRM = () => {
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex gap-1.5 overflow-x-auto -mx-1 px-1 pb-0.5">
             {FILTERS.map((f) => {
-              const n = f.key === 'all' ? clients?.length : counts[f.key];
+              const n = counts[f.key];
               const active = filter === f.key;
               return (
                 <button key={f.key} type="button" data-testid={`filter-${f.key}`} onClick={() => setFilter(f.key)} className={`shrink-0 h-8 px-3 rounded-full text-xs font-medium transition-colors ${active ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-slate-400'}`}>

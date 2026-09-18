@@ -24,9 +24,11 @@ export const ClientCard = ({ client, onOpen }) => {
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <h3 className="font-semibold text-slate-900 dark:text-slate-50 truncate">{client.name}</h3>
+          <h3 className="font-semibold text-slate-900 dark:text-slate-50 truncate">{client.civility ? `${client.civility} ` : ''}{client.name}</h3>
           <div className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500 truncate">
+            <span className="shrink-0">{client.country === 'CH' ? '🇨🇭' : '🇫🇷'}</span>
             {(client.city || client.address) && <><MapPin className="w-3 h-3 shrink-0" /><span className="truncate">{client.city || client.address}</span></>}
+            {client.source && <span data-testid="card-source" className="shrink-0 ml-1 px-1.5 py-px rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-semibold text-slate-600 dark:text-slate-300">{client.source}</span>}
           </div>
         </div>
         <span className={`shrink-0 inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-1 rounded-full ${stage.chip}`}>
@@ -46,7 +48,7 @@ export const ClientCard = ({ client, onOpen }) => {
           {client.phone ? <><Phone className="w-3 h-3 shrink-0" /><span className="truncate">{client.phone}</span></> : <span className="text-slate-300">Pas de téléphone</span>}
         </span>
         {cb ? (
-          <span data-testid="card-callback" className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${TONE[cb.tone]}`}><Bell className="w-3 h-3" />{cb.text}</span>
+          <span data-testid="card-callback" className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${TONE[cb.tone]}`}><Bell className="w-3 h-3" />{cb.text}{client.callback_time ? ` ${client.callback_time}` : ''}</span>
         ) : (
           <span className="text-slate-400">{amount ? fmtMoney(amount) : relativeActivity(client.last_activity)}</span>
         )}
