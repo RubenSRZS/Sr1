@@ -50,7 +50,7 @@ const CRM = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
         <header className="flex items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">Mes clients</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50 tracking-tight whitespace-nowrap">Mes clients</h1>
             <p className="text-sm text-slate-400 mt-1">{clients ? `${counts.all || 0} fiches` : 'Chargement…'}</p>
           </div>
           <CountryToggle value={country} onChange={pickCountry} allowAll />

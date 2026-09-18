@@ -1,0 +1,23 @@
+{
+  "summary": "Iteration 23 CRM: tested new country toggle (FR/CH/all with localStorage crm_country persistence), civility (Mr/Mme), source (RN/FB/GA/LS/TK/BO), callback_time, contact label 'Civ Nom Ville SOURCE', copier bouton, export .vcf (Contacts) et .ics (Réveil avec VALARM), animation zone de saisie rapide au focus, AI parse-contact CH (madame->Mme, facebook->FB, 079…->+41, 17h->17:00, lundi->date ISO). Backend 3/3 pass, frontend flux complet validé sur desktop + mobile 390x844.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iteration23_crm.py",
+    "/app/test_reports/pytest/iter23.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "QuickCapture.jsx: le sélecteur country du bloc de saisie duplique celui de l'en-tête (2 country-toggle sur la page). Playwright doit qualifier par parent (ex: '[data-testid=\"quick-capture\"] [data-testid=\"country-CH\"]'). Fonctionnel mais pourrait prêter à confusion.",
+    "Dialog Radix avertit 'Missing Description or aria-describedby' sur SheetContent (accessibilité).",
+    "sheet-contact-label inner_text inclut aussi le label du bouton Contacts (à côté). L'attribut est sur le conteneur, considérer un span dédié pour un data-testid plus précis."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration23_crm.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "PIN 033003",
+  "seed_data_creation": "TEST_Sheet Martin (CH, Mme, FB, callback aujourd'hui 17:00, Lausanne) créé + supprimé après test. TEST_Martin créé via flux quick-capture puis supprimé. Aucun résidu TEST_ vérifié.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 23 validée intégralement. Notes: le CRM a 2 data-testid country-toggle (header + quick-capture) — utiliser un sélecteur qualifié dans les tests. Après un delete via sheet, éviter de recliquer sur la carte (elle a disparu). Le PIN 033003 doit être re-saisi après chaque reload.",
+  "rca of the issue": "N/A - all new features work as specified."
+}

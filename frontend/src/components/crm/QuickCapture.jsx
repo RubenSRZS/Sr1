@@ -27,7 +27,7 @@ export const CountryToggle = ({ value, onChange, allowAll = false, size = 'md' }
     {(allowAll ? [{ code: 'all', flag: '', label: 'Tous' }, ...COUNTRIES] : COUNTRIES).map((c) => (
       <button key={c.code} type="button" data-testid={`country-${c.code}`} onClick={() => onChange(c.code)}
         className={`px-3 ${size === 'sm' ? 'h-7' : 'h-8'} rounded-full font-medium transition-colors ${value === c.code ? 'bg-white dark:bg-slate-950 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-800'}`}>
-        {c.flag ? <span className="mr-1">{c.flag}</span> : null}{c.label}
+        {c.flag ? <span className={c.code !== 'all' && allowAll ? 'sm:mr-1' : 'mr-1'}>{c.flag}</span> : null}<span className={allowAll && c.code !== 'all' ? 'hidden sm:inline' : ''}>{c.label}</span>
       </button>
     ))}
   </div>
@@ -97,7 +97,7 @@ export const QuickCapture = ({ country, onCountryChange, onCreated }) => {
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) analyze(); }}
-            placeholder={`Ex : Mme Dupont 06 12 34 56 78 Belfort FB, toiture 120 m² beaucoup de mousse, rappeler mardi 17h…`}
+            placeholder="Ex : Mme Dupont 06 12 34 56 78 Belfort FB, toiture 120 m², rappeler mardi 17h"
             className={`resize-none bg-slate-50 dark:bg-slate-950 border-slate-200 text-base sm:text-sm leading-relaxed transition-[min-height,box-shadow] duration-300 ease-out ${expanded ? 'min-h-[180px] sm:min-h-[120px] shadow-inner' : 'min-h-[56px] sm:min-h-[48px]'}`}
           />
           <div className={`flex items-center justify-between gap-2 overflow-hidden transition-[max-height,opacity] duration-300 ease-out ${expanded ? 'max-h-14 opacity-100' : 'max-h-0 opacity-0 sm:max-h-14 sm:opacity-100'}`}>

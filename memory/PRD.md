@@ -197,3 +197,10 @@ Application web pour créer des devis et factures professionnels et personnalis�
 - P1 : Sécuriser l'API (vérif PIN côté serveur sur chaque requête) — utilisateur à convaincre
 - P1 : Push GitHub via "Save to Github" puis déploiement Netlify (guide prêt)
 - P2 : Refactorisation server.py (2500 lignes) ; PDF preview fond blanc en mode sombre
+
+## Session du 18/09/2026 (suite) — retours utilisateur CRM
+- Filtre "Contacts" supprimé → remplacé par "À rappeler". Zone de saisie qui s'agrandit au focus (transition min-height), bouton sous la zone.
+- Pays 🇫🇷/🇨🇭 : toggle en-tête (filtre liste + défaut, mémorisé localStorage `crm_country`) + toggle dans le bloc saisie (pays du prospect). Client.country (défaut FR).
+- Convention iPhone "Mr Nom Ville SOURCE" : champs `civility` (Mr/Mme), `source` (RN/FB/GA/LS/TK/BO), `callback_time`. Libellé `contactLabel()` affiché dans la fiche avec Copier + export .vcf (navigator.share si dispo, sinon téléchargement). Bouton "Réveil" = export .ics avec VALARM à l'heure de rappel.
+- IA parse-contact extrait civility/source/callback_time, formate les numéros suisses (+41), paramètre `country`.
+- Tests : iteration_23.json — 100 % (backend 3/3, frontend desktop + mobile).
