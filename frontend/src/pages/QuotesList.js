@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Search, FileText, Trash2, Eye, Receipt, ChevronRight, Send, CheckCircle, Clock, FileCheck, SortAsc, Mail, EyeIcon, Copy, BellOff, Bell, XCircle, RotateCcw } from 'lucide-react';
+import { Plus, Search, FileText, Trash2, Eye, Receipt, ChevronRight, Send, CheckCircle, Clock, FileCheck, SortAsc, Mail, EyeIcon, Copy, BellOff, Bell, XCircle, RotateCcw, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -223,7 +223,7 @@ const QuotesList = () => {
           const isSent = q.status === 'sent';
 
           return (
-            <Card key={q.id} className={`bg-white border-0 shadow-sm p-4 hover:shadow-md transition-shadow ${q.status === 'lost' ? 'opacity-70' : ''}`} data-testid={`quote-card-${q.id}`}>
+            <Card key={q.id} className={`bg-white border border-slate-200 shadow-md rounded-xl p-4 mb-4 hover:shadow-lg hover:border-slate-300 transition-all ${q.status === 'lost' ? 'opacity-70' : ''}`} data-testid={`quote-card-${q.id}`}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <FileText className="h-4 w-4 text-[#3b82f6] flex-shrink-0" />
@@ -250,7 +250,7 @@ const QuotesList = () => {
                     )}
                   </div>
                 </div>
-                <span className="font-bold text-lg">{q.total_net.toFixed(0)} €</span>
+                <span className="font-bold text-lg">{Number(q.total_net || 0).toFixed(0)} €</span>
               </div>
 
               <div className="text-xs text-gray-500 mb-1">
@@ -289,9 +289,14 @@ const QuotesList = () => {
 
               {/* Actions — rangée principale */}
               <div className="flex gap-1.5 flex-wrap">
-                <Link to={`/quotes/edit/${q.id}`} style={{ flex: '1 1 auto', minWidth: 0, display: 'block' }}>
+                <Link to={`/quotes/view/${q.id}`} style={{ flex: '1 1 auto', minWidth: 0, display: 'block' }}>
                   <Button variant="outline" size="sm" className="w-full h-8 text-xs" data-testid={`view-quote-${q.id}`}>
                     <Eye className="h-3.5 w-3.5 mr-1" /> Voir
+                  </Button>
+                </Link>
+                <Link to={`/quotes/edit/${q.id}`} style={{ flex: '1 1 auto', minWidth: 0, display: 'block' }}>
+                  <Button variant="outline" size="sm" className="w-full h-8 text-xs text-slate-600" data-testid={`edit-quote-${q.id}`}>
+                    <Pencil className="h-3.5 w-3.5 mr-1" /> Modifier
                   </Button>
                 </Link>
                 <Button variant="outline" size="sm" onClick={() => setSendQuote(q)} className="h-8 text-xs text-blue-600 border-blue-200 hover:bg-blue-50" style={{ flex: '1 1 auto' }} data-testid={`send-quote-${q.id}`}>

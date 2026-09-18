@@ -1,0 +1,45 @@
+{
+  "summary": "Iteration 20 — Validated /quotes/view/:id read-only page + ErrorBoundary/null-guards + regressions. ALL PASS. (1) PIN 033003 unlocks Dashboard w/o white screen. (2) /quotes lists 36 view buttons (view-quote-{id}). (3) Click Voir on DEVIS-05 (safe draft) → navigates to /quotes/view/f38d5aa5-... — data-testid quote-view-page present; toolbar shows 'DEVIS-05' + client 'Ruben Suarez' + 'Brouillon' badge; buttons quote-view-back-btn/send-btn/edit-btn/pdf-btn all rendered; quote-view-total = 'Total : 913.50 €'. (4) Send button opens SendQuoteModal (screenshot confirms — 'Envoyer le devis' dialog visible with 'DEVIS-05 — Ruben Suarez', PDF joint, email pre-filled 'Rubensrzs03@gmail.com', Objet + Message + Annuler/Envoyer par email/Envoyer par WhatsApp buttons). Clicked Annuler — modal closed, NO email sent. (5) Modifier button navigated to /quotes/edit/f38d5aa5-... — QuoteForm loaded (Client, DEVIS-05, Titre 1010, Diagnostic, Aperçu en direct with Total 913.50 €) — no crash. (6) Back button (quote-view-back-btn) returned to /quotes. (7) Null-company old quotes: /quotes/edit/061dfe09-... and /quotes/edit/9872b753-... both load without ErrorBoundary screen; /quotes/view/061dfe09-... renders quote-view-page with Total : 5100.00 € (no crash despite company=null in DB). (8) Mobile viewport 390x844 on /quotes/view/{id}: quote-view-page renders, send button visible. (9) Backend endpoints: GET /api/quotes/{id} 200 OK; GET /api/relances/mode returns {\"mode\":\"auto\"}; GET /api/ai-relances returns [] (empty array — no leftover AI drafts). (10) Dashboard regression: follow-up-widget present with 5 items (Catherine RANIA J+120 5058€, Fati DEWES J+112 1800€, LEVET Fred J+103 1680€, Juliette HADJOU J+95 1575€, Bruno DAUGABEL J+94 2200€) — each with Relance IA button — NOT clicked per instructions. No real emails/whatsapp sent. No DB mutations.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "QuoteView (all quotes) + QuoteForm select/option", "issues": ["Non-blocking console hydration warnings: '<span> cannot be a child of <tr>/<tbody>/<option>/<select>' emitted by the ve-dynamic instrumentation overlay (data-ve-dynamic span wrapping td/tr/option elements in PDFPreview ServicesTable and QuoteForm unit select). Appears to be dev-mode injected instrumentation (x-ve-dynamic), NOT app source code — does not affect rendering, functionality, or user experience. Recommend: if PDFPreview.js/QuoteForm.js are wrapped by an external x-ve-dynamic span wrapper, either move the wrapper OUTSIDE table/select boundaries or use display:contents alternative that respects HTML nesting (e.g. React.Fragment)."]}
+    ]
+  },
+  "test_results": {
+    "pin_unlock_dashboard": "PASS — PIN 033003 typed via keyboard, dashboard loads",
+    "quotes_list_loads_36": "PASS — 36 view-quote-{id} buttons found",
+    "quote_view_page_render": "PASS — quote-view-page + all 5 data-testids present",
+    "quote_view_total": "PASS — 'Total : 913.50 €' for DEVIS-05",
+    "quote_view_send_modal_open": "PASS — SendQuoteModal opens, email pre-filled 'Rubensrzs03@gmail.com', Annuler closes modal without sending",
+    "quote_view_edit_button_nav": "PASS — /quotes/edit/{id} loads QuoteForm without crash",
+    "quote_view_back_button": "PASS — returns to /quotes",
+    "null_company_edit_no_crash": "PASS — both 061dfe09... and 9872b753... open in edit without ErrorBoundary",
+    "null_company_view_no_crash": "PASS — /quotes/view/061dfe09... renders, Total 5100.00 €",
+    "mobile_quote_view_390x844": "PASS — quote-view-page + send button visible on mobile",
+    "backend_get_quote_by_id": "PASS — 200 with full quote payload",
+    "backend_relances_mode_auto": "PASS — {\"mode\":\"auto\"}",
+    "backend_ai_relances_list": "PASS — [] (empty, no stale drafts)",
+    "dashboard_follow_up_widget": "PASS — 5 Relance IA rows displayed (not clicked)",
+    "no_emails_sent": "PASS — Send modal opened only for verification then Annuler"
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "QuoteView.jsx: total_net guard `Number(quote.total_net || 0).toFixed(2)` correctly avoids NaN when the field is null. quote?.status fallback to 'draft' via `STATUS[quote.status] || STATUS.draft` covers unknown statuses. Loading & error states render distinct UIs.",
+    "ErrorBoundary.jsx: ChunkLoadError auto-reload throttled to 15s window via sessionStorage — good guard against reload loops. Fallback UI includes reload + home buttons with data-testids for testing.",
+    "PDFPreview.js guard on inst.amount confirmed by successful render of null-company/legacy quotes without crash.",
+    "Non-blocking noise: React dev hydration warnings from `<span data-ve-dynamic>` wrappers around <tr>/<td>/<option>/<select>. This wrapper comes from external instrumentation (x-ve-dynamic attributes), not from your source files. Consider moving the instrumentation wrapper outside the table/select or excluding these boundaries.",
+    "SendQuoteModal correctly receives quote prop with pre-filled client_email; Annuler cleanly closes without side effects (no accidental POST /api/send)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (3/3 endpoints)", "frontend": "100% (15/15 assertions)"},
+  "test_credentials": {"pin": "033003"},
+  "seed_data_creation": "NONE — used only DEVIS-05 (safe draft) and read-only checks on null-company quotes 061dfe09... and 9872b753...; no DB writes performed. Send modal opened for UI verification then cancelled.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Iter 20 confirms the new QuoteView page + ErrorBoundary + null guards work end-to-end on desktop and mobile. Use PIN 033003 (typed as digits). Safe test quote = f38d5aa5-c156-489a-885a-2f63047f022e (DEVIS-05 draft, Ruben Suarez). Null-company legacy quotes: 061dfe09-59ae-4e3d-8c1a-5c8c2a3f1aa1, 9872b753-c6b3-41f2-99aa-90626c29a2f7 — both render fine in view AND edit. Relance mode stays 'auto'. Do NOT click Relance IA on dashboard widget nor Envoyer par email/WhatsApp in SendModal — DB contains real clients.",
+  "rca_of_issue": "Original user complaint (white screen viewing/editing quotes on PC & mobile) was non-reproducible in preview but plausible RCA is (a) stale JS chunk after redeploy → ChunkLoadError → now caught & auto-reloaded by ErrorBoundary; (b) legacy quotes with null fields (company, total_net, inst.amount) → now protected by Number(x||0) guards in QuoteView + PDFPreview. Both mitigations verified in this run against legacy null-company quotes."
+}

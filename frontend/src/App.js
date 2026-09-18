@@ -6,6 +6,7 @@ import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { FormPersistProvider } from '@/context/FormPersistContext';
 import { DataCacheProvider, useDataCache } from '@/context/DataCacheContext';
 import PinScreen from '@/components/PinScreen';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import BottomNav from '@/components/BottomNav';
 import DesktopNav from '@/components/DesktopNav';
 
@@ -22,6 +23,7 @@ const AIAssistant = lazy(() => import('@/pages/AIAssistant'));
 const ProfileManager = lazy(() => import('@/pages/ProfileManager'));
 const PublicQuotePage = lazy(() => import('@/pages/PublicQuotePage'));
 const RelanceSettings = lazy(() => import('@/pages/RelanceSettings'));
+const QuoteView = lazy(() => import('@/pages/QuoteView'));
 
 const RouteLoader = () => {
   const { darkMode } = useTheme();
@@ -38,7 +40,9 @@ function App() {
       <FormPersistProvider>
         <DataCacheProvider>
           <BrowserRouter>
-            <AppRouter />
+            <ErrorBoundary>
+              <AppRouter />
+            </ErrorBoundary>
           </BrowserRouter>
         </DataCacheProvider>
       </FormPersistProvider>
@@ -101,6 +105,7 @@ function AppContent() {
             <Route path="/quotes" element={<QuotesList />} />
             <Route path="/quotes/new" element={<QuoteForm />} />
             <Route path="/quotes/edit/:id" element={<QuoteForm />} />
+            <Route path="/quotes/view/:id" element={<QuoteView />} />
             <Route path="/invoices" element={<InvoicesList />} />
             <Route path="/invoices/new" element={<InvoiceForm />} />
             <Route path="/invoices/edit/:id" element={<InvoiceForm />} />

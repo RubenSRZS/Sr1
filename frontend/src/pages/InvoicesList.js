@@ -139,7 +139,7 @@ const InvoicesList = () => {
         </div>
 
         {filtered.length > 0 ? filtered.map(inv => (
-          <Card key={inv.id} className="bg-white border-0 shadow-sm p-4 hover:shadow-md transition-shadow" data-testid={`invoice-card-${inv.id}`}>
+          <Card key={inv.id} className="bg-white border border-slate-200 shadow-md rounded-xl p-4 mb-4 hover:shadow-lg hover:border-slate-300 transition-all" data-testid={`invoice-card-${inv.id}`}>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Receipt className="h-4 w-4 text-emerald-600 flex-shrink-0" />

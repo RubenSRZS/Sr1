@@ -8,6 +8,7 @@ import { initializeDefaultCatalog } from '@/utils/defaultCatalog';
 import { useTheme } from '@/context/ThemeContext';
 import { useDataCache } from '@/context/DataCacheContext';
 import AnalyticsSection from '@/components/AnalyticsSection';
+import FollowUpWidget from '@/components/FollowUpWidget';
 
 const Dashboard = () => {
   const { darkMode, toggleDarkMode } = useTheme();
@@ -121,6 +122,9 @@ const Dashboard = () => {
             </div>
           </Link>
         </div>
+
+        {/* Devis à relancer */}
+        <FollowUpWidget dark={darkMode} />
 
         {/* Analytics / Performance */}
         <AnalyticsSection dark={darkMode} />

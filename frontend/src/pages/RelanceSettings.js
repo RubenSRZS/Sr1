@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
+import AIRelanceQueue from '@/components/AIRelanceQueue';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -95,6 +96,9 @@ const RelanceSettings = () => {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-4 space-y-3">
+        {/* Relances IA : mode + file de validation */}
+        <AIRelanceQueue />
+
         {/* Info box */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-2">
           <Info className="h-4 w-4 text-blue-500 flex-shrink-0 mt-0.5" />

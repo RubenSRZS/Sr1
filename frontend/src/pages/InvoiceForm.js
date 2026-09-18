@@ -43,6 +43,17 @@ const InvoiceForm = () => {
   const [selectedProfileId, setSelectedProfileId] = useState('');
   const [templateOverride, setTemplateOverride] = useState('');
 
+  const handleProfileChange = (profileId) => {
+    setSelectedProfileId(profileId);
+    const p = profiles.find(pr => pr.id === profileId);
+    if (p?.pdf_template) setTemplateOverride(p.pdf_template);
+  };
+  const handleTemplateChange = (tmpl) => {
+    setTemplateOverride(tmpl);
+    const p = profiles.find(pr => pr.pdf_template === tmpl);
+    if (p) setSelectedProfileId(p.id);
+  };
+
   const [formData, setFormData] = useState({
     client_id: '',
     custom_invoice_number: '',
@@ -220,18 +231,18 @@ const InvoiceForm = () => {
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-slate-900' : 'bg-[var(--sr-cream)]'}`} data-testid="invoice-form-page">
       {/* Header */}
       <div style={{ background: darkMode ? 'linear-gradient(135deg, #1e293b 0%, #334155 100%)' : `linear-gradient(135deg, ${BRAND_BLUE} 0%, #3b82f6 100%)` }} className="text-white lg:hidden">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/invoices')} className="text-white hover:bg-white/10 h-8 w-8 p-0" data-testid="back-button">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/invoices')} className="text-white hover:bg-white/10 h-8 w-8 p-0 shrink-0" data-testid="back-button">
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-bold">{id ? 'Voir la facture' : 'Nouvelle facture'}</h1>
+            <h1 className="text-base font-bold whitespace-nowrap truncate">{id ? 'Voir la facture' : 'Nouvelle facture'}</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 overflow-x-auto shrink-0" style={{scrollbarWidth:'none',maxWidth:'55vw'}}>
             {!id && profiles.length > 0 && (
-              <Select value={selectedProfileId} onValueChange={setSelectedProfileId}>
-                <SelectTrigger data-testid="invoice-profile-select-mobile" className="h-8 w-auto gap-1 bg-white/15 border-white/30 text-white text-xs px-2">
-                  <Building2 className="h-3.5 w-3.5" />
+              <Select value={selectedProfileId} onValueChange={handleProfileChange}>
+                <SelectTrigger data-testid="invoice-profile-select-mobile" className="h-8 shrink-0 gap-1 bg-white/15 border-white/30 text-white text-xs px-2" style={{maxWidth:'110px'}}>
+                  <Building2 className="h-3.5 w-3.5 shrink-0" />
                   <SelectValue placeholder="Profil" />
                 </SelectTrigger>
                 <SelectContent>
@@ -239,8 +250,8 @@ const InvoiceForm = () => {
                 </SelectContent>
               </Select>
             )}
-            <Select value={templateOverride || (profiles.find(p => p.id === selectedProfileId)?.pdf_template) || 'sr_renovation'} onValueChange={setTemplateOverride}>
-              <SelectTrigger data-testid="invoice-template-select-mobile" className="h-8 w-auto gap-1 bg-white/15 border-white/30 text-white text-xs px-2">
+            <Select value={templateOverride || (profiles.find(p => p.id === selectedProfileId)?.pdf_template) || 'sr_renovation'} onValueChange={handleTemplateChange}>
+              <SelectTrigger data-testid="invoice-template-select-mobile" className="h-8 shrink-0 gap-1 bg-white/15 border-white/30 text-white text-xs px-2" style={{maxWidth:'110px'}}>
                 <Palette className="h-3.5 w-3.5" />
                 <SelectValue placeholder="Modèle" />
               </SelectTrigger>
@@ -260,7 +271,7 @@ const InvoiceForm = () => {
           <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{id ? 'Voir la facture' : 'Nouvelle facture'}</h1>
           <div className="flex items-center gap-2">
             {!id && profiles.length > 0 && (
-              <Select value={selectedProfileId} onValueChange={setSelectedProfileId}>
+              <Select value={selectedProfileId} onValueChange={handleProfileChange}>
                 <SelectTrigger data-testid="invoice-profile-select-desktop" className={`h-9 w-auto gap-1.5 text-sm px-3 ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white'}`}>
                   <Building2 className="h-4 w-4" style={{ color: BRAND_BLUE }} />
                   <SelectValue placeholder="Profil" />
@@ -270,7 +281,7 @@ const InvoiceForm = () => {
                 </SelectContent>
               </Select>
             )}
-            <Select value={templateOverride || (profiles.find(p => p.id === selectedProfileId)?.pdf_template) || 'sr_renovation'} onValueChange={setTemplateOverride}>
+            <Select value={templateOverride || (profiles.find(p => p.id === selectedProfileId)?.pdf_template) || 'sr_renovation'} onValueChange={handleTemplateChange}>
               <SelectTrigger data-testid="invoice-template-select-desktop" className={`h-9 w-auto gap-1.5 text-sm px-3 ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white'}`}>
                 <Palette className="h-4 w-4" style={{ color: BRAND_ORANGE }} />
                 <SelectValue placeholder="Modèle PDF" />

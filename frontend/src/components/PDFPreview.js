@@ -89,7 +89,7 @@ const PDF_THEMES = {
     diagBoxBorder: '#cdeee9', diagBg: '#d2f0ec', diagText: '#0f766e',
     payAltBg: '#effaf8', payAltBorder: '#a7e3db', payAltText: '#0f766e',
     sigBorderCompany: '#8fd6cd', sigBorderClient: '#f0b483',
-    signatureLogo: null,
+    signatureLogo: LOGO_SIGN_URL,
     showPartnerLogos: false,
     logoBottom: LOGO_SD_URL,
     footerTagline: "Rénovation & travaux tous corps d'état",
@@ -165,8 +165,9 @@ const getPaymentInstallments = (totalNet, paymentPlan) => {
   }
 };
 
-const ServicesTable = ({ services, title, compact, showLineNumbers = true }) => {
+const ServicesTable = ({ services, title, compact, showLineNumbers = true, forfaitMode = false }) => {
   const t = ACTIVE_THEME;
+  const colCount = forfaitMode ? (showLineNumbers ? 2 : 1) : (showLineNumbers ? 6 : 5);
   return (
   <div style={{ marginBottom: '12px' }}>
     {title && <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: t.primary, borderBottom: `2px solid ${t.primary}`, paddingBottom: '4px', marginBottom: '6px' }}>{title}</div>}
@@ -175,10 +176,10 @@ const ServicesTable = ({ services, title, compact, showLineNumbers = true }) => 
         <tr style={{ background: `linear-gradient(90deg, ${t.primary} 0%, ${t.primary} 60%, ${t.accent} 100%)` }}>
           {showLineNumbers && <th style={{ textAlign: 'center', padding: '7px 4px', color: 'white', fontWeight: 600, width: '28px', verticalAlign: 'middle' }}>N°</th>}
           <th style={{ textAlign: 'left', padding: '7px 8px', color: 'white', fontWeight: 600, verticalAlign: 'middle' }}>Description</th>
-          <th style={{ textAlign: 'center', padding: '7px 6px', color: 'white', fontWeight: 600, width: '38px', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>Qté</th>
-          <th style={{ textAlign: 'center', padding: '7px 6px', color: 'white', fontWeight: 600, width: '38px', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>Unité</th>
-          <th style={{ textAlign: 'right', padding: '7px 6px', color: 'white', fontWeight: 600, width: '56px', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>P.U.</th>
-          <th style={{ textAlign: 'right', padding: '7px 8px', color: 'white', fontWeight: 600, width: '70px', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>Total TTC</th>
+          {!forfaitMode && <th style={{ textAlign: 'center', padding: '7px 6px', color: 'white', fontWeight: 600, width: '38px', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>Qté</th>}
+          {!forfaitMode && <th style={{ textAlign: 'center', padding: '7px 6px', color: 'white', fontWeight: 600, width: '38px', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>Unité</th>}
+          {!forfaitMode && <th style={{ textAlign: 'right', padding: '7px 6px', color: 'white', fontWeight: 600, width: '56px', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>P.U.</th>}
+          {!forfaitMode && <th style={{ textAlign: 'right', padding: '7px 8px', color: 'white', fontWeight: 600, width: '70px', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>Total TTC</th>}
         </tr>
       </thead>
       <tbody>
@@ -191,18 +192,18 @@ const ServicesTable = ({ services, title, compact, showLineNumbers = true }) => 
             )}
             <td style={{ padding: '6px 8px', color: '#374151', verticalAlign: 'top', whiteSpace: 'pre-line' }}>
               {s.description || '—'}
-              {s.remise_type === 'amount' && Number(s.remise_montant || 0) > 0
+              {!forfaitMode && s.remise_type === 'amount' && Number(s.remise_montant || 0) > 0
                 ? <span style={{ marginLeft: '4px', fontSize: '9px', color: t.accent }}>(-{Number(s.remise_montant).toFixed(2)} €)</span>
-                : Number(s.remise_percent || 0) > 0 && <span style={{ marginLeft: '4px', fontSize: '9px', color: t.accent }}>(-{s.remise_percent}%)</span>
+                : !forfaitMode && Number(s.remise_percent || 0) > 0 && <span style={{ marginLeft: '4px', fontSize: '9px', color: t.accent }}>(-{s.remise_percent}%)</span>
               }
             </td>
-            <td style={{ padding: '6px 6px', textAlign: 'center', color: '#6b7280', verticalAlign: 'top', borderLeft: '1px solid #f1f5f9' }}>{s.quantity}</td>
-            <td style={{ padding: '6px 6px', textAlign: 'center', color: '#6b7280', fontStyle: 'italic', verticalAlign: 'top', borderLeft: '1px solid #f1f5f9' }}>{s.unit || 'unité'}</td>
-            <td style={{ padding: '6px 6px', textAlign: 'right', color: '#6b7280', verticalAlign: 'top', borderLeft: '1px solid #f1f5f9' }}>{Number(s.unit_price || 0).toFixed(2)} €</td>
-            <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 600, verticalAlign: 'top', borderLeft: '1px solid #f1f5f9' }}>{Number(s.total || 0).toFixed(2)} €</td>
+            {!forfaitMode && <td style={{ padding: '6px 6px', textAlign: 'center', color: '#6b7280', verticalAlign: 'top', borderLeft: '1px solid #f1f5f9' }}>{s.quantity}</td>}
+            {!forfaitMode && <td style={{ padding: '6px 6px', textAlign: 'center', color: '#6b7280', fontStyle: 'italic', verticalAlign: 'top', borderLeft: '1px solid #f1f5f9' }}>{s.unit || 'unité'}</td>}
+            {!forfaitMode && <td style={{ padding: '6px 6px', textAlign: 'right', color: '#6b7280', verticalAlign: 'top', borderLeft: '1px solid #f1f5f9' }}>{Number(s.unit_price || 0).toFixed(2)} €</td>}
+            {!forfaitMode && <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 600, verticalAlign: 'top', borderLeft: '1px solid #f1f5f9' }}>{Number(s.total || 0).toFixed(2)} €</td>}
           </tr>
         )) : (
-          <tr><td colSpan={showLineNumbers ? 6 : 5} style={{ padding: '12px', textAlign: 'center', color: '#9ca3af', fontStyle: 'italic' }}>Aucun service</td></tr>
+          <tr><td colSpan={colCount} style={{ padding: '12px', textAlign: 'center', color: '#9ca3af', fontStyle: 'italic' }}>Aucun service</td></tr>
         )}
       </tbody>
     </table>
@@ -247,7 +248,7 @@ const TotalsSection = ({ remise, remiseTotale, totalBrut, remisePercent, totalNe
         {isQuote && installments && installments.map((inst, idx) => (
           <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 10px', borderRadius: '5px', background: idx === 0 ? `linear-gradient(135deg, ${t.accent}, ${t.accentLight})` : t.payAltBg, border: idx === 0 ? 'none' : `1px solid ${t.payAltBorder}`, color: idx === 0 ? 'white' : t.payAltText, fontWeight: 600, fontSize: compact ? '9px' : '11px', marginBottom: '3px' }}>
             <span>{inst.label}</span>
-            <span>{inst.amount.toFixed(2)} €</span>
+            <span>{Number(inst.amount || 0).toFixed(2)} €</span>
           </div>
         ))}
         {/* Default acompte_solde plan */}
@@ -386,12 +387,20 @@ const PDFDocument = ({ document, type, compact = false }) => {
           </div>
         )}
 
+        {/* Badge forfait */}
+        {document.forfait_mode && (
+          <div style={{ display: 'inline-block', marginBottom: '8px', padding: '4px 12px', borderRadius: '20px', background: `linear-gradient(135deg, ${theme.primary}, ${theme.accent})`, color: 'white', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+            Prix forfaitaire — montant global TTC
+          </div>
+        )}
+
         {/* Services - Option 1 */}
         <ServicesTable 
           services={document.services} 
           title={multipleOptions ? (document.option_1_title ? `OPTION 1 : ${document.option_1_title}` : "OPTION 1") : null} 
           compact={compact} 
-          showLineNumbers={showLineNumbers} 
+          showLineNumbers={showLineNumbers}
+          forfaitMode={!!document.forfait_mode}
         />
         {isQuote && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

@@ -1,0 +1,27 @@
+{
+  "summary": "Frontend regression after mobile header fix (QuoteForm/InvoiceForm) + dead-file cleanup. Backend smoke (quotes/stats/relances-mode) all 200/OK. Mobile 390x844: /quotes/new, /invoices/new, /quotes/edit/{id} headers have NO overlap between title and selectors container (bounding box check: title_right=151.5 < prof_left=159.5, gap 8px). Profile mobile dropdown functional (2 options rendered, closes cleanly). Desktop 1920x800: /, /quotes, /invoices, /quotes/new, /invoices/new, /crm, /relances all load without navigation errors. /quotes/view/{id}: PDFDocument rendered (data-testid=pdf-document visible 794x933, DEVIS-05 content displayed). Send modal opens and Annuler closes it (NO email sent). No console errors related to sw.js. Only pre-existing hydration warnings from PDFPreview (span/th/tr nesting) — unrelated to this iteration's changes.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "PDFPreview (live preview in QuoteForm/InvoiceForm and /quotes/view)", "issues": ["Pre-existing React hydration warnings: <span data-ve-dynamic> wrapping <th>/<tr>/<tbody> inside <table> — invalid HTML nesting. Not a regression from this iteration but should be addressed by removing dynamic span wrappers around table children."]}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_21.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Mobile header fix (flex min-w-0 flex-1 + truncate on title, maxWidth 55vw on selector container) works correctly and prevents overlap on 390px viewport.",
+    "Dead file cleanup (PDFGenerator*.js, SendQuoteModal.jsx.backup*) caused no regressions — all imports still resolve, app compiles.",
+    "PDFPreview.jsx has invalid HTML: dynamic <span> wrappers inserted between <table>/<thead>/<tbody> and <tr>/<th>. Causes React hydration warnings in console. Pre-existing issue unrelated to this iteration but worth cleaning up.",
+    "Service worker (sw.js) confirmed NOT active in preview (dev server) — no console errors."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (3/3 smoke)", "frontend": "100% (all mobile+desktop checks pass)"},
+  "test_credentials": "PIN 033003",
+  "seed_data_creation": "None — used existing quote f38d5aa5-c156-489a-885a-2f63047f022e (DEVIS-05 brouillon).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Mobile header layout on /quotes/new, /invoices/new, /quotes/edit/{id} is now clean (no overlap). Selectors profile-select-mobile, template-select-mobile, invoice-profile-select-mobile, invoice-template-select-mobile all functional. Pre-existing PDFPreview hydration warnings (span in table) remain — not blocking but should be fixed eventually.",
+  "rca of the issue": "N/A — regression verification only. Fix confirmed working: h1 uses truncate + parent flex-1 min-w-0, selectors container has maxWidth:55vw, giving 8px safe gap on 390px viewport."
+}

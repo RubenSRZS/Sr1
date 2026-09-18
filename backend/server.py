@@ -184,6 +184,95 @@ def build_relance_html(body_html: str, public_link: str, relance_day: int,
 </body>
 </html>"""
 
+RELANCE_TONES = {
+    3: "premier rappel doux et amical, sans aucune pression",
+    7: "relance directe avec une ou deux questions ouvertes pour engager la conversation",
+    14: "mise en avant de la valeur du travail proposé et de la disponibilité pour démarrer rapidement le chantier",
+    30: "dernière relance, courtoise et sans pression, qui laisse la porte ouverte pour l'avenir",
+}
+
+async def generate_ai_relance_draft(q: dict, days_since: int, day: int, tmpl: dict = None) -> Optional[dict]:
+    """Génère un brouillon de relance personnalisé via Gemini. Fallback: template classique."""
+    fmt = dict(
+        quote_number=q.get("quote_number", ""),
+        client_name=q.get("client_name", ""),
+        total_net=f"{q.get('total_net', 0):.2f}",
+        work_location=q.get("work_location", "")
+    )
+    fallback = None
+    if tmpl:
+        try:
+            fallback = {"subject": tmpl["subject"].format(**fmt), "body": tmpl["body"].format(**fmt), "ai": False}
+        except Exception:
+            fallback = None
+    if not GEMINI_API_KEY:
+        return fallback
+    company = q.get("company") or {}
+    company_name = company.get("company_name") or "SR Rénovation"
+    signer = company.get("account_holder") or "Ruben Suarez"
+    open_count = q.get("open_count", 0)
+    tone = RELANCE_TONES.get(day, RELANCE_TONES[7])
+    relances_deja = q.get("relances_sent", [])
+    prompt = f"""Tu es {signer}, artisan de l'entreprise {company_name} (nettoyage toiture, façade, terrasse — Jura).
+Rédige un email de relance personnalisé pour un devis resté sans réponse.
+
+CONTEXTE:
+- Client : {q.get('client_name', '')}
+- Devis n°{q.get('quote_number', '')} — {q.get('quote_title', '') or 'travaux de rénovation'}
+- Montant : {fmt['total_net']} €
+- Lieu du chantier : {q.get('work_location', '') or 'non précisé'}
+- Devis envoyé il y a {days_since} jours
+- Le client a ouvert le devis {open_count} fois (NE MENTIONNE JAMAIS ce suivi au client, adapte seulement le ton : s'il l'a ouvert plusieurs fois il est intéressé mais hésite)
+- Relances déjà envoyées : {relances_deja if relances_deja else 'aucune'}
+
+CONSIGNES:
+- Ton : {tone}
+- Français naturel et chaleureux, comme un artisan qui écrit lui-même (aucun jargon marketing)
+- Court : 4 à 6 phrases maximum
+- N'invente JAMAIS de remise, de promotion ni de promesse
+- Vouvoie le client
+- Termine par la signature : "{signer} – {company_name}"
+- Un bouton "Consulter mon devis" est ajouté automatiquement sous ton message : n'inclus AUCUN lien
+
+Réponds UNIQUEMENT en JSON : {{"subject": "objet de l'email", "body": "corps du message avec \\n pour les sauts de ligne"}}"""
+    try:
+        response = await asyncio.to_thread(
+            gemini_client.models.generate_content,
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(temperature=0.7),
+        )
+        text = response.text.strip()
+        if text.startswith('```json'):
+            text = text[7:]
+        if text.startswith('```'):
+            text = text[3:]
+        if text.endswith('```'):
+            text = text[:-3]
+        data = json.loads(text.strip())
+        if data.get("subject") and data.get("body"):
+            return {"subject": data["subject"], "body": data["body"], "ai": True}
+    except Exception as e:
+        logger.error(f"AI relance generation failed for quote {q.get('id')}: {e}")
+    return fallback
+
+def _ai_relance_doc(q: dict, day: int, days_since: int, draft: dict) -> dict:
+    return {
+        "id": str(uuid.uuid4()),
+        "quote_id": q["id"],
+        "quote_number": q.get("quote_number", ""),
+        "client_name": q.get("client_name", ""),
+        "client_email": q.get("client_email", ""),
+        "day": day,
+        "days_since": days_since,
+        "subject": draft["subject"],
+        "body": draft["body"],
+        "ai_generated": draft.get("ai", False),
+        "status": "pending",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "sent_at": None,
+    }
+
 async def run_relances():
     today = datetime.now(timezone.utc)
     if today.weekday() == 6:
@@ -191,6 +280,8 @@ async def run_relances():
         return
     thresholds = [3, 7, 14, 30]
     count = 0
+    settings = await db.settings.find_one({"id": "app_settings"}, {"_id": 0})
+    ai_mode = (settings or {}).get("relance_mode", "auto") == "ai"
     async for q in db.quotes.find(
         {"status": "sent", "relances_active": True, "sent_at": {"$exists": True, "$ne": None}},
         {"_id": 0}
@@ -221,6 +312,21 @@ async def run_relances():
                 total_net=f"{q.get('total_net', 0):.2f}",
                 work_location=q.get("work_location", "")
             )
+            if ai_mode:
+                if await db.ai_relances.find_one({"quote_id": q["id"], "status": "pending"}):
+                    continue
+                draft = await generate_ai_relance_draft(q, days_since, pending, tmpl)
+                if not draft:
+                    continue
+                await db.ai_relances.insert_one(_ai_relance_doc(q, pending, days_since, draft))
+                new_sent = relances_sent + [pending]
+                upd = {"relances_sent": new_sent}
+                if pending == 30:
+                    upd["relances_active"] = False
+                await db.quotes.update_one({"id": q["id"]}, {"$set": upd})
+                count += 1
+                logger.info(f"Relance IA J+{pending} mise en file => quote {q['id']}")
+                continue
             subject = tmpl["subject"].format(**fmt)
             body_html = tmpl["body"].replace('\n', '<br>').format(**fmt)
             base_url = os.environ.get("PUBLIC_APP_URL", "")
@@ -359,6 +465,8 @@ class QuoteCreate(BaseModel):
     notes: Optional[str] = ""
     selected_option: Optional[int] = None  # Option choisie par le client (1, 2, 3...)
     template: Optional[str] = None  # Override du template PDF pour ce devis
+    forfait_mode: bool = False  # Mode prix forfaitaire global
+    forfait_price: float = 0.0  # Prix forfaitaire total TTC
 
 class Quote(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -409,6 +517,8 @@ class Quote(BaseModel):
     signature_data: Optional[str] = None
     selected_option: Optional[int] = None
     public_token: str = Field(default_factory=lambda: secrets.token_urlsafe(32))
+    forfait_mode: bool = False
+    forfait_price: float = 0.0
     sent_at: Optional[str] = None
     sent_to_email: Optional[str] = None
     opened_at: Optional[str] = None
@@ -835,6 +945,12 @@ async def create_quote(input: QuoteCreate):
     remise = remise_from_pct if input.remise_percent > 0 else round(input.remise_montant, 2)
     total_net = round(total_brut - remise, 2)
     acompte_30 = round(total_net * 0.30, 2)
+    # Mode forfait : le prix global remplace tous les calculs détaillés
+    if input.forfait_mode and input.forfait_price > 0:
+        total_brut = round(input.forfait_price, 2)
+        remise = 0
+        total_net = round(input.forfait_price, 2)
+        acompte_30 = round(input.forfait_price * 0.30, 2)
     
     # Options dynamiques (illimitées) — calcul des totaux
     computed_additional = [compute_option_block(o) for o in (input.additional_options or [])]
@@ -918,6 +1034,8 @@ async def create_quote(input: QuoteCreate):
         option_3_acompte_30=b3["acompte_30"],
         additional_options=computed_additional,
         status="draft",
+        forfait_mode=input.forfait_mode,
+        forfait_price=input.forfait_price if input.forfait_mode else 0.0,
     )
     doc = quote.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
@@ -1262,8 +1380,13 @@ async def get_public_quote(token: str):
     q = await db.quotes.find_one({"public_token": token}, {"_id": 0})
     if not q:
         raise HTTPException(status_code=404, detail="Devis non trouvé")
-    # Always resolve CURRENT profile so PDF stays up-to-date when profile changes
-    _, company = await resolve_company(q.get("profile_id"))
+    # Resolve company contact from the profile matching the quote's template
+    stored_template = (q.get("company") or {}).get("template") or "sr_renovation"
+    tmpl_profile = await db.profiles.find_one({"pdf_template": stored_template}, {"_id": 0})
+    profile_id_to_use = tmpl_profile.get("id") if tmpl_profile else q.get("profile_id")
+    _, company = await resolve_company(profile_id_to_use)
+    if company:
+        company["template"] = stored_template
     # Return all fields needed by PDFDocument component for visual parity
     return {
         "company": company,
@@ -1570,7 +1693,7 @@ async def trigger_relances_now():
 async def send_preview_emails(body: dict = Body(...)):
     """Envoie les 4 templates de relance en aperçu à l'adresse spécifiée."""
     to_email = body.get("email", "rubensrzs03@gmail.com")
-    base_url = os.environ.get("PUBLIC_APP_URL", "https://invoice-hub-736.preview.emergentagent.com")
+    base_url = os.environ.get("PUBLIC_APP_URL", "https://devis-manager-22.preview.emergentagent.com")
     public_link = f"{base_url}/devis/public/preview"
     fmt = dict(quote_number="D-2025-042", client_name="Ruben Suarez", total_net="3 250.00", work_location="Votre chantier test")
     sent = []
@@ -1598,7 +1721,7 @@ async def send_single_preview(day: int, body: dict = Body(...)):
     if day not in [3, 7, 14, 30]:
         raise HTTPException(status_code=400, detail="Jour invalide")
     to_email = body.get("email", "rubensrzs03@gmail.com")
-    base_url = os.environ.get("PUBLIC_APP_URL", "https://invoice-hub-736.preview.emergentagent.com")
+    base_url = os.environ.get("PUBLIC_APP_URL", "https://devis-manager-22.preview.emergentagent.com")
     public_link = f"{base_url}/devis/public/preview"
     fmt = dict(quote_number="D-2025-042", client_name="Ruben Suarez", total_net="3 250.00", work_location="Votre chantier test")
     tmpl = await db.relance_templates.find_one({"day": day}, {"_id": 0})
@@ -1625,6 +1748,7 @@ class SendQuoteEmail(BaseModel):
     pdf_base64: str | None = None
     pdf_filename: str | None = None
     extra_attachments: list[dict] | None = None  # [{filename, content (base64)}]
+    public_base_url: str | None = None  # passed by frontend (window.location.origin)
 
 @api_router.post("/quotes/{quote_id}/public-token")
 async def ensure_quote_public_token(quote_id: str):
@@ -1648,7 +1772,7 @@ async def send_quote_email(quote_id: str, body: SendQuoteEmail):
         public_token = secrets.token_urlsafe(32)
         await db.quotes.update_one({"id": quote_id}, {"$set": {"public_token": public_token}})
 
-    base_url = os.environ.get("PUBLIC_APP_URL", "")
+    base_url = body.public_base_url or os.environ.get("PUBLIC_APP_URL", "")
     public_link = f"{base_url}/devis/public/{public_token}" if base_url else f"/devis/public/{public_token}"
 
     # Convert newlines in message to <br>
@@ -2021,7 +2145,7 @@ async def ai_generate_document(body: AIGenerateRequest):
         
         # Construire le system prompt avec le catalogue
         services_list = "\n".join([
-            f"- {s['service_name']} (Catégorie: {s['category']}, Prix suggéré: {s.get('default_price', 'N/A')}€, Unité: {s.get('default_unit', 'unité')})"
+            f"- {s['service_name']} | Description: {s.get('description','') or s['service_name']} | Catégorie: {s['category']} | Prix suggéré: {s.get('default_price', 'N/A')}€ | Unité: {s.get('default_unit', 'unité')}"
             for s in services
         ])
         
@@ -2047,7 +2171,8 @@ INSTRUCTIONS:
 
 IMPORTANT:
 - Utilise UNIQUEMENT les services du catalogue
-- Si le service n'existe pas exactement, trouve le plus proche
+- Pour chaque service sélectionné, utilise la Description complète du catalogue (pas seulement le nom) comme valeur du champ "description" dans le JSON
+- Si le service n'existe pas exactement, trouve le plus proche et utilise sa description complète
 - Ajuste intelligemment les quantités pour atteindre le montant cible
 - Si pas de montant cible, utilise les prix du catalogue
 
@@ -2108,6 +2233,117 @@ Réponds UNIQUEMENT en JSON avec cette structure exacte:
     except Exception as e:
         logger.error(f"Erreur génération IA: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+# ==================== RELANCES IA (validation manuelle) ====================
+
+class AIRelanceUpdate(BaseModel):
+    subject: str
+    body: str
+
+class RelanceModeBody(BaseModel):
+    mode: str
+
+@api_router.get("/relances/mode")
+async def get_relance_mode():
+    settings = await get_settings()
+    return {"mode": settings.get("relance_mode", "auto")}
+
+@api_router.put("/relances/mode")
+async def set_relance_mode(body: RelanceModeBody):
+    if body.mode not in ("auto", "ai"):
+        raise HTTPException(status_code=400, detail="Mode invalide (auto ou ai)")
+    await get_settings()
+    await db.settings.update_one({"id": "app_settings"}, {"$set": {"relance_mode": body.mode}})
+    return {"mode": body.mode}
+
+@api_router.get("/ai-relances")
+async def list_ai_relances(status: str = "pending"):
+    query = {} if status == "all" else {"status": status}
+    return await db.ai_relances.find(query, {"_id": 0}).sort("created_at", -1).to_list(200)
+
+@api_router.put("/ai-relances/{relance_id}")
+async def update_ai_relance(relance_id: str, body: AIRelanceUpdate):
+    r = await db.ai_relances.update_one({"id": relance_id}, {"$set": {"subject": body.subject, "body": body.body}})
+    if r.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Relance introuvable")
+    return {"status": "success"}
+
+@api_router.post("/ai-relances/{relance_id}/reject")
+async def reject_ai_relance(relance_id: str):
+    r = await db.ai_relances.update_one({"id": relance_id, "status": "pending"}, {"$set": {"status": "rejected"}})
+    if r.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Relance introuvable ou déjà traitée")
+    return {"status": "success"}
+
+@api_router.post("/ai-relances/{relance_id}/send")
+async def send_ai_relance(relance_id: str):
+    rel = await db.ai_relances.find_one({"id": relance_id}, {"_id": 0})
+    if not rel:
+        raise HTTPException(status_code=404, detail="Relance introuvable")
+    if rel.get("status") == "sent":
+        raise HTTPException(status_code=400, detail="Relance déjà envoyée")
+    q = await db.quotes.find_one({"id": rel["quote_id"]}, {"_id": 0})
+    if not q:
+        raise HTTPException(status_code=404, detail="Devis introuvable")
+    client_email = q.get("client_email") or rel.get("client_email")
+    if not client_email:
+        raise HTTPException(status_code=400, detail="Ce client n'a pas d'adresse email")
+    base_url = os.environ.get("PUBLIC_APP_URL", "")
+    public_link = f"{base_url}/devis/public/{q.get('public_token', '')}" if base_url else "#"
+    sent_date_fmt = ""
+    if q.get("sent_at"):
+        try:
+            sa = datetime.fromisoformat(q["sent_at"].replace("Z", "+00:00"))
+            months_fr = ["jan.", "fév.", "mar.", "avr.", "mai", "juin", "juil.", "août", "sep.", "oct.", "nov.", "déc."]
+            sent_date_fmt = f"{sa.day} {months_fr[sa.month - 1]} {sa.year}"
+        except Exception:
+            pass
+    body_html = rel["body"].replace("\n", "<br>")
+    html = build_relance_html(body_html, public_link, rel.get("day", 0),
+                              quote_number=q.get("quote_number", ""),
+                              quote_title=q.get("quote_title", ""),
+                              work_location=q.get("work_location", ""),
+                              sent_date=sent_date_fmt)
+    params = {
+        "from": f"SR Renovation <{SENDER_EMAIL}>",
+        "to": [client_email],
+        "reply_to": REPLY_TO_EMAIL,
+        "subject": rel["subject"],
+        "html": html,
+    }
+    await asyncio.to_thread(resend.Emails.send, params)
+    now_str = datetime.now(timezone.utc).isoformat()
+    await db.ai_relances.update_one({"id": relance_id}, {"$set": {"status": "sent", "sent_at": now_str}})
+    upd = {"last_relance_at": now_str}
+    day = rel.get("day")
+    if day in (3, 7, 14, 30) and day not in q.get("relances_sent", []):
+        upd["relances_sent"] = q.get("relances_sent", []) + [day]
+    await db.quotes.update_one({"id": q["id"]}, {"$set": upd})
+    logger.info(f"Relance IA envoyée => quote {q['id']} / {client_email}")
+    return {"status": "success"}
+
+@api_router.post("/ai-relances/generate/{quote_id}")
+async def generate_ai_relance_manual(quote_id: str):
+    q = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
+    if not q:
+        raise HTTPException(status_code=404, detail="Devis introuvable")
+    existing = await db.ai_relances.find_one({"quote_id": quote_id, "status": "pending"}, {"_id": 0})
+    if existing:
+        return {"status": "exists", "relance": existing}
+    days_since = 0
+    if q.get("sent_at"):
+        try:
+            days_since = (datetime.now(timezone.utc) - datetime.fromisoformat(q["sent_at"].replace("Z", "+00:00"))).days
+        except Exception:
+            pass
+    tone_day = 3 if days_since <= 4 else 7 if days_since <= 10 else 14 if days_since <= 21 else 30
+    tmpl = await db.relance_templates.find_one({"day": tone_day}, {"_id": 0}) or DEFAULT_RELANCE_TEMPLATES.get(tone_day)
+    draft = await generate_ai_relance_draft(q, days_since, tone_day, tmpl)
+    if not draft:
+        raise HTTPException(status_code=500, detail="Génération impossible")
+    doc = _ai_relance_doc(q, tone_day, days_since, draft)
+    await db.ai_relances.insert_one(dict(doc))
+    return {"status": "success", "relance": doc}
 
 app.include_router(api_router)
 

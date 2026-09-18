@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 class SignatureWorkflowTester:
-    def __init__(self, base_url="https://invoice-hub-736.preview.emergentagent.com"):
+    def __init__(self, base_url="https://devis-manager-22.preview.emergentagent.com"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0

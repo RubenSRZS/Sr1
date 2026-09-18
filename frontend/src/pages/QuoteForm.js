@@ -305,6 +305,21 @@ const QuoteForm = () => {
   const [profiles, setProfiles] = useState([]);
   const [selectedProfileId, setSelectedProfileId] = useState('');
   const [templateOverride, setTemplateOverride] = useState('');
+
+  const [forfaitMode, setForfaitMode] = useState(false);
+  const [forfaitPrice, setForfaitPrice] = useState('');
+
+  // Syncing handlers — changing profile auto-updates template and vice-versa
+  const handleProfileChange = (profileId) => {
+    setSelectedProfileId(profileId);
+    const p = profiles.find(pr => pr.id === profileId);
+    if (p?.pdf_template) setTemplateOverride(p.pdf_template);
+  };
+  const handleTemplateChange = (tmpl) => {
+    setTemplateOverride(tmpl);
+    const p = profiles.find(pr => pr.pdf_template === tmpl);
+    if (p) setSelectedProfileId(p.id);
+  };
   const [catalogSearch, setCatalogSearch] = useState('');
 
   const initialFormState = {
@@ -451,6 +466,8 @@ const QuoteForm = () => {
         const q = r.data;
         if (q.profile_id) setSelectedProfileId(q.profile_id);
         if (q.company?.template) setTemplateOverride(q.company.template);
+        if (q.forfait_mode) setForfaitMode(true);
+        if (q.forfait_price) setForfaitPrice(String(q.forfait_price));
         
         // Charger les options dynamiques : priorité au nouveau format additional_options,
         // sinon rétro-compatibilité avec les anciens champs option_2 / option_3.
@@ -717,10 +734,18 @@ const QuoteForm = () => {
       remise_montant: formData.remise_type === 'amount' ? formData.remise_montant : 0,
       additional_options,
       notes: formData.notes,
+      forfait_mode: forfaitMode,
+      forfait_price: forfaitMode ? (parseFloat(forfaitPrice) || 0) : 0,
+      ...(forfaitMode && parseFloat(forfaitPrice) > 0 ? {
+        total_net: parseFloat(forfaitPrice),
+        total_brut: parseFloat(forfaitPrice),
+        remise: 0,
+        acompte_30: Math.round(parseFloat(forfaitPrice) * 0.30 * 100) / 100,
+      } : {}),
     };
 
     return doc;
-  }, [formData, newClient, showNewClient, clients, id, totals1, additionalOptions, profiles, selectedProfileId, templateOverride]);
+  }, [formData, newClient, showNewClient, clients, id, totals1, additionalOptions, profiles, selectedProfileId, templateOverride, forfaitMode, forfaitPrice]);
 
   const handleDownloadPDF = useCallback(async () => {
     await downloadPDF(previewDoc, 'quote');
@@ -732,6 +757,7 @@ const QuoteForm = () => {
     const hasNewClient = showNewClient && newClient.name;
     if (!clientId && !hasNewClient) { toast.error('Sélectionnez ou créez un client'); return; }
     if (formData.services.length === 0) { toast.error('Ajoutez au moins un service à l\'option 1'); return; }
+    if (forfaitMode && !(parseFloat(forfaitPrice) > 0)) { toast.error('Saisissez le montant forfaitaire'); return; }
     const emptyOption = additionalOptions.find(o => (o.services || []).length === 0);
     if (emptyOption) { toast.error('Une option supplémentaire est vide. Ajoutez un service ou supprimez-la.'); return; }
     if (showNewClient && (!newClient.name || !newClient.phone || !newClient.address)) {
@@ -756,6 +782,8 @@ const QuoteForm = () => {
         remise_montant: formData.remise_type === 'amount' ? formData.remise_montant : 0,
         payment_plan: formData.payment_plan || 'acompte_solde',
         notes: formData.notes,
+        forfait_mode: forfaitMode,
+        forfait_price: forfaitMode ? (parseFloat(forfaitPrice) || 0) : 0,
         // Options dynamiques (illimitées)
         additional_options: additionalOptions
           .filter(o => (o.services || []).length > 0)
@@ -796,18 +824,18 @@ const QuoteForm = () => {
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-slate-900' : 'bg-[var(--sr-cream)]'}`} data-testid="quote-form-page">
       {/* Header */}
       <div style={{ background: darkMode ? 'linear-gradient(135deg, #1e293b 0%, #334155 100%)' : `linear-gradient(135deg, ${BRAND_BLUE} 0%, #3b82f6 100%)` }} className="text-white lg:hidden">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/quotes')} className="text-white hover:bg-white/10 h-8 w-8 p-0" data-testid="back-button">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/quotes')} className="text-white hover:bg-white/10 h-8 w-8 p-0 shrink-0" data-testid="back-button">
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-bold">{id ? 'Modifier le devis' : 'Nouveau devis'}</h1>
+            <h1 className="text-base font-bold whitespace-nowrap truncate">{id ? 'Modifier le devis' : 'Nouveau devis'}</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 overflow-x-auto shrink-0" style={{scrollbarWidth:'none',maxWidth:'55vw'}}>
             {profiles.length > 0 && (
-              <Select value={selectedProfileId} onValueChange={setSelectedProfileId}>
-                <SelectTrigger data-testid="profile-select-mobile" className="h-8 w-auto gap-1 bg-white/15 border-white/30 text-white text-xs px-2 hover:bg-white/25">
-                  <Building2 className="h-3.5 w-3.5" />
+              <Select value={selectedProfileId} onValueChange={handleProfileChange}>
+                <SelectTrigger data-testid="profile-select-mobile" className="h-8 shrink-0 gap-1 bg-white/15 border-white/30 text-white text-xs px-2 hover:bg-white/25" style={{maxWidth:'110px'}}>
+                  <Building2 className="h-3.5 w-3.5 shrink-0" />
                   <SelectValue placeholder="Profil" />
                 </SelectTrigger>
                 <SelectContent>
@@ -815,8 +843,8 @@ const QuoteForm = () => {
                 </SelectContent>
               </Select>
             )}
-            <Select value={templateOverride || (profiles.find(p => p.id === selectedProfileId)?.pdf_template) || 'sr_renovation'} onValueChange={setTemplateOverride}>
-              <SelectTrigger data-testid="template-select-mobile" className="h-8 w-auto gap-1 bg-white/15 border-white/30 text-white text-xs px-2 hover:bg-white/25">
+            <Select value={templateOverride || (profiles.find(p => p.id === selectedProfileId)?.pdf_template) || 'sr_renovation'} onValueChange={handleTemplateChange}>
+              <SelectTrigger data-testid="template-select-mobile" className="h-8 shrink-0 gap-1 bg-white/15 border-white/30 text-white text-xs px-2 hover:bg-white/25" style={{maxWidth:'110px'}}>
                 <Palette className="h-3.5 w-3.5" />
                 <SelectValue placeholder="Modèle" />
               </SelectTrigger>
@@ -836,7 +864,7 @@ const QuoteForm = () => {
           <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{id ? 'Modifier le devis' : 'Nouveau devis'}</h1>
           <div className="flex items-center gap-2">
             {profiles.length > 0 && (
-              <Select value={selectedProfileId} onValueChange={setSelectedProfileId}>
+              <Select value={selectedProfileId} onValueChange={handleProfileChange}>
                 <SelectTrigger data-testid="profile-select-desktop" className={`h-9 w-auto gap-1.5 text-sm px-3 ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white'}`}>
                   <Building2 className="h-4 w-4" style={{ color: BRAND_BLUE }} />
                   <SelectValue placeholder="Profil entreprise" />
@@ -846,7 +874,7 @@ const QuoteForm = () => {
                 </SelectContent>
               </Select>
             )}
-            <Select value={templateOverride || (profiles.find(p => p.id === selectedProfileId)?.pdf_template) || 'sr_renovation'} onValueChange={setTemplateOverride}>
+            <Select value={templateOverride || (profiles.find(p => p.id === selectedProfileId)?.pdf_template) || 'sr_renovation'} onValueChange={handleTemplateChange}>
               <SelectTrigger data-testid="template-select-desktop" className={`h-9 w-auto gap-1.5 text-sm px-3 ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white'}`}>
                 <Palette className="h-4 w-4" style={{ color: BRAND_ORANGE }} />
                 <SelectValue placeholder="Modèle PDF" />
@@ -949,6 +977,25 @@ const QuoteForm = () => {
                   </button>
                 </label>
               </div>
+            </Card>
+
+            {/* Prix forfaitaire */}
+            <Card className="p-4 bg-white border-0 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-semibold text-gray-700">Prix forfaitaire</div>
+                  <div className="text-xs text-gray-400 mt-0.5">Un seul montant global, sans détailler chaque prestation</div>
+                </div>
+                <button type="button" onClick={() => setForfaitMode(f => !f)} className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${forfaitMode ? 'bg-blue-600' : 'bg-gray-200'}`} data-testid="forfait-toggle">
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${forfaitMode ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+                </button>
+              </div>
+              {forfaitMode && (
+                <div className="mt-3">
+                  <label className="text-xs text-gray-500 block mb-1">Montant forfaitaire total TTC</label>
+                  <input type="number" value={forfaitPrice} onChange={e => setForfaitPrice(e.target.value)} placeholder="0.00" min="0" step="0.01" className="w-full h-10 px-3 rounded-lg border text-sm font-bold focus:outline-none focus:ring-1 focus:ring-blue-400" style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }} data-testid="forfait-price-input" />
+                </div>
+              )}
             </Card>
 
             {/* Option 1 Services */}

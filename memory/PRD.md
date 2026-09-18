@@ -136,14 +136,49 @@ Application web pour créer des devis et factures professionnels et personnalis�
 - **Dates dans la timeline** : badges "Envoyé le 28 avr.", "Ouvert le 24 avr.", "Signé le …", "Perdu le …".
 - Tests: iteration_19.json — frontend 16/16 PASS.
 
+## Implémenté le 19/06/2026
+- **Signature entreprise sur template SD Rénovation** : `signatureLogo` était `null` dans le thème SD → changé en `LOGO_SIGN_URL` (même signature que SR). Rétrocompatible (B64 map déjà présente).
+- **Correctif envoi email avec templates** : `SendQuoteModal` remplaçait `company` du devis par le profil brut (`pdf_template`) → PDFPreview lisait `company.template = undefined` → fallback SR template. Désormais le template du devis est préservé (`quote.company.template || profile.pdf_template`).
+
 ### P0 — À confirmer avec l'utilisateur
 - Le profil par défaut actuel est "Câble Ethernet Ugreen" (semble être un profil de test). L'utilisateur voudra probablement définir "SR Rénovation" comme profil par défaut (page Profil / bouton 'définir par défaut').
 
+## Session du 20/06/2026
+- **Contact SD sur page publique** : résolution via profil correspondant au template (David/SD), non plus Ruben par défaut
+- **Sélecteurs profil/template liés** : changer l'un met à jour l'autre automatiquement (QuoteForm + InvoiceForm)
+- **Header mobile** : sélecteurs dans container scrollable, ne débordent plus
+- **Prix forfaitaire** : toggle dans le formulaire devis, PDF masque les colonnes prix, badge "PRIX FORFAITAIRE" visible, backend stocke et calcule l'acompte 30%
+- **Assistant IA** : prompt enrichi avec descriptions complètes du catalogue, Gemini utilise désormais la description du service et pas seulement le titre
+
+## Session du 12/07/2026 — Relances IA (Phase 3)
+- **Mode relances configurable** : `relance_mode` (auto | ai) dans settings — GET/PUT `/api/relances/mode`
+- **Génération IA (Gemini 2.5 Flash)** : brouillons de relance personnalisés (montant, chantier, ouvertures, ton selon J+3/7/14/30), fallback template classique si échec IA
+- **File de validation** : collection `ai_relances`, endpoints GET `/api/ai-relances`, PUT (édition), POST `/send`, `/reject`, POST `/api/ai-relances/generate/{quote_id}` (manuel)
+- **Scheduler** : en mode IA, `run_relances` met en file au lieu d'envoyer (1 brouillon pending max par devis)
+- **UI /relances** : composant `AIRelanceQueue.jsx` — toggle mode + file éditable avec Valider & envoyer / Rejeter
+- **Dashboard** : widget `FollowUpWidget.jsx` "Devis à relancer" (envoyés ≥5j non signés, bouton Relance IA)
+- Testé via curl : génération Gemini OK (email personnalisé signé SD/SR selon devis), file, rejet, modes. Mode laissé sur "auto" par défaut.
+
+## Session du 25/07/2026 — Crash blanc devis + page "Voir"
+- **ErrorBoundary global** (`ErrorBoundary.jsx`, wrap dans App.js) : plus jamais d'écran blanc — UI d'erreur FR avec Recharger/Accueil + auto-reload sur ChunkLoadError (chunks lazy périmés après déploiement, cause probable du crash prod)
+- **Guards null** : `total_net` (QuotesList x2, QuoteView), `inst.amount` (PDFPreview) — anciens devis avec company/champs null ne crashent plus
+- **Nouvelle page lecture seule** `/quotes/view/:id` (`QuoteView.jsx`) : aperçu PDF + boutons Envoyer (SendQuoteModal intégré), Modifier, PDF, retour — bouton "Voir" de la liste pointe dessus
+- Tests : iteration_20.json — 100% PASS (15/15 frontend, 3/3 backend, mobile inclus)
+- Retour utilisateur : bouton "Modifier" ajouté à côté de "Voir" dans la liste des devis + scroll en haut de page à l'ouverture de /quotes/view (vérifié screenshot, scrollY=0)
+
+## Session du 25/07/2026 (suite) — Vitesse + chevauchement en-tête mobile
+- **Fix chevauchement** : en-tête mobile QuoteForm/InvoiceForm — titre truncate + flex min-w-0, sélecteurs maxWidth 55vw (testé iteration_21 : bounding boxes sans overlap)
+- **Service worker** (`public/sw.js`, enregistré en production uniquement) : cache-first des assets statiques + network-first pour index.html → démarrage quasi instantané après 1re visite, même connexion lente. Actif seulement sur le build prod du VPS.
+- **Nettoyage code mort** : supprimé PDFGenerator.js, PDFGeneratorPro.js, PDFGenerator_simple.js, SendQuoteModal backups (~1900 lignes)
+- Tests : iteration_21.json — 100% PASS (mobile + desktop + backend smoke)
+- **Séparation des cartes devis/factures** : bordure slate-200 + ombre + coins arrondis + écart mb-4 entre chaque carte (retour utilisateur "les cases se fondent") — vérifié screenshot desktop
+
 ### P1 — À venir
-- Dashboard statut des devis (section envoyés/ouverts/signés)
-- Push GitHub (RubenSRZS/Sr1) via le bouton "Save to Github" quand l'utilisateur valide.
+- Push GitHub (RubenSRZS/Sr1) via le bouton "Save to Github"
+- Prix forfaitaire pour les Factures
 
 ### P2
+- Refactorisation server.py (2164+ lignes)
 - PDF preview fond blanc en mode sombre
 
 ### P3 — Futur

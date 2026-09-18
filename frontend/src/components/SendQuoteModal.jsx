@@ -78,7 +78,9 @@ const SendQuoteModal = ({ quote, onClose, onSent }) => {
     setSending(true);
     setGeneratingPdf(true);
 
-    // Always use the current profile so PDF reflects latest company info
+    // Use the quote's existing company snapshot (which already has the correct template).
+    // If needed, refresh company info from the current profile but always preserve
+    // the template that was set on the quote.
     let quoteWithCurrentCompany = quote;
     try {
       const profilesRes = await fetch(`${API}/profiles`);
@@ -86,7 +88,14 @@ const SendQuoteModal = ({ quote, onClose, onSent }) => {
         const profiles = await profilesRes.json();
         const currentProfile = profiles.find(p => p.is_default) || profiles[0];
         if (currentProfile) {
-          quoteWithCurrentCompany = { ...quote, company: currentProfile };
+          quoteWithCurrentCompany = {
+            ...quote,
+            company: {
+              ...currentProfile,
+              // Preserve the template chosen for this quote; fall back to profile default
+              template: quote?.company?.template || currentProfile.pdf_template || 'sr_renovation',
+            },
+          };
         }
       }
     } catch (_) {}
@@ -105,6 +114,7 @@ const SendQuoteModal = ({ quote, onClose, onSent }) => {
         subject,
         message,
         recipient_email: recipientEmail,
+        public_base_url: window.location.origin,
       };
       if (pdfData) {
         payload.pdf_base64 = pdfData.base64;
