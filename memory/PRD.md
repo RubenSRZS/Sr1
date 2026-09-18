@@ -204,3 +204,11 @@ Application web pour créer des devis et factures professionnels et personnalis�
 - Convention iPhone "Mr Nom Ville SOURCE" : champs `civility` (Mr/Mme), `source` (RN/FB/GA/LS/TK/BO), `callback_time`. Libellé `contactLabel()` affiché dans la fiche avec Copier + export .vcf (navigator.share si dispo, sinon téléchargement). Bouton "Réveil" = export .ics avec VALARM à l'heure de rappel.
 - IA parse-contact extrait civility/source/callback_time, formate les numéros suisses (+41), paramètre `country`.
 - Tests : iteration_23.json — 100 % (backend 3/3, frontend desktop + mobile).
+
+## Session du 18/09/2026 (3) — zones, rappel email, code couleur
+- **Zones** Jura (JU/39) · Hte-Savoie (HS/74) · Suisse (CH) remplacent le pays (`Client.zone`). `_guess_zone` déduit la zone des clients existants (code postal 39xxx/74xxx, +41, villes). Toggle en-tête (filtre, localStorage `crm_zone`) + toggle bloc saisie + chips fiche. IA déduit la zone depuis la ville.
+- Source **BO supprimée** (codes : RN, FB, GA, LS, TK).
+- **Rappel par email** (remplace .ics qui ne marchait pas sur iPhone) : job APScheduler `run_callback_reminders` toutes les 5 min → email Resend à ADMIN_EMAIL 10 min avant `callback_time` (08:00 si pas d'heure) avec numéro cliquable, WhatsApp, chantier, notes, lien CRM. `reminder_sent_at` sur le client, remis à null si date/heure changent. Test manuel : `POST /api/crm/reminders/run {to, client_id}` (to = rubensrzs03@gmail.com uniquement).
+- **Code couleur unifié** : factures = violet (Dashboard stat + carte Nouvelle Facture, onglets InvoicesList, GlobalSearch, badge CRM) ; Nouveau contact = ambre ; devis = bleu ; signé = vert ; perdu = rose. Payée reste vert (statut paiement).
+- Ligne "À rappeler" refaite (date + heure + effacer, info email dessous, plus de chevauchement).
+- Tests : iteration_24.json — backend 6/6, frontend 100 %.

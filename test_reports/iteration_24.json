@@ -1,0 +1,23 @@
+{
+  "summary": "Iteration 24 CRM zones (JU/HS/CH) validated end-to-end. Backend 6/6 pytest passed: client create+overview with zone HS, _guess_zone from postal 39600->JU, PATCH /clients/{id}/quick resets reminder_sent_at to null, POST /crm/reminders/run with {to,client_id} returned {status:success,sent:1} (email sent to rubensrzs03@gmail.com only), AI parse-contact 'annecy'->HS + 'google ads'->GA + 'monsieur'->Mr. Frontend: header ZoneToggle (all/JU/HS/CH) filters cards and persists in localStorage crm_zone; mobile 390px shows short labels 39/74/CH; quick-capture has its own ZoneToggle (no 'all'); draft chips include draft-zone-{JU,HS,CH} and draft-source-{RN,FB,GA,LS,TK} with NO draft-source-BO; sheet has sheet-zone-{JU,HS,CH} row, sheet-callback + sheet-callback-time on the same row, sheet-reminder-info appears below when date entered (text 'email de rappel'), sheet-clear-callback clears both fields, no sheet-add-reminder button anywhere. Colors: Dashboard Factures stat rgb(139,92,246)=#8b5cf6 violet, quick-new-invoice linear-gradient #7c3aed->#a78bfa, InvoicesList active tab has border-violet-500, badge 'Facturé' uses bg-violet-50, 'Nouveau contact' uses bg-amber-100. Full CH quick-capture create->save->delete flow succeeded, no TEST_ leftover in DB.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iteration24_crm_zones.py",
+    "/app/test_reports/pytest/iter24.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py run_callback_reminders: when only_client_id provided AND callback_at != today (server timezone), the query {'id': only_client_id} still matches and the 'not only_client_id and now < target' guard is bypassed, so the reminder is sent immediately regardless of scheduled time. Acceptable for the manual /crm/reminders/run test endpoint (that is the intended shortcut), but document it — a client callback_at=tomorrow would still fire if triggered via API. Consider clarifying in the docstring.",
+    "Chip component in QuickCapture: base class contains 'dark:bg-slate-900' while active class contains 'bg-slate-900' — makes DOM-based 'active' detection ambiguous in tests. Adding aria-pressed would help E2E robustness.",
+    "onCreated in CRM.jsx: prepends the newly created client to list state, but load() may still be in flight; after delete via sheet the list occasionally shows '0 fiches' until page reload. Consider re-calling load() after create/delete to keep state consistent."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration24_crm_zones.py", "/app/test_reports/iteration_24.json"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "PIN 033003 ; test email rubensrzs03@gmail.com",
+  "seed_data_creation": "Created and deleted: TEST_CRM Zone (HS/Mme/GA/callback today 17:00), TEST_CRM Guess (address 39600 Arbois, no zone), TEST_CRM Reset (JU/callback today 10:00->18:00), TEST_CRM ReminderRun (HS/Annecy/callback today 17:00 - real email sent to rubensrzs03@gmail.com), TEST_CRM Mme Dubois (CH/FB via quick-capture UI flow). Final GET /api/clients confirms 0 TEST_ leftovers (42 real clients preserved, including 'Mme Martin Courlans RN' untouched).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 24 fully validated. Zones use 3-letter codes JU/HS/CH; ZONES chip.short = '39'/'74'/'CH'. Two ZoneToggle instances (header allowAll + quick-capture no-all). ClientCard testid is 'card-zone' (no code suffix) with text = short label. PIN 033003 must be re-entered after every page.goto/reload. Real client 'Mme Martin Courlans RN' is user-created — never modify. Do not send test emails to any address except rubensrzs03@gmail.com.",
+  "rca of the issue": "N/A - all specs implemented and validated."
+}
