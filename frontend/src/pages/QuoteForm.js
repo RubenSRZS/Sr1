@@ -402,6 +402,12 @@ const QuoteForm = () => {
           console.error('Erreur chargement profils:', e);
         }
         
+        const prefillClient = sessionStorage.getItem('crm_prefill_client');
+        if (prefillClient && !id) {
+          sessionStorage.removeItem('crm_prefill_client');
+          const c = clientsRes.data.find(x => x.id === prefillClient);
+          if (c) setFormData(prev => ({ ...prev, client_id: c.id, work_location: c.address || c.city || '' }));
+        }
         // Charger les données générées par l'IA si présentes
         const aiData = sessionStorage.getItem('ai_generated_quote');
         if (aiData && !id) {

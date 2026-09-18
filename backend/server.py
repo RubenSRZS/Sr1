@@ -408,15 +408,34 @@ class ClientCreate(BaseModel):
     phone: Optional[str] = ""
     email: Optional[str] = ""
     notes: Optional[str] = ""
+    city: Optional[str] = ""
+    chantier: Optional[str] = ""
+    callback_at: Optional[str] = None
+    source: Optional[str] = ""
+
+class ClientQuickUpdate(BaseModel):
+    name: Optional[str] = None
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    notes: Optional[str] = None
+    city: Optional[str] = None
+    chantier: Optional[str] = None
+    callback_at: Optional[str] = None
+    source: Optional[str] = None
 
 class Client(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
-    address: str
-    phone: str
+    address: str = ""
+    phone: str = ""
     email: Optional[str] = ""
     notes: Optional[str] = ""
+    city: Optional[str] = ""
+    chantier: Optional[str] = ""
+    callback_at: Optional[str] = None
+    source: Optional[str] = ""
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: Optional[str] = None
 
@@ -704,6 +723,51 @@ async def get_clients():
     clients = await db.clients.find({}, {"_id": 0}).to_list(1000)
     return [fix_datetime(c) for c in clients]
 
+def _client_stage(quotes: list, invoices: list) -> str:
+    if invoices:
+        return "invoiced"
+    statuses = {q.get("status") for q in quotes}
+    if "accepted" in statuses or "invoiced" in statuses:
+        return "signed"
+    if "sent" in statuses:
+        return "quote_sent"
+    if quotes and statuses <= {"lost"}:
+        return "lost"
+    if quotes:
+        return "quote_draft"
+    return "contact"
+
+@api_router.get("/clients/overview")
+async def clients_overview():
+    """Clients enrichis : étape du parcours, dernière activité, totaux — pour la vue CRM."""
+    clients = await db.clients.find({}, {"_id": 0}).to_list(1000)
+    quotes = await db.quotes.find({}, {"_id": 0, "client_id": 1, "status": 1, "total_net": 1, "created_at": 1, "sent_at": 1, "signed_at": 1, "quote_number": 1, "work_location": 1}).to_list(5000)
+    invoices = await db.invoices.find({}, {"_id": 0, "client_id": 1, "total_net": 1, "created_at": 1, "payment_status": 1}).to_list(5000)
+    by_q, by_i = {}, {}
+    for q in quotes:
+        by_q.setdefault(q.get("client_id"), []).append(q)
+    for i in invoices:
+        by_i.setdefault(i.get("client_id"), []).append(i)
+    out = []
+    for c in clients:
+        cq, ci = by_q.get(c["id"], []), by_i.get(c["id"], [])
+        dates = [str(c.get("updated_at") or ""), str(c.get("created_at") or "")]
+        for q in cq:
+            dates += [str(q.get("created_at") or ""), str(q.get("sent_at") or ""), str(q.get("signed_at") or "")]
+        for i in ci:
+            dates.append(str(i.get("created_at") or ""))
+        c["stage"] = _client_stage(cq, ci)
+        c["last_activity"] = max(dates) if dates else ""
+        c["quotes_count"] = len(cq)
+        c["invoices_count"] = len(ci)
+        c["total_signed"] = round(sum((q.get("total_net") or 0) for q in cq if q.get("status") in ("accepted", "invoiced")), 2)
+        c["total_invoiced"] = round(sum((i.get("total_net") or 0) for i in ci), 2)
+        c["pending_amount"] = round(sum((q.get("total_net") or 0) for q in cq if q.get("status") == "sent"), 2)
+        if isinstance(c.get("created_at"), datetime):
+            c["created_at"] = c["created_at"].isoformat()
+        out.append(c)
+    return out
+
 @api_router.get("/clients/{client_id}", response_model=Client)
 async def get_client(client_id: str):
     c = await db.clients.find_one({"id": client_id}, {"_id": 0})
@@ -736,6 +800,88 @@ async def update_client_notes(client_id: str, body: dict):
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Client non trouvé")
     return {"status": "success"}
+
+@api_router.patch("/clients/{client_id}/quick", response_model=Client)
+async def quick_update_client(client_id: str, body: ClientQuickUpdate):
+    update = {k: v for k, v in body.model_dump().items() if v is not None}
+    update["updated_at"] = datetime.now(timezone.utc).isoformat()
+    res = await db.clients.update_one({"id": client_id}, {"$set": update})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Client non trouvé")
+    return fix_datetime(await db.clients.find_one({"id": client_id}, {"_id": 0}))
+
+def _gemini_json(prompt: str, temperature: float = 0.2) -> dict:
+    response = gemini_client.models.generate_content(
+        model='gemini-2.5-flash',
+        contents=prompt,
+        config=types.GenerateContentConfig(temperature=temperature),
+    )
+    text = response.text.strip()
+    if text.startswith('```json'):
+        text = text[7:]
+    if text.startswith('```'):
+        text = text[3:]
+    if text.endswith('```'):
+        text = text[:-3]
+    return json.loads(text.strip())
+
+class AITextBody(BaseModel):
+    text: str
+    client_name: Optional[str] = ""
+
+@api_router.post("/ai/parse-contact")
+async def ai_parse_contact(body: AITextBody):
+    """Texte en vrac (appel client) -> fiche structurée."""
+    if not GEMINI_API_KEY:
+        raise HTTPException(status_code=503, detail="Clé Gemini non configurée")
+    today = datetime.now(timezone.utc).astimezone().strftime("%A %d/%m/%Y")
+    prompt = f"""Tu es l'assistant d'un artisan couvreur (nettoyage toiture, façade, terrasse, zinguerie — Jura). Il vient de recevoir un appel et a tapé des notes en vrac.
+Extrais une fiche client structurée. Aujourd'hui : {today}.
+
+NOTES EN VRAC :
+{body.text}
+
+RÈGLES :
+- name : nom du client (Prénom Nom ou Nom seul, corrige les majuscules). Si inconnu : "Contact sans nom"
+- phone : numéro au format "06 12 34 56 78" (vide si absent)
+- email : vide si absent
+- city : ville/commune (vide si absente)
+- address : adresse complète si donnée, sinon la ville
+- chantier : résumé très court du besoin (ex: "Nettoyage toiture 120 m² + démoussage"), vide si absent
+- callback_at : date de rappel au format YYYY-MM-DD si l'artisan doit rappeler / passer / faire un devis ("rappeler mardi", "passer la semaine prochaine", "dans 3 jours"). Sinon null
+- notes : le reste des informations utiles, réécrit en lignes courtes commençant par "• " (une info par ligne, ex: "• Mousse importante côté nord", "• Disponible le matin"). Ne répète pas nom/tél/ville
+- N'invente rien.
+
+Réponds UNIQUEMENT en JSON : {{"name":"","phone":"","email":"","city":"","address":"","chantier":"","callback_at":null,"notes":""}}"""
+    try:
+        data = await asyncio.to_thread(_gemini_json, prompt)
+        return {"status": "success", "data": data}
+    except Exception as e:
+        logger.error(f"AI parse-contact failed: {e}")
+        raise HTTPException(status_code=500, detail="L'IA n'a pas pu analyser le texte")
+
+@api_router.post("/ai/tidy-notes")
+async def ai_tidy_notes(body: AITextBody):
+    """Réorganise des notes client en liste claire."""
+    if not GEMINI_API_KEY:
+        raise HTTPException(status_code=503, detail="Clé Gemini non configurée")
+    prompt = f"""Tu es l'assistant d'un artisan couvreur. Voici ses notes brutes sur le client {body.client_name or ''} :
+
+{body.text}
+
+Réorganise-les en notes claires et ultra-lisibles, en français :
+- Une information par ligne, chaque ligne commence par "• "
+- Regroupe par thème si utile avec un titre court en MAJUSCULES sur sa propre ligne (ex: CHANTIER, RDV, PAIEMENT, DIVERS) — uniquement si ≥ 2 thèmes
+- Garde TOUTES les infos (chiffres, dates, prix, noms), corrige juste l'orthographe, supprime les doublons
+- Pas de phrase d'introduction, pas de conclusion, n'invente rien
+
+Réponds UNIQUEMENT en JSON : {{"notes": "texte final avec \\n entre les lignes"}}"""
+    try:
+        data = await asyncio.to_thread(_gemini_json, prompt)
+        return {"status": "success", "notes": data.get("notes", body.text)}
+    except Exception as e:
+        logger.error(f"AI tidy-notes failed: {e}")
+        raise HTTPException(status_code=500, detail="L'IA n'a pas pu ranger les notes")
 
 @api_router.get("/clients/{client_id}/timeline")
 async def client_timeline(client_id: str):
