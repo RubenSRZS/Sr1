@@ -1,0 +1,36 @@
+{
+  "summary": "Full backend + frontend testing of the revamped /crm page (iteration 22). All 5 backend endpoints (clients/overview, POST /clients with new fields, PATCH /clients/{id}/quick, POST /ai/parse-contact, POST /ai/tidy-notes, DELETE /clients/{id}) passed pytest (5/5). Frontend Playwright end-to-end: PIN 033003 -> /crm loads with crm-page + quick-capture + filters (all/contact/quote_sent/signed/invoiced/lost) + counts + clients-grid. Quick-capture: text 'TEST_CRM Martin 06 11 22 33 44 Dole toiture 80m2 rappeler demain' -> Gemini returned draft-name='Martin', draft-phone='06 11 22 33 44', draft-city='Dole' in ~5s. Save -> toast + client-sheet auto-opened + card appeared. sheet-notes edit -> 2s later persisted (verified via GET /api/clients/overview -> notes contains 'test-note-autosave'). sheet-callback set to today -> reminders-strip appeared with reminder-{id} button. sheet-tidy-notes reorganized in ~10s to sections CHANTIER/PAIEMENT/RDV with '•' bullets. sheet-new-quote navigated to /quotes/new with TEST_ client prefilled. Filter invoiced shows 14 cards; search 'TEST_' filters to 1 card. Cleanup: DELETE /api/clients/{id} status 200 confirmed. Mobile 390x844: quick-capture usable, grid=1 col (cards not on same row), client-sheet fullscreen 390x844. No blocking issues.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "ClientSheet (Radix Sheet/Dialog)", "issues": ["Console warning: 'Missing Description or aria-describedby for {DialogContent}' — add SheetDescription or aria-describedby to ClientSheet for a11y."]},
+      {"screen": "QuoteForm PDFPreview", "issues": ["Pre-existing React hydration errors: <span> nested as child of <table>/<tbody>/<tr> (from x-file-name=QuoteForm ~line 868). Same issue reported in iteration_21 — still present, not blocking."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration22_crm.py",
+    "/app/test_reports/pytest/iter22.xml"
+  ],
+  "action_items": [
+    "(Optional a11y) Add <SheetDescription> or aria-describedby to ClientSheet's SheetContent to silence Radix warning.",
+    "(Pre-existing, tracked since iter21) Fix invalid HTML in PDFPreview: no <span> wrappers inside <table>/<thead>/<tbody>/<tr>."
+  ],
+  "critical_code_review_comments": [
+    "server.py:806 quick_update_client uses model_dump() then filters None — good; unchanged fields preserved (verified).",
+    "server.py:757 _client_stage priority order (invoiced > signed > sent > lost > draft > contact) is correct.",
+    "CRM.jsx counts merge 'quote_draft' into 'contact' which matches the FILTERS tab 'Contacts' — coherent.",
+    "QuickCapture.jsx:44 sets source:'appel' hardcoded — fine; new fields (chantier, callback_at) accepted by /api/clients (verified)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration22_crm.py (new)"
+  ],
+  "success_rate": {"backend": "100% (5/5 pytest)", "frontend": "100% (all flows + mobile)"},
+  "test_credentials": "PIN 033003",
+  "seed_data_creation": "Created & deleted TEST_CRM Agent, TEST_CRM Delete Me (backend) and TEST_Martin (frontend). All TEST_* clients cleaned up via DELETE /api/clients/{id} at end of run — 0 TEST_ clients remaining in DB.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "CRM revamp fully working. Gemini AI parse (~5s) and tidy (~8-10s) both consistent. All new client fields (city, chantier, callback_at, source) persist. Reminders strip + auto-save + tidy + new-quote prefill via sessionStorage crm_prefill_client all verified. Only cosmetic warnings remain (Radix DialogContent aria-describedby + pre-existing PDFPreview span-in-table hydration warning).",
+  "rca of the issue": "N/A — feature verification only, no bugs to RCA."
+}

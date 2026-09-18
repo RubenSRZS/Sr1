@@ -185,3 +185,15 @@ Application web pour créer des devis et factures professionnels et personnalis�
 - Dashboard: graphiques de revenus
 - Drag & drop pour réorganiser les services
 - Templates de devis prédéfinis
+
+## Session du 18/09/2026 — Synchro + nouveau CRM "appel client" + Netlify
+- **Synchro** : code aligné sur GitHub (commits du 25/07) + données réelles importées depuis l'API prod (41 clients / 46 devis / 16 factures). ⚠️ API prod `devis.sr-renovation.fr/api/*` accessible sans auth (à sécuriser — utilisateur informé, reporté).
+- **CRM refait (`/crm`)** : `pages/CRM.jsx` + `components/crm/{QuickCapture,ClientCard,ClientSheet,crmUtils}`. Saisie rapide d'appel → `POST /api/ai/parse-contact` (Gemini 2.5 Flash, clé user) → fiche préremplie éditable → création. Cartes aérées avec étape dérivée (contact/quote_draft/quote_sent/signed/invoiced/lost), bandeau "À rappeler" (callback_at ≤ aujourd'hui), filtres + recherche, Sheet détail (auto-save via `PATCH /api/clients/{id}/quick`, "Ranger avec l'IA" via `POST /api/ai/tidy-notes`, documents, Appeler/WhatsApp/Devis). Bouton Devis préremplit le client dans QuoteForm (sessionStorage `crm_prefill_client`).
+- **Backend** : Client + city/chantier/callback_at/source ; `GET /api/clients/overview` (déclaré AVANT `/clients/{id}`) ; ancien SmartNotes (calculs inline) retiré du CRM à la demande de l'utilisateur.
+- **Netlify** : `frontend/netlify.toml` + `GUIDE_NETLIFY.md` (frontend CDN gratuit, API reste sur le VPS, CORS_ORIGINS à renseigner).
+- Tests : iteration_22.json — backend 5/5, frontend E2E 100 % (desktop + mobile).
+
+### Backlog mis à jour
+- P1 : Sécuriser l'API (vérif PIN côté serveur sur chaque requête) — utilisateur à convaincre
+- P1 : Push GitHub via "Save to Github" puis déploiement Netlify (guide prêt)
+- P2 : Refactorisation server.py (2500 lignes) ; PDF preview fond blanc en mode sombre
