@@ -186,6 +186,9 @@ def build_relance_html(body_html: str, public_link: str, relance_day: int,
 </body>
 </html>"""
 
+# Jour réel d'envoi de chaque relance (clé = modèle). La 1re relance part dès J+1.
+RELANCE_SEND_DAY = {3: 1, 7: 7, 14: 14, 30: 30}
+
 RELANCE_TONES = {
     3: "premier rappel doux et amical, sans aucune pression",
     7: "relance directe avec une ou deux questions ouvertes pour engager la conversation",
@@ -280,7 +283,7 @@ async def run_relances():
     if today.weekday() == 6:
         logger.info("Relances: skipped (Sunday)")
         return
-    thresholds = [3, 7, 14, 30]
+    thresholds = [3, 7, 14, 30]  # clés des modèles de relance (inchangées)
     count = 0
     settings = await db.settings.find_one({"id": "app_settings"}, {"_id": 0})
     ai_mode = (settings or {}).get("relance_mode", "auto") == "ai"
@@ -290,9 +293,13 @@ async def run_relances():
     ):
         try:
             sent_at = datetime.fromisoformat(q["sent_at"].replace("Z", "+00:00"))
-            days_since = (today - sent_at).days
+            if sent_at.tzinfo is None:
+                sent_at = sent_at.replace(tzinfo=timezone.utc)
+            # Jours de calendrier (heure de Paris) : un devis envoyé lundi = J+1 mardi matin
+            paris = ZoneInfo("Europe/Paris")
+            days_since = (today.astimezone(paris).date() - sent_at.astimezone(paris).date()).days
             relances_sent = q.get("relances_sent", [])
-            pending = next((t for t in thresholds if days_since >= t and t not in relances_sent), None)
+            pending = next((t for t in thresholds if days_since >= RELANCE_SEND_DAY.get(t, t) and t not in relances_sent), None)
             if pending is None:
                 if days_since >= 30 and 30 in relances_sent:
                     await db.quotes.update_one({"id": q["id"]}, {"$set": {"relances_active": False}})
@@ -541,6 +548,7 @@ class OptionBlock(BaseModel):
     remise_type: Optional[str] = "percent"
     remise_percent: float = 0.0
     remise_montant: float = 0.0
+    forfait_price: float = 0.0  # Prix forfaitaire de cette option (utilisé si le devis est en mode forfait)
 
 class QuoteCreate(BaseModel):
     client_id: Optional[str] = None
@@ -756,10 +764,13 @@ async def resolve_company(profile_id):
     }
     return profile.get("id"), company
 
-def compute_option_block(opt: OptionBlock) -> dict:
-    """Calcule les totaux d'un bloc d'option dynamique."""
+def compute_option_block(opt: OptionBlock, forfait_mode: bool = False) -> dict:
+    """Calcule les totaux d'un bloc d'option dynamique.
+    En mode forfait, le prix forfaitaire de l'option remplace la somme des lignes,
+    et la remise globale de l'option s'applique sur ce prix forfaitaire."""
     services = opt.services or []
-    total_brut = round(sum(s.total for s in services), 2)
+    use_forfait = bool(forfait_mode and (opt.forfait_price or 0) > 0)
+    total_brut = round(opt.forfait_price, 2) if use_forfait else round(sum(s.total for s in services), 2)
     if opt.remise_type == "amount":
         remise = round(opt.remise_montant or 0, 2)
     else:
@@ -772,11 +783,23 @@ def compute_option_block(opt: OptionBlock) -> dict:
         "remise_type": opt.remise_type or "percent",
         "remise_percent": opt.remise_percent or 0,
         "remise_montant": opt.remise_montant or 0,
+        "forfait_price": round(opt.forfait_price or 0, 2) if use_forfait else 0.0,
         "total_brut": total_brut,
         "remise": remise,
         "total_net": total_net,
         "acompte_30": acompte_30,
     }
+
+def compute_option1_totals(services, remise_percent: float, remise_montant: float, forfait_mode: bool, forfait_price: float):
+    """Totaux de l'option 1. En mode forfait, la remise s'applique sur le prix forfaitaire."""
+    if forfait_mode and (forfait_price or 0) > 0:
+        total_brut = round(forfait_price, 2)
+    else:
+        total_brut = sum(s.total for s in services)
+    remise = round(total_brut * remise_percent / 100, 2) if remise_percent > 0 else round(remise_montant or 0, 2)
+    total_net = round(max(total_brut - remise, 0), 2)
+    acompte_30 = round(total_net * 0.30, 2)
+    return total_brut, remise, total_net, acompte_30
 
 async def get_next_quote_number(client_id: str) -> str:
     count = await db.quotes.count_documents({"client_id": client_id})
@@ -1207,21 +1230,12 @@ async def create_quote(input: QuoteCreate):
     if input.template and company_snapshot is not None:
         company_snapshot["template"] = input.template
 
-    # Option 1 calculations
-    total_brut = sum(s.total for s in input.services)
-    remise_from_pct = round(total_brut * input.remise_percent / 100, 2) if input.remise_percent > 0 else 0
-    remise = remise_from_pct if input.remise_percent > 0 else round(input.remise_montant, 2)
-    total_net = round(total_brut - remise, 2)
-    acompte_30 = round(total_net * 0.30, 2)
-    # Mode forfait : le prix global remplace tous les calculs détaillés
-    if input.forfait_mode and input.forfait_price > 0:
-        total_brut = round(input.forfait_price, 2)
-        remise = 0
-        total_net = round(input.forfait_price, 2)
-        acompte_30 = round(input.forfait_price * 0.30, 2)
-    
+    # Option 1 calculations (mode forfait : le prix forfaitaire remplace les lignes, la remise s'applique dessus)
+    total_brut, remise, total_net, acompte_30 = compute_option1_totals(
+        input.services, input.remise_percent, input.remise_montant, input.forfait_mode, input.forfait_price)
+
     # Options dynamiques (illimitées) — calcul des totaux
-    computed_additional = [compute_option_block(o) for o in (input.additional_options or [])]
+    computed_additional = [compute_option_block(o, input.forfait_mode) for o in (input.additional_options or [])]
 
     # Rétro-compatibilité : dérive Option 2 / Option 3 depuis les 2 premières options dynamiques
     # si elles sont fournies, sinon utilise les anciens champs option_2 / option_3.
@@ -1333,15 +1347,12 @@ async def update_quote(quote_id: str, input: QuoteCreate):
     if input.template and company_snapshot is not None:
         company_snapshot["template"] = input.template
 
-    # Option 1 calculations
-    total_brut = sum(s.total for s in input.services)
-    remise_from_pct = round(total_brut * input.remise_percent / 100, 2) if input.remise_percent > 0 else 0
-    remise = remise_from_pct if input.remise_percent > 0 else round(input.remise_montant, 2)
-    total_net = round(total_brut - remise, 2)
-    acompte_30 = round(total_net * 0.30, 2)
+    # Option 1 calculations (mode forfait : le prix forfaitaire remplace les lignes, la remise s'applique dessus)
+    total_brut, remise, total_net, acompte_30 = compute_option1_totals(
+        input.services, input.remise_percent, input.remise_montant, input.forfait_mode, input.forfait_price)
 
     # Option 2 calculations
-    computed_additional = [compute_option_block(o) for o in (input.additional_options or [])]
+    computed_additional = [compute_option_block(o, input.forfait_mode) for o in (input.additional_options or [])]
 
     def _legacy_block_u(idx, fallback_services, fallback_title, fallback_rpct, fallback_rmnt):
         if idx < len(computed_additional):
@@ -1409,6 +1420,9 @@ async def update_quote(quote_id: str, input: QuoteCreate):
         "option_3_total_net": b3["total_net"],
         "option_3_acompte_30": b3["acompte_30"],
         "additional_options": computed_additional,
+        # Le mode forfait n'était pas enregistré quand on modifiait un devis
+        "forfait_mode": input.forfait_mode,
+        "forfait_price": input.forfait_price if input.forfait_mode else 0.0,
     }
     await db.quotes.update_one({"id": quote_id}, {"$set": update_data})
     updated = await db.quotes.find_one({"id": quote_id}, {"_id": 0})

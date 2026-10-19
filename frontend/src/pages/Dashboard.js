@@ -161,7 +161,7 @@ const Dashboard = () => {
             </Link>
           </div>
           <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-            Emails de suivi automatiques J+3, J+7, J+14, J+30 — jamais le dimanche. Désactivez par devis si le client répond par téléphone.
+            Emails de suivi automatiques J+1, J+7, J+14, J+30 — jamais le dimanche. Désactivez par devis si le client répond par téléphone.
           </p>
         </Card>
 

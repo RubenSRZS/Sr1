@@ -424,6 +424,7 @@ const PDFDocument = ({ document, type, compact = false }) => {
               title={opt.title ? `OPTION ${idx + 2} : ${opt.title}` : `OPTION ${idx + 2}`} 
               compact={compact} 
               showLineNumbers={showLineNumbers} 
+              forfaitMode={!!document.forfait_mode}
             />
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', border: '1.5px solid #d1d5db', borderRadius: '4px', background: 'white' }}>
@@ -445,6 +446,7 @@ const PDFDocument = ({ document, type, compact = false }) => {
               title={document.option_2_title ? `OPTION 2 : ${document.option_2_title}` : "OPTION 2"} 
               compact={compact} 
               showLineNumbers={showLineNumbers} 
+              forfaitMode={!!document.forfait_mode}
             />
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', border: '1.5px solid #d1d5db', borderRadius: '4px', background: 'white' }}>
@@ -466,6 +468,7 @@ const PDFDocument = ({ document, type, compact = false }) => {
               title={document.option_3_title ? `OPTION 3 : ${document.option_3_title}` : "OPTION 3"} 
               compact={compact} 
               showLineNumbers={showLineNumbers} 
+              forfaitMode={!!document.forfait_mode}
             />
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', border: '1.5px solid #d1d5db', borderRadius: '4px', background: 'white' }}>

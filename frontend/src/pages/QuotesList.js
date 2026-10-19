@@ -29,9 +29,13 @@ const TABS = [
   { key: 'lost',     label: 'Perdus' },
 ];
 
+// La 1re relance (modèle « 3 ») part maintenant à J+1
+const relanceSendDay = (d) => (d === 3 ? 1 : d);
+
 function getNextRelanceDay(relancesSent) {
   const all = [3, 7, 14, 30];
-  return all.find(d => !relancesSent.includes(d)) || null;
+  const next = all.find(d => !relancesSent.includes(d));
+  return next ? relanceSendDay(next) : null;
 }
 
 function getDaysSinceSent(sentAt) {
@@ -282,7 +286,7 @@ const QuotesList = () => {
                 )}
                 {isSent && q.last_relance_at && (
                   <span className="text-[10px] bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded">
-                    Dernière relance J+{Math.max(...(q.relances_sent || [0]))}
+                    Dernière relance J+{relanceSendDay(Math.max(...(q.relances_sent || [0])))}
                   </span>
                 )}
               </div>

@@ -31,7 +31,7 @@ const getCatalogItemColor = (item) => item.color || CATALOG_CATEGORIES[item.cate
 // ─── ServicesSection MUST be defined OUTSIDE QuoteForm to prevent remount on every render ─────
 const UNITS = ['unité', 'm²', 'ML', 'm', 'h', 'forfait', 'kg'];
 
-const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, optionNum, totals, remiseType, remisePercent, remiseMontant, onRemiseTypeChange, onRemisePercentChange, onRemiseMontantChange, optionTitle, onTitleChange, moveSvcUp, moveSvcDown }) => (
+const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, optionNum, totals, remiseType, remisePercent, remiseMontant, onRemiseTypeChange, onRemisePercentChange, onRemiseMontantChange, optionTitle, onTitleChange, moveSvcUp, moveSvcDown, forfaitMode = false, forfaitPrice = '', onForfaitPriceChange }) => (
   <Card className="p-4 bg-white border-0 shadow-sm" data-testid={`services-section-${optionNum}`}>
     <div className="flex items-center justify-between mb-2">
       <span className="font-bold text-sm px-2 py-0.5 rounded"
@@ -240,6 +240,16 @@ const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, opti
         <div className="text-center py-4 text-sm text-gray-400">Ajoutez des services</div>
       )}
     </div>
+    {/* Prix forfaitaire de l'option */}
+    {forfaitMode && (
+      <div className="mt-4 pt-3 border-t border-gray-100" data-testid={`forfait-section-${optionNum}`}>
+        <Label className="text-xs text-gray-500 block mb-1">Prix forfaitaire Option {optionNum} (TTC, avant remise)</Label>
+        <input type="number" value={forfaitPrice} onChange={e => onForfaitPriceChange(e.target.value)} placeholder="0.00" min="0" step="0.01"
+          className="w-full h-10 px-3 rounded-lg border text-sm font-bold focus:outline-none focus:ring-1 focus:ring-blue-400"
+          style={{ borderColor: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE, color: optionNum === 1 ? BRAND_BLUE : BRAND_ORANGE }}
+          data-testid={optionNum === 1 ? 'forfait-price-input' : `forfait-price-input-${optionNum}`} />
+      </div>
+    )}
     {/* Remise globale */}
     <div className="mt-4 pt-3 border-t border-gray-100">
       <div className="flex items-center gap-2 mb-2">
@@ -269,7 +279,7 @@ const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, opti
       {(totals.remise_totale > 0 || totals.remises_lignes > 0 || totals.remise_globale > 0) && (
         <>
           <div className="flex justify-between text-sm mb-1 text-gray-600">
-            <span>Total TTC (avant remises)</span>
+            <span>{forfaitMode ? 'Prix forfaitaire' : 'Total TTC (avant remises)'}</span>
             <span>{totals.total_brut.toFixed(2)} €</span>
           </div>
           <div className="flex justify-between text-sm mb-2 font-semibold" style={{ color: BRAND_ORANGE }}>
@@ -485,6 +495,7 @@ const QuoteForm = () => {
             remise_type: o.remise_type || (o.remise_montant > 0 ? 'amount' : 'percent'),
             remise_percent: o.remise_percent || 0,
             remise_montant: o.remise_montant || 0,
+            forfait_price: o.forfait_price ? String(o.forfait_price) : '',
           }));
         } else {
           if (q.option_2_services && q.option_2_services.length > 0) {
@@ -571,6 +582,18 @@ const QuoteForm = () => {
 
   // ─── Options dynamiques (illimitées) ───────────────────────────
   const computeOptTotals = (opt) => {
+    const fp = parseFloat(opt.forfait_price);
+    if (forfaitMode && fp > 0) {
+      const remiseF = opt.remise_type === 'amount'
+        ? Math.round((parseFloat(opt.remise_montant) || 0) * 100) / 100
+        : Math.round(fp * (parseFloat(opt.remise_percent) || 0) / 100 * 100) / 100;
+      const netF = Math.max(Math.round((fp - remiseF) * 100) / 100, 0);
+      return {
+        total_brut: fp, remises_lignes: 0, remise_globale: remiseF,
+        remise_totale: remiseF, remise: remiseF, total_net: netF,
+        acompte_30: Math.round(netF * 0.3 * 100) / 100,
+      };
+    }
     const services = opt.services || [];
     const brut = services.reduce((s, x) => s + (parseFloat(x.quantity || 0) * parseFloat(x.unit_price || 0)), 0);
     const remisesLignes = services.reduce((s, x) => {
@@ -590,7 +613,7 @@ const QuoteForm = () => {
     };
   };
 
-  const addOption = () => setAdditionalOptions(prev => [...prev, { title: '', services: [], remise_type: 'percent', remise_percent: 0, remise_montant: 0 }]);
+  const addOption = () => setAdditionalOptions(prev => [...prev, { title: '', services: [], remise_type: 'percent', remise_percent: 0, remise_montant: 0, forfait_price: '' }]);
   const removeOption = (idx) => setAdditionalOptions(prev => prev.filter((_, i) => i !== idx));
   const updateOptionField = (idx, key, val) => setAdditionalOptions(prev => prev.map((o, i) => i === idx ? { ...o, [key]: val } : o));
   const addOptService = (idx) => setAdditionalOptions(prev => prev.map((o, i) => i === idx ? { ...o, services: [...o.services, { description: '', quantity: 1, unit: 'unité', unit_price: 0, remise_type: 'percent', remise_percent: 0, remise_montant: 0, total: 0 }] } : o));
@@ -644,6 +667,18 @@ const QuoteForm = () => {
 
   // Option 1 totals
   const totals1 = useMemo(() => {
+    // Mode forfait : le prix forfaitaire remplace les lignes, la remise globale s'applique dessus
+    const fp = parseFloat(forfaitPrice);
+    if (forfaitMode && fp > 0) {
+      const remiseF = formData.remise_type === 'amount'
+        ? Math.round((parseFloat(formData.remise_montant) || 0) * 100) / 100
+        : Math.round(fp * (parseFloat(formData.remise_percent) || 0) / 100 * 100) / 100;
+      const netF = Math.max(Math.round((fp - remiseF) * 100) / 100, 0);
+      return {
+        total_brut: fp, remises_lignes: 0, remise_globale: remiseF, remise_totale: remiseF,
+        remise: remiseF, total_net: netF, acompte_30: Math.round(netF * 0.3 * 100) / 100,
+      };
+    }
     // Calculer le total brut AVANT remises de lignes
     const brutAvantRemises = formData.services.reduce((sum, s) => {
       const lineTotal = (s.quantity || 0) * (s.unit_price || 0);
@@ -683,7 +718,7 @@ const QuoteForm = () => {
       total_net: Math.max(net, 0), 
       acompte_30: Math.round(Math.max(net, 0) * 0.3 * 100) / 100 
     };
-  }, [formData.services, formData.remise_type, formData.remise_percent, formData.remise_montant]);
+  }, [formData.services, formData.remise_type, formData.remise_percent, formData.remise_montant, forfaitMode, forfaitPrice]);
 
   // Live preview document
   const previewDoc = useMemo(() => {
@@ -719,6 +754,7 @@ const QuoteForm = () => {
         return {
           title: o.title || '', services: o.services,
           remise_type: o.remise_type, remise_percent: o.remise_percent, remise_montant: o.remise_montant,
+          forfait_price: forfaitMode ? (parseFloat(o.forfait_price) || 0) : 0,
           total_brut: t.total_brut, remise: t.remise, remise_totale: t.remise_totale, total_net: t.total_net, acompte_30: t.acompte_30,
         };
       });
@@ -742,12 +778,6 @@ const QuoteForm = () => {
       notes: formData.notes,
       forfait_mode: forfaitMode,
       forfait_price: forfaitMode ? (parseFloat(forfaitPrice) || 0) : 0,
-      ...(forfaitMode && parseFloat(forfaitPrice) > 0 ? {
-        total_net: parseFloat(forfaitPrice),
-        total_brut: parseFloat(forfaitPrice),
-        remise: 0,
-        acompte_30: Math.round(parseFloat(forfaitPrice) * 0.30 * 100) / 100,
-      } : {}),
     };
 
     return doc;
@@ -763,7 +793,11 @@ const QuoteForm = () => {
     const hasNewClient = showNewClient && newClient.name;
     if (!clientId && !hasNewClient) { toast.error('Sélectionnez ou créez un client'); return; }
     if (formData.services.length === 0) { toast.error('Ajoutez au moins un service à l\'option 1'); return; }
-    if (forfaitMode && !(parseFloat(forfaitPrice) > 0)) { toast.error('Saisissez le montant forfaitaire'); return; }
+    if (forfaitMode && !(parseFloat(forfaitPrice) > 0)) { toast.error('Saisissez le prix forfaitaire de l\'option 1'); return; }
+    if (forfaitMode) {
+      const idxSansPrix = additionalOptions.findIndex(o => (o.services || []).length > 0 && !(parseFloat(o.forfait_price) > 0));
+      if (idxSansPrix >= 0) { toast.error(`Saisissez le prix forfaitaire de l'option ${idxSansPrix + 2}`); return; }
+    }
     const emptyOption = additionalOptions.find(o => (o.services || []).length === 0);
     if (emptyOption) { toast.error('Une option supplémentaire est vide. Ajoutez un service ou supprimez-la.'); return; }
     if (showNewClient && (!newClient.name || !newClient.phone || !newClient.address)) {
@@ -799,6 +833,7 @@ const QuoteForm = () => {
             remise_type: o.remise_type || 'percent',
             remise_percent: o.remise_type === 'percent' ? (o.remise_percent || 0) : 0,
             remise_montant: o.remise_type === 'amount' ? (o.remise_montant || 0) : 0,
+            forfait_price: forfaitMode ? (parseFloat(o.forfait_price) || 0) : 0,
           })),
       };
       if (id) {
@@ -990,16 +1025,15 @@ const QuoteForm = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-sm font-semibold text-gray-700">Prix forfaitaire</div>
-                  <div className="text-xs text-gray-400 mt-0.5">Un seul montant global, sans détailler chaque prestation</div>
+                  <div className="text-xs text-gray-400 mt-0.5">Un prix global par option, sans détailler le prix de chaque prestation</div>
                 </div>
                 <button type="button" onClick={() => setForfaitMode(f => !f)} className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${forfaitMode ? 'bg-blue-600' : 'bg-gray-200'}`} data-testid="forfait-toggle">
                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${forfaitMode ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
                 </button>
               </div>
               {forfaitMode && (
-                <div className="mt-3">
-                  <label className="text-xs text-gray-500 block mb-1">Montant forfaitaire total TTC</label>
-                  <input type="number" value={forfaitPrice} onChange={e => setForfaitPrice(e.target.value)} placeholder="0.00" min="0" step="0.01" className="w-full h-10 px-3 rounded-lg border text-sm font-bold focus:outline-none focus:ring-1 focus:ring-blue-400" style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }} data-testid="forfait-price-input" />
+                <div className="mt-3 text-xs rounded-lg px-3 py-2" style={{ background: '#eff6ff', color: BRAND_BLUE }}>
+                  Saisis le prix forfaitaire en bas de chaque option. Les remises s'appliquent sur ce prix.
                 </div>
               )}
             </Card>
@@ -1023,6 +1057,9 @@ const QuoteForm = () => {
               onTitleChange={(v) => updateField('option_1_title', v)}
               moveSvcUp={moveServiceUp}
               moveSvcDown={moveServiceDown}
+              forfaitMode={forfaitMode}
+              forfaitPrice={forfaitPrice}
+              onForfaitPriceChange={setForfaitPrice}
             />
 
             {/* Options dynamiques (illimitées) */}
@@ -1046,6 +1083,9 @@ const QuoteForm = () => {
                   onTitleChange={(v) => updateOptionField(idx, 'title', v)}
                   moveSvcUp={(i) => moveOptServiceUp(idx, i)}
                   moveSvcDown={(i) => moveOptServiceDown(idx, i)}
+                  forfaitMode={forfaitMode}
+                  forfaitPrice={opt.forfait_price ?? ''}
+                  onForfaitPriceChange={(v) => updateOptionField(idx, 'forfait_price', v)}
                 />
                 <Button 
                   type="button" 
