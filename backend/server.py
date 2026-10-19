@@ -1,6 +1,7 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Body
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
@@ -2628,6 +2629,9 @@ async def generate_ai_relance_manual(quote_id: str):
     return {"status": "success", "relance": doc}
 
 app.include_router(api_router)
+
+# Compresse les réponses (devis, clients...) : 5 à 10 fois moins de données à transférer
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 app.add_middleware(
     CORSMiddleware,
