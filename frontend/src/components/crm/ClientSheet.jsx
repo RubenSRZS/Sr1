@@ -140,8 +140,9 @@ export const ClientSheet = ({ client, open, onClose, onChange, onDelete }) => {
               <div className="grid grid-cols-[88px_1fr] items-center gap-2">
                 <span className="text-xs text-slate-400">À rappeler</span>
                 <div className="flex items-center gap-1 flex-wrap">
-                  <Input data-testid="sheet-callback" type="date" className={`${inputCls} w-36`} value={form.callback_at || ''} onChange={(e) => update('callback_at', e.target.value)} />
-                  <Input data-testid="sheet-callback-time" type="time" className={`${inputCls} w-24`} value={form.callback_time || ''} onChange={(e) => update('callback_time', e.target.value)} />
+                  <Input data-testid="sheet-callback" type="date" aria-label="Date du rappel" className="h-9 w-40 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2 text-sm focus-visible:ring-1 focus-visible:ring-blue-300 dark:text-slate-100" value={form.callback_at || ''} onChange={(e) => update('callback_at', e.target.value)} />
+                  <Input data-testid="sheet-callback-time" type="time" aria-label="Heure du rappel" className="h-9 w-28 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2 text-sm focus-visible:ring-1 focus-visible:ring-blue-300 dark:text-slate-100" value={form.callback_time || ''} onChange={(e) => update('callback_time', e.target.value)} />
+                  {form.callback_at && !form.callback_time && <span className="text-[11px] text-slate-400">← touche pour l'heure</span>}
                   {form.callback_at && <button type="button" data-testid="sheet-clear-callback" onClick={() => { update('callback_at', ''); update('callback_time', ''); }} className="text-[11px] text-slate-400 hover:text-rose-500 px-1">effacer</button>}
                 </div>
               </div>

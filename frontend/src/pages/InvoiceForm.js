@@ -5,7 +5,7 @@ import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download, Moon, S
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { AutoGrowTextarea } from '@/components/ui/auto-grow-textarea';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -354,7 +354,7 @@ const InvoiceForm = () => {
               <div className="space-y-3">
                 {formData.services.map((s, i) => (
                   <div key={i} className="bg-gray-50 rounded-lg p-3 border border-gray-100 animate-fade-in-up" data-testid={`service-row-${i}`}>
-                    <Textarea value={s.description} onChange={e => updateService(i, 'description', e.target.value)}
+                    <AutoGrowTextarea value={s.description} onChange={e => updateService(i, 'description', e.target.value)}
                       placeholder="Description du service" rows={2} className="text-sm mb-2 resize-none" data-testid={`service-desc-${i}`} />
                     <div className="grid grid-cols-4 gap-2 items-end">
                       <div>
@@ -477,7 +477,7 @@ const InvoiceForm = () => {
                     <BookOpen className="h-3 w-3 mr-1" /> Catalogue
                   </Button>
                 </div>
-                <Textarea value={formData.notes} onChange={e => updateField('notes', e.target.value)} rows={2} placeholder="Remarques, conditions..." className="text-sm resize-none" data-testid="notes-input" />
+                <AutoGrowTextarea value={formData.notes} onChange={e => updateField('notes', e.target.value)} rows={2} placeholder="Remarques, conditions..." className="text-sm resize-none" data-testid="notes-input" />
               </div>
             </Card>
 

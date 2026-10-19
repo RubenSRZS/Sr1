@@ -10,7 +10,7 @@ import AIRelanceQueue from '@/components/AIRelanceQueue';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const DAY_CONFIGS = [
-  { day: 3, label: 'J+3', color: '#3b82f6', bg: '#eff6ff', border: '#bfdbfe', tone: 'Ton amical — premier rappel doux' },
+  { day: 3, label: 'J+1', color: '#3b82f6', bg: '#eff6ff', border: '#bfdbfe', tone: 'Ton amical — premier rappel doux' },
   { day: 7, label: 'J+7', color: '#f97316', bg: '#fff7ed', border: '#fed7aa', tone: 'Ton direct — relance avec questions' },
   { day: 14, label: 'J+14', color: '#8b5cf6', bg: '#f5f3ff', border: '#ddd6fe', tone: 'Ton valeur — arguments + disponibilité' },
   { day: 30, label: 'J+30', color: '#ef4444', bg: '#fef2f2', border: '#fecaca', tone: 'Ton final — dernière tentative' },
@@ -52,7 +52,7 @@ const RelanceSettings = () => {
         subject: templates[day]?.subject || '',
         body: templates[day]?.body || '',
       });
-      toast.success(`Modèle J+${day} sauvegardé`);
+      toast.success(`Modèle J+${day === 3 ? 1 : day} sauvegardé`);
     } catch {
       toast.error('Erreur sauvegarde');
     } finally {
@@ -64,7 +64,7 @@ const RelanceSettings = () => {
     setSending(prev => ({ ...prev, [day]: true }));
     try {
       await axios.post(`${API}/relances/send-preview/${day}`, { email: 'rubensrzs03@gmail.com' });
-      toast.success(`Aperçu J+${day} envoyé à rubensrzs03@gmail.com`);
+      toast.success(`Aperçu J+${day === 3 ? 1 : day} envoyé à rubensrzs03@gmail.com`);
     } catch {
       toast.error('Erreur envoi aperçu');
     } finally {
@@ -149,7 +149,7 @@ const RelanceSettings = () => {
                   <Input
                     value={templates[day]?.subject || ''}
                     onChange={e => handleChange(day, 'subject', e.target.value)}
-                    placeholder={`Objet de la relance J+${day}...`}
+                    placeholder={`Objet de la relance J+${day === 3 ? 1 : day}...`}
                     className="text-sm h-9"
                     data-testid={`relance-subject-${day}`}
                   />
