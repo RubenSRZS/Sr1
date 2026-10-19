@@ -107,7 +107,7 @@ const Dashboard = () => {
           </Link>
           <Link to="/invoices/new" data-testid="quick-new-invoice">
             <div className="rounded-xl p-5 text-white flex items-center justify-between group transition-all hover:scale-[1.01] hover:shadow-lg"
-              style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)' }}
+              style={{ background: 'linear-gradient(135deg, #f97316 0%, #fb923c 100%)' }}
             >
               <div className="flex items-center gap-3">
                 <div className="h-11 w-11 bg-white/20 rounded-lg flex items-center justify-center">

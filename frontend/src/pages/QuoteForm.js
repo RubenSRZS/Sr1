@@ -5,7 +5,7 @@ import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download, Copy, M
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { AutoGrowTextarea } from '@/components/ui/auto-grow-textarea';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -60,7 +60,7 @@ const ServicesSection = ({ services, updateSvc, removeSvc, addSvc, openCat, opti
     <div className="space-y-3">
       {services.map((s, i) => (
         <div key={i} className="bg-gray-50 rounded-lg p-3 border border-gray-100" data-testid={`service-row-${optionNum}-${i}`}>
-          <Textarea
+          <AutoGrowTextarea
             value={s.description}
             onChange={e => updateSvc(i, 'description', e.target.value)}
             placeholder="Description du service"
@@ -1090,7 +1090,7 @@ const QuoteForm = () => {
                   <BookOpen className="h-3 w-3 mr-1" /> Catalogue
                 </Button>
               </div>
-              <Textarea value={formData.notes} onChange={e => updateField('notes', e.target.value)} rows={2} placeholder="Remarques, conditions..." className="text-sm resize-none" data-testid="notes-input" />
+              <AutoGrowTextarea value={formData.notes} onChange={e => updateField('notes', e.target.value)} rows={2} placeholder="Remarques, conditions..." className="text-sm resize-none" data-testid="notes-input" />
             </Card>
 
             {/* Mobile Summary + Save */}
