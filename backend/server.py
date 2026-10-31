@@ -83,8 +83,7 @@ ZONE_PROFILES = {
         "tagline": "Nettoyage Toiture Haute-Savoie",
         "site_url": "https://sr-renovation.fr/haute-savoie",
         "site_label": "sr-renovation.fr/haute-savoie",
-        # Lien d'avis de la fiche Google Haute-Savoie (à renseigner) ; sinon fiche Jura
-        "review_link": os.environ.get("HS_REVIEW_LINK") or JURA_REVIEW_LINK,
+        "review_link": "https://g.page/r/CRixmIjcRRvNECE/review",  # fiche Google Haute-Savoie
     },
     "CH": {
         "region": "Suisse",
@@ -95,6 +94,19 @@ ZONE_PROFILES = {
         "review_link": os.environ.get("CH_REVIEW_LINK") or JURA_REVIEW_LINK,
     },
 }
+
+def chosen_option_totals(q: dict, option: Optional[int] = None) -> dict:
+    """Montant et acompte de l'option choisie par le client (1 = option principale)."""
+    opt = option or q.get("selected_option") or 1
+    if opt > 1:
+        dyn = [o for o in (q.get("additional_options") or []) if (o.get("services") or [])]
+        if len(dyn) >= opt - 1:
+            o = dyn[opt - 2]
+            return {"option": opt, "title": o.get("title") or "", "total_net": o.get("total_net", 0), "acompte_30": o.get("acompte_30", 0)}
+        if opt in (2, 3) and q.get(f"option_{opt}_services"):
+            return {"option": opt, "title": q.get(f"option_{opt}_title") or "",
+                    "total_net": q.get(f"option_{opt}_total_net", 0), "acompte_30": q.get(f"option_{opt}_acompte_30", 0)}
+    return {"option": 1, "title": q.get("option_1_title") or "", "total_net": q.get("total_net", 0), "acompte_30": q.get("acompte_30", 0)}
 
 def zone_profile(zone: str) -> dict:
     return ZONE_PROFILES.get(zone or "JU", ZONE_PROFILES["JU"])
@@ -1813,8 +1825,18 @@ async def sign_quote_public(token: str, body: SignQuote):
     client_name = q.get('client_name', 'Client')
     client_last_name = client_name.split()[-1] if client_name else 'Client'
     quote_number = q.get('quote_number', '')
-    acompte = q.get('acompte_30', 0)
-    total_net = q.get('total_net', 0)
+    # Montants de l'option choisie par le client (avant : toujours l'option 1)
+    chosen = chosen_option_totals(q, body.selected_option)
+    acompte = chosen["acompte_30"]
+    total_net = chosen["total_net"]
+    option_label = ""
+    if (q.get("additional_options") or q.get("option_2_services")):
+        option_label = f" (option {chosen['option']}{' : ' + chosen['title'] if chosen['title'] else ''})"
+    zone = await zone_for_doc(q)
+    zp = zone_profile(zone)
+    sign_client = await db.clients.find_one({"id": q.get("client_id")}, {"_id": 0}) if q.get("client_id") else None
+    civ = (sign_client or {}).get("civility") or ""
+    client_salutation = f"{'Madame' if civ == 'Mme' else 'Monsieur' if civ == 'Mr' else 'Monsieur/Madame'} {client_last_name}"
 
     # 1) Notify admin with signed PDF attached
     try:
@@ -1829,7 +1851,7 @@ async def sign_quote_public(token: str, body: SignQuote):
 </td></tr>
 <tr><td style="padding:28px;">
   <p style="color:#1e293b;font-size:15px;line-height:1.7;margin:0 0 16px;">
-    <strong>{q['client_name']}</strong> a accept&eacute; et sign&eacute; le devis <strong>n&deg;{quote_number}</strong>.
+    <strong>{q['client_name']}</strong> a accept&eacute; et sign&eacute; le devis <strong>n&deg;{quote_number}</strong>{option_label}.
   </p>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;margin:0 0 16px;">
     <tr><td style="padding:16px;">
@@ -1908,10 +1930,10 @@ async def sign_quote_public(token: str, body: SignQuote):
 </td></tr>
 <tr><td style="padding:28px;">
   <p style="color:#1e293b;font-size:16px;line-height:1.7;margin:0 0 20px;">
-    Bonjour, <strong>Monsieur/Madame {client_last_name}</strong>,
+    Bonjour, <strong>{client_salutation}</strong>,
   </p>
   <p style="color:#475569;font-size:15px;line-height:1.7;margin:0 0 16px;">
-    Nous vous confirmons la bonne réception de la signature électronique de votre devis <strong>n°{quote_number}</strong> d'un montant de <strong>{q.get('total_net', 0):.2f} €</strong>.
+    Nous vous confirmons la bonne réception de la signature électronique de votre devis <strong>n°{quote_number}</strong>{option_label} d'un montant de <strong>{total_net:.2f} €</strong>.
   </p>
   <p style="color:#475569;font-size:15px;line-height:1.7;margin:0 0 20px;">
     Nous vous remercions pour votre confiance et nous nous engageons à vous fournir un travail de qualité. Votre devis signé est joint à cet email.
@@ -1926,7 +1948,8 @@ async def sign_quote_public(token: str, body: SignQuote):
   </p>
   <p style="color:#1e293b;font-size:14px;line-height:1.7;margin:0;">
     À très bientôt,<br>
-    <strong>{co_name}</strong>
+    <strong>Ruben — {co_name}</strong><br>
+    <span style="color:#64748b;">{zp['tagline']}</span>
   </p>
 </td></tr>
 
@@ -1937,7 +1960,8 @@ async def sign_quote_public(token: str, body: SignQuote):
   <p style="color:#64748b;font-size:13px;line-height:2;margin:0;">
     {phone_line}
     {email_line}
-    {website_line}
+    {website_line}<br>
+    &#127968; {zp['footer']}
   </p>
 </td></tr>
 </table>
