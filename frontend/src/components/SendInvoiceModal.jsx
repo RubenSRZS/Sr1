@@ -3,12 +3,12 @@ import { Button } from '@/components/ui/button';
 import { X, Send, Edit3, Paperclip, Loader2, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { generatePDFBase64 } from './PDFPreview';
+import { salutation, signature, fetchEmailContext } from './emailContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-const getDefaultBodyWithReview = (clientName) => {
-  const lastName = clientName ? clientName.split(' ').slice(-1)[0] : '';
-  return `Bonjour Monsieur ${lastName},
+const getDefaultBodyWithReview = (clientName, ctx = null) => {
+  return `Bonjour ${salutation(clientName, ctx)},
 
 Nous vous remercions sincèrement pour votre confiance et pour avoir choisi SR Rénovation pour vos travaux.
 
@@ -22,12 +22,11 @@ Nous restons à votre disposition pour toute question.
 
 Cordialement,
 
-Ruben — SR Rénovation`;
+${signature(ctx)}`;
 };
 
-const getDefaultBodySimple = (clientName) => {
-  const lastName = clientName ? clientName.split(' ').slice(-1)[0] : '';
-  return `Bonjour Monsieur ${lastName},
+const getDefaultBodySimple = (clientName, ctx = null) => {
+  return `Bonjour ${salutation(clientName, ctx)},
 
 Nous vous remercions sincèrement pour votre confiance et pour avoir choisi SR Rénovation pour vos travaux.
 
@@ -37,7 +36,7 @@ Nous restons à votre disposition pour toute question.
 
 Cordialement,
 
-Ruben — SR Rénovation`;
+${signature(ctx)}`;
 };
 
 const SendInvoiceModal = ({ invoice, onClose, onSent }) => {
@@ -48,12 +47,21 @@ const SendInvoiceModal = ({ invoice, onClose, onSent }) => {
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [emailType, setEmailType] = useState('with_review'); // 'with_review' | 'simple'
   const [attachments, setAttachments] = useState([]);
+  const [emailCtx, setEmailCtx] = useState(null); // région + civilité du client
 
   useEffect(() => {
     if (invoice) {
       setSubject(`Votre facture — SR Rénovation n°${invoice.invoice_number}`);
       setRecipientEmail(invoice.client_email || '');
-      setMessage(getDefaultBodyWithReview(invoice.client_name));
+      const base = getDefaultBodyWithReview(invoice.client_name);
+      setMessage(base);
+      let cancelled = false;
+      fetchEmailContext(API, { invoice_id: invoice.id }).then((ctx) => {
+        if (cancelled || !ctx) return;
+        setEmailCtx(ctx);
+        setMessage((cur) => (cur === base ? getDefaultBodyWithReview(invoice.client_name, ctx) : cur));
+      });
+      return () => { cancelled = true; };
     }
   }, [invoice]);
 
@@ -93,9 +101,9 @@ const SendInvoiceModal = ({ invoice, onClose, onSent }) => {
   const handleEmailTypeChange = (type) => {
     setEmailType(type);
     if (type === 'with_review') {
-      setMessage(getDefaultBodyWithReview(invoice?.client_name));
+      setMessage(getDefaultBodyWithReview(invoice?.client_name, emailCtx));
     } else {
-      setMessage(getDefaultBodySimple(invoice?.client_name));
+      setMessage(getDefaultBodySimple(invoice?.client_name, emailCtx));
     }
   };
 

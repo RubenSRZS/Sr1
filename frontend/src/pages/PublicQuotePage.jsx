@@ -84,7 +84,7 @@ const PublicQuotePage = () => {
     try {
       const signatureData = canvasRef.current.toDataURL('image/png');
       // First update local state so PDFDocument renders with signature
-      const updatedQuote = { ...quote, signature_data: signatureData, signed_at: new Date().toISOString(), signer_name: signerName };
+      const updatedQuote = { ...quote, signature_data: signatureData, signed_at: new Date().toISOString(), signer_name: signerName, selected_option: selectedOption };
 
       // Generate signed PDF
       let pdfData = null;
@@ -238,6 +238,20 @@ const PublicQuotePage = () => {
                     {quote.company?.bank_name && <div><span className="font-medium">Banque :</span> {quote.company.bank_name}</div>}
                     {quote.company?.iban && <div><span className="font-medium">IBAN :</span> {quote.company.iban}</div>}
                     {quote.company?.bic && <div><span className="font-medium">BIC :</span> {quote.company.bic}</div>}
+                    {(() => {
+                      // Acompte de l'option choisie par le client
+                      const opt = quote.selected_option || 1;
+                      const dyn = (quote.additional_options || []).filter(o => (o.services || []).length > 0);
+                      let acompte = quote.acompte_30;
+                      if (opt > 1 && dyn[opt - 2]) acompte = dyn[opt - 2].acompte_30;
+                      else if (opt === 2 && quote.option_2_services?.length) acompte = quote.option_2_acompte_30;
+                      else if (opt === 3 && quote.option_3_services?.length) acompte = quote.option_3_acompte_30;
+                      return Number(acompte) > 0 ? (
+                        <div className="mt-2.5 pt-2.5 border-t border-blue-200 text-sm font-semibold" data-testid="acompte-a-verser">
+                          Acompte à verser : {Number(acompte).toFixed(2)} €
+                        </div>
+                      ) : null;
+                    })()}
                     <div className="mt-2.5 pt-2.5 border-t border-blue-200">
                       <p className="font-medium">Modalités de paiement :</p>
                       <p className="mt-0.5">• Acompte 30% à la signature</p>

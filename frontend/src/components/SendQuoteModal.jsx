@@ -3,12 +3,12 @@ import { Button } from '@/components/ui/button';
 import { X, Send, Edit3, Paperclip, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { generatePDFBase64 } from './PDFPreview';
+import { salutation, signature, fetchEmailContext } from './emailContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-const getDefaultBody = (clientName) => {
-  const lastName = clientName ? clientName.split(' ').slice(-1)[0] : '';
-  return `Bonjour, Monsieur ${lastName},
+const getDefaultBody = (clientName, ctx = null) => {
+  return `Bonjour, ${salutation(clientName, ctx)},
 
 Suite à notre échange, j'ai le plaisir de vous transmettre votre devis personnalisé pour votre projet de rénovation.
 
@@ -18,7 +18,7 @@ N'hésitez pas à me contacter si vous avez la moindre question ou si vous souha
 
 À très bientôt,
 
-Ruben — SR Rénovation`;
+${signature(ctx)}`;
 };
 
 const SendQuoteModal = ({ quote, onClose, onSent }) => {
@@ -28,12 +28,22 @@ const SendQuoteModal = ({ quote, onClose, onSent }) => {
   const [sending, setSending] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [attachments, setAttachments] = useState([]); // [{name, size, content (base64 without prefix)}]
+  const [emailCtx, setEmailCtx] = useState(null); // région + civilité du client
 
   useEffect(() => {
     if (quote) {
       setSubject(`Votre devis est prêt — SR Rénovation n°${quote.quote_number}`);
       setRecipientEmail(quote.client_email || '');
-      setMessage(getDefaultBody(quote.client_name));
+      const base = getDefaultBody(quote.client_name);
+      setMessage(base);
+      let cancelled = false;
+      fetchEmailContext(API, { quote_id: quote.id }).then((ctx) => {
+        if (cancelled || !ctx) return;
+        setEmailCtx(ctx);
+        // Ne remplace le texte que s'il n'a pas encore été modifié
+        setMessage((cur) => (cur === base ? getDefaultBody(quote.client_name, ctx) : cur));
+      });
+      return () => { cancelled = true; };
     }
   }, [quote]);
 
@@ -197,7 +207,7 @@ const SendQuoteModal = ({ quote, onClose, onSent }) => {
             <div className="flex items-center justify-between mb-1">
               <label className="text-sm font-medium text-slate-700">Message</label>
               <button
-                onClick={() => setMessage(getDefaultBody(quote?.client_name))}
+                onClick={() => setMessage(getDefaultBody(quote?.client_name, emailCtx))}
                 className="text-xs text-blue-500 hover:text-blue-700 flex items-center gap-1"
                 data-testid="reset-message-btn"
               >

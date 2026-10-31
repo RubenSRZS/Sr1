@@ -65,8 +65,69 @@ DEFAULT_RELANCE_TEMPLATES = {
     }
 }
 
+# ==================== MAILS PAR RÉGION ====================
+# La région vient de la zone du client dans le CRM (Jura / Haute-Savoie / Suisse).
+JURA_REVIEW_LINK = "https://g.page/r/CeQWOZZ9f7xAEBM/review"
+ZONE_PROFILES = {
+    "JU": {
+        "region": "Jura",
+        "footer": "Jura (39) &mdash; Artisan local &amp; certifi&eacute;",
+        "tagline": "Nettoyage Toiture Jura",
+        "site_url": "https://sr-renovation.fr",
+        "site_label": "sr-renovation.fr",
+        "review_link": JURA_REVIEW_LINK,
+    },
+    "HS": {
+        "region": "Haute-Savoie",
+        "footer": "Haute-Savoie (74) &mdash; Artisan local &amp; certifi&eacute;",
+        "tagline": "Nettoyage Toiture Haute-Savoie",
+        "site_url": "https://sr-renovation.fr/haute-savoie",
+        "site_label": "sr-renovation.fr/haute-savoie",
+        "review_link": "https://g.page/r/CRixmIjcRRvNECE/review",  # fiche Google Haute-Savoie
+    },
+    "CH": {
+        "region": "Suisse",
+        "footer": "Suisse romande &mdash; Artisan local &amp; certifi&eacute;",
+        "tagline": "Nettoyage Toiture Suisse",
+        "site_url": "https://sr-renovation.fr",
+        "site_label": "sr-renovation.fr",
+        "review_link": os.environ.get("CH_REVIEW_LINK") or JURA_REVIEW_LINK,
+    },
+}
+
+def chosen_option_totals(q: dict, option: Optional[int] = None) -> dict:
+    """Montant et acompte de l'option choisie par le client (1 = option principale)."""
+    opt = option or q.get("selected_option") or 1
+    if opt > 1:
+        dyn = [o for o in (q.get("additional_options") or []) if (o.get("services") or [])]
+        if len(dyn) >= opt - 1:
+            o = dyn[opt - 2]
+            return {"option": opt, "title": o.get("title") or "", "total_net": o.get("total_net", 0), "acompte_30": o.get("acompte_30", 0)}
+        if opt in (2, 3) and q.get(f"option_{opt}_services"):
+            return {"option": opt, "title": q.get(f"option_{opt}_title") or "",
+                    "total_net": q.get(f"option_{opt}_total_net", 0), "acompte_30": q.get(f"option_{opt}_acompte_30", 0)}
+    return {"option": 1, "title": q.get("option_1_title") or "", "total_net": q.get("total_net", 0), "acompte_30": q.get("acompte_30", 0)}
+
+def zone_profile(zone: str) -> dict:
+    return ZONE_PROFILES.get(zone or "JU", ZONE_PROFILES["JU"])
+
+async def zone_for_doc(doc: dict) -> str:
+    """Zone d'un devis/facture : zone du client dans le CRM, sinon devinée (adresse, ville, tél.), sinon Jura."""
+    client = None
+    if doc.get("client_id"):
+        client = await db.clients.find_one({"id": doc["client_id"]}, {"_id": 0})
+    z = (client or {}).get("zone") or ""
+    if not z and client:
+        z = _guess_zone(client)
+    if not z:
+        z = _guess_zone({"address": f"{doc.get('work_location', '')} {doc.get('client_address', '')}",
+                         "phone": doc.get("client_phone", "")})
+    return z if z in ZONE_PROFILES else "JU"
+
 def build_relance_html(body_html: str, public_link: str, relance_day: int,
-                       quote_number: str = "", quote_title: str = "", work_location: str = "", sent_date: str = "") -> str:
+                       quote_number: str = "", quote_title: str = "", work_location: str = "", sent_date: str = "",
+                       zone: str = "JU") -> str:
+    zp = zone_profile(zone)
     wa_link = "https://wa.me/33680334546"
     tel_link = "tel:0680334546"
     mail_link = "mailto:SrRenovation03@gmail.com"
@@ -171,10 +232,10 @@ def build_relance_html(body_html: str, public_link: str, relance_day: int,
       &#9993; <a href="mailto:SrRenovation03@gmail.com" style="color:#3b82f6;text-decoration:none;">SrRenovation03@gmail.com</a>
     </td></tr>
     <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
-      &#127968; Jura (39) &mdash; Artisan local
+      &#127968; {zp['footer']}
     </td></tr>
     <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
-      &#127760; <a href="https://sr-renovation.fr" style="color:#3b82f6;text-decoration:none;">sr-renovation.fr</a>
+      &#127760; <a href="{zp['site_url']}" style="color:#3b82f6;text-decoration:none;">{zp['site_label']}</a>
     </td></tr>
   </table>
 </td></tr>
@@ -197,7 +258,7 @@ RELANCE_TONES = {
     30: "dernière relance, courtoise et sans pression, qui laisse la porte ouverte pour l'avenir",
 }
 
-async def generate_ai_relance_draft(q: dict, days_since: int, day: int, tmpl: dict = None) -> Optional[dict]:
+async def generate_ai_relance_draft(q: dict, days_since: int, day: int, tmpl: dict = None, zone: str = "JU") -> Optional[dict]:
     """Génère un brouillon de relance personnalisé via Gemini. Fallback: template classique."""
     fmt = dict(
         quote_number=q.get("quote_number", ""),
@@ -219,7 +280,7 @@ async def generate_ai_relance_draft(q: dict, days_since: int, day: int, tmpl: di
     open_count = q.get("open_count", 0)
     tone = RELANCE_TONES.get(day, RELANCE_TONES[7])
     relances_deja = q.get("relances_sent", [])
-    prompt = f"""Tu es {signer}, artisan de l'entreprise {company_name} (nettoyage toiture, façade, terrasse — Jura).
+    prompt = f"""Tu es {signer}, artisan de l'entreprise {company_name} (nettoyage toiture, façade, terrasse — {zone_profile(zone)['region']}).
 Rédige un email de relance personnalisé pour un devis resté sans réponse.
 
 CONTEXTE:
@@ -322,10 +383,11 @@ async def run_relances():
                 total_net=f"{q.get('total_net', 0):.2f}",
                 work_location=q.get("work_location", "")
             )
+            zone = await zone_for_doc(q)
             if ai_mode:
                 if await db.ai_relances.find_one({"quote_id": q["id"], "status": "pending"}):
                     continue
-                draft = await generate_ai_relance_draft(q, days_since, pending, tmpl)
+                draft = await generate_ai_relance_draft(q, days_since, pending, tmpl, zone)
                 if not draft:
                     continue
                 await db.ai_relances.insert_one(_ai_relance_doc(q, pending, days_since, draft))
@@ -345,7 +407,7 @@ async def run_relances():
                                       quote_number=q.get("quote_number", ""),
                                       quote_title=q.get("quote_title", ""),
                                       work_location=q.get("work_location", ""),
-                                      sent_date=sent_date_fmt)
+                                      sent_date=sent_date_fmt, zone=zone)
             client_email = q.get("client_email", "")
             if client_email:
                 params = {
@@ -1763,8 +1825,18 @@ async def sign_quote_public(token: str, body: SignQuote):
     client_name = q.get('client_name', 'Client')
     client_last_name = client_name.split()[-1] if client_name else 'Client'
     quote_number = q.get('quote_number', '')
-    acompte = q.get('acompte_30', 0)
-    total_net = q.get('total_net', 0)
+    # Montants de l'option choisie par le client (avant : toujours l'option 1)
+    chosen = chosen_option_totals(q, body.selected_option)
+    acompte = chosen["acompte_30"]
+    total_net = chosen["total_net"]
+    option_label = ""
+    if (q.get("additional_options") or q.get("option_2_services")):
+        option_label = f" (option {chosen['option']}{' : ' + chosen['title'] if chosen['title'] else ''})"
+    zone = await zone_for_doc(q)
+    zp = zone_profile(zone)
+    sign_client = await db.clients.find_one({"id": q.get("client_id")}, {"_id": 0}) if q.get("client_id") else None
+    civ = (sign_client or {}).get("civility") or ""
+    client_salutation = f"{'Madame' if civ == 'Mme' else 'Monsieur' if civ == 'Mr' else 'Monsieur/Madame'} {client_last_name}"
 
     # 1) Notify admin with signed PDF attached
     try:
@@ -1779,7 +1851,7 @@ async def sign_quote_public(token: str, body: SignQuote):
 </td></tr>
 <tr><td style="padding:28px;">
   <p style="color:#1e293b;font-size:15px;line-height:1.7;margin:0 0 16px;">
-    <strong>{q['client_name']}</strong> a accept&eacute; et sign&eacute; le devis <strong>n&deg;{quote_number}</strong>.
+    <strong>{q['client_name']}</strong> a accept&eacute; et sign&eacute; le devis <strong>n&deg;{quote_number}</strong>{option_label}.
   </p>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;margin:0 0 16px;">
     <tr><td style="padding:16px;">
@@ -1858,10 +1930,10 @@ async def sign_quote_public(token: str, body: SignQuote):
 </td></tr>
 <tr><td style="padding:28px;">
   <p style="color:#1e293b;font-size:16px;line-height:1.7;margin:0 0 20px;">
-    Bonjour, <strong>Monsieur/Madame {client_last_name}</strong>,
+    Bonjour, <strong>{client_salutation}</strong>,
   </p>
   <p style="color:#475569;font-size:15px;line-height:1.7;margin:0 0 16px;">
-    Nous vous confirmons la bonne réception de la signature électronique de votre devis <strong>n°{quote_number}</strong> d'un montant de <strong>{q.get('total_net', 0):.2f} €</strong>.
+    Nous vous confirmons la bonne réception de la signature électronique de votre devis <strong>n°{quote_number}</strong>{option_label} d'un montant de <strong>{total_net:.2f} €</strong>.
   </p>
   <p style="color:#475569;font-size:15px;line-height:1.7;margin:0 0 20px;">
     Nous vous remercions pour votre confiance et nous nous engageons à vous fournir un travail de qualité. Votre devis signé est joint à cet email.
@@ -1876,7 +1948,8 @@ async def sign_quote_public(token: str, body: SignQuote):
   </p>
   <p style="color:#1e293b;font-size:14px;line-height:1.7;margin:0;">
     À très bientôt,<br>
-    <strong>{co_name}</strong>
+    <strong>Ruben — {co_name}</strong><br>
+    <span style="color:#64748b;">{zp['tagline']}</span>
   </p>
 </td></tr>
 
@@ -1887,7 +1960,8 @@ async def sign_quote_public(token: str, body: SignQuote):
   <p style="color:#64748b;font-size:13px;line-height:2;margin:0;">
     {phone_line}
     {email_line}
-    {website_line}
+    {website_line}<br>
+    &#127968; {zp['footer']}
   </p>
 </td></tr>
 </table>
@@ -2044,6 +2118,22 @@ async def ensure_quote_public_token(quote_id: str):
         await db.quotes.update_one({"id": quote_id}, {"$set": {"public_token": public_token}})
     return {"public_token": public_token}
 
+@api_router.get("/email-context")
+async def get_email_context(quote_id: Optional[str] = None, invoice_id: Optional[str] = None):
+    """Région et civilité du client, pour pré-remplir le texte des mails."""
+    doc = None
+    if quote_id:
+        doc = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
+    elif invoice_id:
+        doc = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document non trouvé")
+    zone = await zone_for_doc(doc)
+    client = await db.clients.find_one({"id": doc.get("client_id")}, {"_id": 0}) if doc.get("client_id") else None
+    zp = zone_profile(zone)
+    return {"zone": zone, "region": zp["region"], "tagline": zp["tagline"],
+            "civility": (client or {}).get("civility") or ""}
+
 @api_router.post("/quotes/{quote_id}/send-email")
 async def send_quote_email(quote_id: str, body: SendQuoteEmail):
     q = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
@@ -2060,6 +2150,7 @@ async def send_quote_email(quote_id: str, body: SendQuoteEmail):
 
     # Convert newlines in message to <br>
     message_html = body.message.replace('\n', '<br>')
+    zp = zone_profile(await zone_for_doc(q))
 
     html_content = f"""<!DOCTYPE html>
 <html lang="fr">
@@ -2117,10 +2208,10 @@ async def send_quote_email(quote_id: str, body: SendQuoteEmail):
       &#9993; <a href="mailto:SrRenovation03@gmail.com" style="color:#3b82f6;text-decoration:none;">SrRenovation03@gmail.com</a>
     </td></tr>
     <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
-      &#127968; Jura (39) &mdash; Artisan local &amp; certifi&eacute;
+      &#127968; {zp['footer']}
     </td></tr>
     <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
-      &#127760; <a href="https://sr-renovation.fr" style="color:#3b82f6;text-decoration:none;">sr-renovation.fr</a>
+      &#127760; <a href="{zp['site_url']}" style="color:#3b82f6;text-decoration:none;">{zp['site_label']}</a>
     </td></tr>
   </table>
 </td></tr>
@@ -2195,8 +2286,9 @@ async def send_invoice_email(invoice_id: str, body: SendInvoiceEmail):
     # Convert newlines in message to <br>
     message_html = body.message.replace('\n', '<br>')
 
-    # GMB review link
-    gmb_review_link = "https://g.page/r/CeQWOZZ9f7xAEBM/review"
+    # Région du client (pied de mail + fiche Google pour l'avis)
+    zp = zone_profile(await zone_for_doc(inv))
+    gmb_review_link = zp["review_link"]
 
     # Build review button HTML if email_type is 'with_review'
     review_button_html = ""
@@ -2261,10 +2353,10 @@ async def send_invoice_email(invoice_id: str, body: SendInvoiceEmail):
       &#9993; <a href="mailto:SrRenovation03@gmail.com" style="color:#3b82f6;text-decoration:none;">SrRenovation03@gmail.com</a>
     </td></tr>
     <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
-      &#127968; Jura (39) &mdash; Artisan local &amp; certifi&eacute;
+      &#127968; {zp['footer']}
     </td></tr>
     <tr><td style="padding:4px 0;color:#475569;font-size:13px;line-height:1.5;">
-      &#127760; <a href="https://sr-renovation.fr" style="color:#3b82f6;text-decoration:none;">sr-renovation.fr</a>
+      &#127760; <a href="{zp['site_url']}" style="color:#3b82f6;text-decoration:none;">{zp['site_label']}</a>
     </td></tr>
   </table>
 </td></tr>
@@ -2586,7 +2678,7 @@ async def send_ai_relance(relance_id: str):
                               quote_number=q.get("quote_number", ""),
                               quote_title=q.get("quote_title", ""),
                               work_location=q.get("work_location", ""),
-                              sent_date=sent_date_fmt)
+                              sent_date=sent_date_fmt, zone=await zone_for_doc(q))
     params = {
         "from": f"SR Renovation <{SENDER_EMAIL}>",
         "to": [client_email],
