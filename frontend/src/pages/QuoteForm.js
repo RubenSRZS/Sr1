@@ -359,6 +359,7 @@ const QuoteForm = () => {
   };
 
   const [formData, setFormData] = useState(initialFormState);
+  const loadedClientId = useRef(null); // client du devis en cours de modification
 
   const [newClient, setNewClient] = useState({ name: '', address: '', phone: '', email: '' });
 
@@ -519,6 +520,7 @@ const QuoteForm = () => {
         }
         setAdditionalOptions(loadedOptions);
         
+        loadedClientId.current = q.client_id;
         setFormData({
           client_id: q.client_id,
           client_name: q.client_name || '',
@@ -789,7 +791,7 @@ const QuoteForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const clientId = formData.client_id;
+    const clientId = formData.client_id || (id ? loadedClientId.current : null);
     const hasNewClient = showNewClient && newClient.name;
     if (!clientId && !hasNewClient) { toast.error('Sélectionnez ou créez un client'); return; }
     if (formData.services.length === 0) { toast.error('Ajoutez au moins un service à l\'option 1'); return; }
@@ -942,7 +944,7 @@ const QuoteForm = () => {
                 </button>
               </div>
               {!showNewClient ? (
-                <Select value={formData.client_id} onValueChange={(v) => updateField('client_id', v)}>
+                <Select value={formData.client_id} onValueChange={(v) => { if (v) updateField('client_id', v); }}>
                   <SelectTrigger data-testid="client-select" className={`h-9 ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}><SelectValue placeholder="Choisir un client" /></SelectTrigger>
                   <SelectContent className={darkMode ? 'bg-slate-700 border-slate-600' : ''}>
                     {clients.map(c => <SelectItem key={c.id} value={c.id} className={darkMode ? 'text-white hover:bg-slate-600' : ''}>{c.name} {c.phone ? `- ${c.phone}` : ''}</SelectItem>)}

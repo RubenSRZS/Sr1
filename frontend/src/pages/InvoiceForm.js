@@ -308,7 +308,7 @@ const InvoiceForm = () => {
                 </button>
               </div>
               {!showNewClient ? (
-                <Select value={formData.client_id} onValueChange={(v) => updateField('client_id', v)}>
+                <Select value={formData.client_id} onValueChange={(v) => { if (v) updateField('client_id', v); }}>
                   <SelectTrigger data-testid="client-select" className={`h-9 ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}><SelectValue placeholder="Choisir un client" /></SelectTrigger>
                   <SelectContent className={darkMode ? 'bg-slate-700 border-slate-600' : ''}>
                     {[...clients].sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })).map(c => <SelectItem key={c.id} value={c.id} className={darkMode ? 'text-white' : ''}>{c.name} {c.phone ? `- ${c.phone}` : ''}</SelectItem>)}
