@@ -7,6 +7,14 @@
   CI = "false"
   GENERATE_SOURCEMAP = "false"
 
+# L'appli parle au serveur Google (clients, devis, factures) via la même adresse :
+# pas de réglage CORS à faire, et le mode hors ligne peut garder les données.
+[[redirects]]
+  from = "/api/*"
+  to = "https://devis.sr-renovation.fr/api/:splat"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -16,6 +24,11 @@
   for = "/static/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/asset-manifest.json"
+  [headers.values]
+    Cache-Control = "no-cache"
 
 [[headers]]
   for = "/sw.js"

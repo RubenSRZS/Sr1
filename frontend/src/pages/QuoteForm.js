@@ -14,6 +14,8 @@ import { toast } from 'sonner';
 import { PDFDocument, downloadPDF, BRAND_BLUE, BRAND_ORANGE, PDF_TEMPLATE_OPTIONS } from '@/components/PDFPreview';
 import { useTheme } from '@/context/ThemeContext';
 import { useFormPersist } from '@/context/FormPersistContext';
+import { cleanServices, toNum, apiErrorMessage, isNetworkError } from '@/utils/saveHelpers';
+import { enqueue } from '@/utils/offlineQueue';
 import { DiagnosticSection } from '@/components/DiagnosticSection';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -818,10 +820,10 @@ const QuoteForm = () => {
         work_location: formData.work_location,
         work_surface: '',
         diagnostic: formData.diagnostic,
-        services: formData.services,
+        services: cleanServices(formData.services),
         option_1_title: formData.option_1_title || '',
-        remise_percent: formData.remise_type === 'percent' ? formData.remise_percent : 0,
-        remise_montant: formData.remise_type === 'amount' ? formData.remise_montant : 0,
+        remise_percent: formData.remise_type === 'percent' ? toNum(formData.remise_percent) : 0,
+        remise_montant: formData.remise_type === 'amount' ? toNum(formData.remise_montant) : 0,
         payment_plan: formData.payment_plan || 'acompte_solde',
         notes: formData.notes,
         forfait_mode: forfaitMode,
@@ -831,25 +833,37 @@ const QuoteForm = () => {
           .filter(o => (o.services || []).length > 0)
           .map(o => ({
             title: o.title || '',
-            services: o.services,
+            services: cleanServices(o.services),
             remise_type: o.remise_type || 'percent',
-            remise_percent: o.remise_type === 'percent' ? (o.remise_percent || 0) : 0,
-            remise_montant: o.remise_type === 'amount' ? (o.remise_montant || 0) : 0,
+            remise_percent: o.remise_type === 'percent' ? toNum(o.remise_percent) : 0,
+            remise_montant: o.remise_type === 'amount' ? toNum(o.remise_montant) : 0,
             forfait_price: forfaitMode ? (parseFloat(o.forfait_price) || 0) : 0,
           })),
       };
+      if (id) payload.client_id = payload.client_id || formData.client_id;
+      const method = id ? 'put' : 'post';
+      const url = id ? `${API}/quotes/${id}` : `${API}/quotes`;
+      try {
+        await axios({ method, url, data: payload, timeout: 25000 });
+      } catch (err) {
+        if (!isNetworkError(err)) throw err;
+        // Pas de réseau : on garde le devis dans le téléphone, envoi automatique plus tard
+        const cName = hasNewClient ? newClient.name : (clients.find(c => c.id === payload.client_id)?.name || '');
+        enqueue({ method, url, data: payload, label: `Devis ${cName}`.trim() });
+        if (!id) clearQuoteForm();
+        toast.success('Devis gardé sur le téléphone', { description: 'Il sera envoyé tout seul dès que le réseau revient.' });
+        navigate('/quotes');
+        return;
+      }
       if (id) {
-        payload.client_id = payload.client_id || formData.client_id;
-        await axios.put(`${API}/quotes/${id}`, payload);
         toast.success('Devis modifié');
       } else {
-        await axios.post(`${API}/quotes`, payload);
         clearQuoteForm(); // Clear draft after successful save
         toast.success('Devis créé');
       }
       navigate('/quotes');
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Erreur de sauvegarde');
+      toast.error(apiErrorMessage(err));
     } finally {
       setLoading(false);
     }
