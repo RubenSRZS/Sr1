@@ -9,6 +9,7 @@ import PinScreen from '@/components/PinScreen';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import BottomNav from '@/components/BottomNav';
 import DesktopNav from '@/components/DesktopNav';
+import OfflineSync from '@/components/OfflineSync';
 
 // Lazy-loaded routes — only the bundle for the visited page is downloaded
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
@@ -98,6 +99,7 @@ function AppContent() {
   return (
     <div className={`App min-h-screen transition-colors duration-300 ${darkMode ? 'bg-slate-900 text-slate-100' : 'bg-[var(--sr-cream)] text-gray-900'}`}>
       <DesktopNav />
+      <OfflineSync />
       <div className="lg:pb-0" style={{ paddingBottom: 'calc(64px + env(safe-area-inset-bottom))' }}>
         <Suspense fallback={<RouteLoader />}>
           <Routes>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download, Moon, Sun, Building2, Palette } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download, Moon, Sun, Building2, Palette, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +13,8 @@ import { toast } from 'sonner';
 import { PDFDocument, downloadPDF, BRAND_BLUE, BRAND_ORANGE, PDF_TEMPLATE_OPTIONS } from '@/components/PDFPreview';
 import { useTheme } from '@/context/ThemeContext';
 import { useFormPersist } from '@/context/FormPersistContext';
+import { cleanServices, toNum, apiErrorMessage, isNetworkError } from '@/utils/saveHelpers';
+import { enqueue } from '@/utils/offlineQueue';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -35,6 +37,7 @@ const InvoiceForm = () => {
   const [clients, setClients] = useState([]);
   const [catalog, setCatalog] = useState([]);
   const [showCatalog, setShowCatalog] = useState(false);
+  const [catalogSearch, setCatalogSearch] = useState('');
   const [showNotesCatalog, setShowNotesCatalog] = useState(false);
   const [showPreviewMobile, setShowPreviewMobile] = useState(false);
   const [showNewClient, setShowNewClient] = useState(false);
@@ -125,11 +128,12 @@ const InvoiceForm = () => {
 
   const updateField = (key, val) => setFormData(prev => ({ ...prev, [key]: val }));
 
-  const addService = () => updateField('services', [...formData.services, { description: '', quantity: 1, unit_price: 0, total: 0 }]);
+  const addService = () => updateField('services', [...formData.services, { description: '', quantity: 1, unit: 'unité', unit_price: 0, total: 0 }]);
 
   const addFromCatalog = (item) => {
-    updateField('services', [...formData.services, { description: item.description, quantity: 1, unit_price: item.default_price || 0, total: item.default_price || 0 }]);
+    updateField('services', [...formData.services, { description: item.description, quantity: 1, unit: item.default_unit || 'unité', unit_price: item.default_price || 0, total: item.default_price || 0 }]);
     setShowCatalog(false);
+    setCatalogSearch('');
     toast.success('Service ajouté');
   };
 
@@ -137,7 +141,7 @@ const InvoiceForm = () => {
     const s = [...formData.services];
     s[i] = { ...s[i], [field]: val };
     if (field === 'quantity' || field === 'unit_price') {
-      s[i].total = parseFloat(s[i].quantity || 0) * parseFloat(s[i].unit_price || 0);
+      s[i].total = toNum(s[i].quantity) * toNum(s[i].unit_price);
     }
     updateField('services', s);
   };
@@ -207,21 +211,32 @@ const InvoiceForm = () => {
         custom_invoice_number: formData.custom_invoice_number || null,
         work_location: formData.work_location,
         work_surface: '',
-        services: formData.services,
-        remise_percent: formData.remise_type === 'percent' ? formData.remise_percent : 0,
-        remise_montant: formData.remise_type === 'amount' ? formData.remise_montant : 0,
-        acompte_paid: formData.acompte_paid,
+        services: cleanServices(formData.services),
+        remise_percent: formData.remise_type === 'percent' ? toNum(formData.remise_percent) : 0,
+        remise_montant: formData.remise_type === 'amount' ? toNum(formData.remise_montant) : 0,
+        acompte_paid: toNum(formData.acompte_paid),
         payment_status: formData.payment_status || 'pending',
         notes: formData.notes,
         profile_id: selectedProfileId || null,
         template: templateOverride || (profiles.find(p => p.id === selectedProfileId)?.pdf_template) || null,
       };
-      await axios.post(`${API}/invoices`, payload);
+      try {
+        await axios.post(`${API}/invoices`, payload, { timeout: 25000 });
+      } catch (err) {
+        if (!isNetworkError(err)) throw err;
+        // Pas de réseau : on garde la facture dans le téléphone, envoi automatique plus tard
+        const cName = hasNewClient ? newClient.name : (clients.find(c => c.id === clientId)?.name || '');
+        enqueue({ method: 'post', url: `${API}/invoices`, data: payload, label: `Facture ${cName}`.trim() });
+        clearInvoiceForm();
+        toast.success('Facture gardée sur le téléphone', { description: 'Elle sera envoyée toute seule dès que le réseau revient.' });
+        navigate('/invoices');
+        return;
+      }
       clearInvoiceForm();
       toast.success('Facture créée');
       navigate('/invoices');
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Erreur de sauvegarde');
+      toast.error(apiErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -583,19 +598,46 @@ const InvoiceForm = () => {
       )}
 
       {/* Catalog Dialog */}
-      <Dialog open={showCatalog} onOpenChange={setShowCatalog}>
+      <Dialog open={showCatalog} onOpenChange={(open) => { setShowCatalog(open); if (!open) setCatalogSearch(''); }}>
         <DialogContent className="sm:max-w-[700px] max-h-[80vh]" data-testid="catalog-dialog">
           <DialogHeader><DialogTitle>Catalogue de services</DialogTitle></DialogHeader>
-          <div className="overflow-y-auto space-y-3 max-h-[60vh] px-1">
-            {catalog.length === 0 ? (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            <Input
+              value={catalogSearch}
+              onChange={e => setCatalogSearch(e.target.value)}
+              placeholder="Rechercher une prestation..."
+              className="pl-9 h-9 text-sm"
+              autoFocus
+              data-testid="catalog-search-input"
+            />
+          </div>
+          <div className="overflow-y-auto space-y-3 max-h-[55vh] px-1">
+            {catalog.filter(i => i.item_type !== 'note_condition').length === 0 ? (
               <div className="text-center py-8 text-gray-400">
                 <p className="text-sm">Aucun service dans le catalogue</p>
                 <p className="text-xs mt-2">Ajoutez des services depuis la page Catalogue</p>
               </div>
             ) : (
               (() => {
+                const q = catalogSearch.trim().toLowerCase();
+                const filtered = catalog.filter(item =>
+                  item.item_type !== 'note_condition' && (
+                    !q ||
+                    item.service_name?.toLowerCase().includes(q) ||
+                    item.description?.toLowerCase().includes(q) ||
+                    item.category?.toLowerCase().includes(q)
+                  )
+                );
+                if (filtered.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-gray-400">
+                      <p className="text-sm">Aucun résultat pour « {catalogSearch} »</p>
+                    </div>
+                  );
+                }
                 // Grouper par catégorie
-                const grouped = catalog.reduce((acc, item) => {
+                const grouped = filtered.reduce((acc, item) => {
                   const cat = item.category || 'Autres';
                   if (!acc[cat]) acc[cat] = [];
                   acc[cat].push(item);
