@@ -1,5 +1,6 @@
 [build]
-  command = "yarn build"
+  # REACT_APP_BUILD_TIME : date de mise en ligne affichée sur le tableau de bord
+  command = "REACT_APP_BUILD_TIME=$(date +%s) yarn build"
   publish = "build"
 
 [build.environment]
