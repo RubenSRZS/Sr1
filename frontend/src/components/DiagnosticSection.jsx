@@ -5,68 +5,128 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 // Configuration des groupes de diagnostic avec leurs sous-options
 // IMPORTANT: Les sous-options utilisent des labels COURTS sans répéter le groupe
 // Ex: "Obstruée" et non "Gouttières obstruées"
+// ⚠ Ne jamais changer ni supprimer un "id" existant : les anciens devis les utilisent.
+// On peut changer les libellés, l'ordre, et ajouter des cases.
 export const DIAGNOSTIC_GROUPS = [
   {
-    id: 'structure',
-    label: 'Structure',
-    options: [
-      { id: 'structure_tuiles_cassees', label: 'Tuiles cassées' },
-      { id: 'structure_faitage_defaillant', label: 'Faîtage défaillant' },
-      { id: 'structure_fissures', label: 'Fissures' },
-    ],
-  },
-  {
     id: 'type_toiture',
-    label: 'Type de toiture',
+    label: 'Type de couverture',
     options: [
-      { id: 'toiture_tuile_ciment', label: 'Tuile ciment' },
       { id: 'toiture_tuile_terre_cuite', label: 'Tuile terre cuite' },
-      { id: 'toiture_ardoise', label: 'Ardoise' },
-      { id: 'toiture_zinc', label: 'Zinc' },
+      { id: 'toiture_tuile_ciment', label: 'Tuile ciment / béton' },
+      { id: 'toiture_tuile_plate', label: 'Tuile plate' },
+      { id: 'toiture_tuile_canal', label: 'Tuile canal / romane' },
+      { id: 'toiture_ardoise', label: 'Ardoise naturelle' },
+      { id: 'toiture_fibro_ciment', label: 'Ardoise / plaque fibro-ciment' },
+      { id: 'toiture_amiante', label: 'Amiante (présence possible)' },
       { id: 'toiture_bac_acier', label: 'Bac acier' },
       { id: 'toiture_pc_tole', label: 'PC tôle' },
-      { id: 'toiture_fibro_ciment', label: 'Fibro-ciment' },
-      { id: 'toiture_amiante', label: 'Amiante' },
+      { id: 'toiture_zinc', label: 'Zinc' },
+      { id: 'toiture_shingle', label: 'Shingle' },
+      { id: 'toiture_toit_plat', label: 'Toit plat / membrane' },
     ],
   },
   {
     id: 'vegetation',
-    label: 'Végétation / Taches',
+    label: 'Encrassement de la toiture',
     options: [
       { id: 'vegetation_mousses', label: 'Mousses' },
+      { id: 'vegetation_mousses_epaisses', label: 'Mousses épaisses (démoussage manuel)' },
       { id: 'vegetation_lichens', label: 'Lichens' },
-      { id: 'vegetation_trace_noire', label: 'Trace noire' },
+      { id: 'vegetation_trace_noire', label: 'Traces noires' },
+      { id: 'vegetation_algues_vertes', label: 'Algues / traces vertes' },
+      { id: 'vegetation_traces_rouges', label: 'Traces rouges / orangées' },
+      { id: 'vegetation_debris', label: 'Feuilles / débris' },
+      { id: 'vegetation_toiture_terne', label: 'Toiture terne / décolorée' },
+      { id: 'vegetation_tuiles_poreuses', label: 'Tuiles poreuses (boivent l\'eau)' },
+    ],
+  },
+  {
+    id: 'structure',
+    label: 'État de la couverture',
+    options: [
+      { id: 'structure_tuiles_cassees', label: 'Tuiles cassées / fendues' },
+      { id: 'structure_tuiles_deplacees', label: 'Tuiles déplacées / glissées' },
+      { id: 'structure_tuiles_gelives', label: 'Tuiles gélives / effritées' },
+      { id: 'structure_faitage_defaillant', label: 'Faîtage défaillant' },
+      { id: 'structure_mortier_fissure', label: 'Mortier fissuré / qui tombe' },
+      { id: 'structure_rives', label: 'Rives abîmées' },
+      { id: 'structure_solins', label: 'Solins / abergements défectueux' },
+      { id: 'structure_noues', label: 'Noues encombrées ou abîmées' },
+      { id: 'structure_cheminee', label: 'Cheminée abîmée' },
+      { id: 'structure_fissures', label: 'Fissures' },
+      { id: 'structure_affaissement', label: 'Affaissement / ondulation' },
     ],
   },
   {
     id: 'gouttieres',
-    label: 'Gouttières',
+    label: 'Gouttières / Zinguerie',
     options: [
-      { id: 'gouttieres_obstruee', label: 'Obstruée' },
-      { id: 'gouttieres_encrassee', label: 'Encrassée' },
-      { id: 'gouttieres_corrosion', label: 'Corrosion/Rouille' },
-      { id: 'gouttieres_deformee', label: 'Déformée' },
-      { id: 'gouttieres_decollee', label: 'Décollée' },
+      { id: 'gouttieres_obstruee', label: 'Obstruées' },
+      { id: 'gouttieres_encrassee', label: 'Encrassées' },
+      { id: 'gouttieres_vegetation', label: 'Végétation dedans' },
+      { id: 'gouttieres_debordement', label: 'Débordent par forte pluie' },
+      { id: 'gouttieres_pente', label: 'Mauvaise pente (eau stagnante)' },
+      { id: 'gouttieres_fuites', label: 'Fuites aux jonctions' },
+      { id: 'gouttieres_corrosion', label: 'Corrosion / rouille' },
+      { id: 'gouttieres_deformee', label: 'Déformées' },
+      { id: 'gouttieres_decollee', label: 'Décollées' },
+      { id: 'gouttieres_crochets', label: 'Crochets cassés / manquants' },
       { id: 'gouttieres_descente_ep', label: 'Descente EP défectueuse' },
+      { id: 'gouttieres_sous_face', label: 'Sous-face / bandeau abîmé' },
     ],
   },
   {
     id: 'facade',
     label: 'Façade',
     options: [
-      { id: 'facade_fissures', label: 'Fissures' },
-      { id: 'facade_mousses', label: 'Mousses / Traces noires' },
-      { id: 'facade_trace_verte', label: 'Trace verte' },
-      { id: 'facade_trace_rouge', label: 'Trace rouge' },
+      { id: 'facade_mousses', label: 'Mousses / traces noires' },
+      { id: 'facade_trace_verte', label: 'Traces vertes' },
+      { id: 'facade_trace_rouge', label: 'Traces rouges' },
+      { id: 'facade_crepi_encrasse', label: 'Crépi encrassé / grisé' },
+      { id: 'facade_coulures', label: 'Coulures sous fenêtres / appuis' },
+      { id: 'facade_pollution', label: 'Pollution / suie' },
       { id: 'facade_peinture_ecaillee', label: 'Peinture écaillée' },
+      { id: 'facade_enduit_decolle', label: 'Enduit qui se décolle' },
+      { id: 'facade_fissures', label: 'Fissures' },
+      { id: 'facade_salpetre', label: 'Salpêtre / remontées d\'humidité' },
+    ],
+  },
+  {
+    id: 'sols',
+    label: 'Terrasse / Sols',
+    options: [
+      { id: 'sols_encrasse', label: 'Encrassé / noirci' },
+      { id: 'sols_mousses', label: 'Mousses / lichens' },
+      { id: 'sols_glissant', label: 'Glissant' },
+      { id: 'sols_joints', label: 'Joints abîmés / herbe' },
+      { id: 'sols_dalles', label: 'Dalles décollées / cassées' },
+      { id: 'sols_bois_grise', label: 'Bois grisé' },
     ],
   },
   {
     id: 'humidite',
-    label: 'Humidité',
+    label: 'Humidité / Infiltrations',
     options: [
-      { id: 'humidite_forte', label: 'Forte humidité' },
       { id: 'humidite_infiltrations', label: 'Infiltrations' },
+      { id: 'humidite_combles', label: 'Traces d\'eau dans les combles' },
+      { id: 'humidite_plafond', label: 'Taches au plafond' },
+      { id: 'humidite_charpente', label: 'Charpente humide / bois abîmé' },
+      { id: 'humidite_condensation', label: 'Condensation' },
+      { id: 'humidite_forte', label: 'Forte humidité / zone ombragée' },
+    ],
+  },
+  {
+    id: 'acces',
+    label: 'Accès / Chantier',
+    options: [
+      { id: 'acces_nacelle', label: 'Accès nacelle possible' },
+      { id: 'acces_difficile', label: 'Accès difficile (drone)' },
+      { id: 'acces_hauteur', label: 'Grande hauteur' },
+      { id: 'acces_pente', label: 'Forte pente' },
+      { id: 'acces_toiture_fragile', label: 'Toiture fragile (ne pas marcher)' },
+      { id: 'acces_arbres', label: 'Arbres à proximité' },
+      { id: 'acces_protections', label: 'Protections à prévoir (véranda, plantes, voitures)' },
     ],
   },
 ];
@@ -168,11 +228,11 @@ export const DiagnosticSection = ({ diagnostic = {}, updateDiagnostic, darkMode 
 
               {/* Sous-options */}
               {isExpanded && (
-                <div className={`p-3 space-y-1.5 ${darkMode ? 'bg-slate-800' : 'bg-white'}`}>
+                <div className={`p-3 grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 ${darkMode ? 'bg-slate-800' : 'bg-white'}`}>
                   {group.options.map((option) => (
                     <label
                       key={option.id}
-                      className={`flex items-center gap-2 py-1 px-2 rounded cursor-pointer transition-colors ${
+                      className={`flex items-center gap-2 py-1.5 px-2 rounded cursor-pointer transition-colors ${
                         darkMode
                           ? 'hover:bg-slate-700'
                           : 'hover:bg-gray-50'
@@ -183,7 +243,7 @@ export const DiagnosticSection = ({ diagnostic = {}, updateDiagnostic, darkMode 
                         checked={diagnostic[option.id] === true}
                         onChange={(e) => handleOptionCheck(group.id, option.id, e.target.checked)}
                         disabled={groupChecked}
-                        className="h-3.5 w-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                        className="h-4 w-4 shrink-0 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
                       />
                       <span className={`text-sm ${darkMode ? 'text-slate-300' : 'text-gray-600'} ${groupChecked ? 'opacity-50' : ''}`}>
                         {option.label}
