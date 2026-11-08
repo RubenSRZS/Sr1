@@ -440,9 +440,13 @@ const QuoteForm = () => {
             // Créer le client d'abord ou trouver un client existant
             if (data.client) {
               // Vérifier si le client existe déjà
-              const existingClient = clientsRes.data.find(c => 
-                c.phone === data.client.phone || c.email === data.client.email
-              );
+              // Client venu du CRM en priorité, sinon même téléphone / email
+              const existingClient =
+                (data.client_id && clientsRes.data.find(c => c.id === data.client_id)) ||
+                clientsRes.data.find(c =>
+                  (data.client.phone && c.phone === data.client.phone) ||
+                  (data.client.email && c.email === data.client.email)
+                );
               
               if (existingClient) {
                 // Utiliser le client existant

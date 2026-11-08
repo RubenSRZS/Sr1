@@ -26,9 +26,11 @@ const AIAssistant = () => {
   React.useEffect(() => {
     const prefilledInput = sessionStorage.getItem('ai_prefilled_input');
     if (prefilledInput) {
-      setUserInput(prefilledInput);
+      setUserInput(prefilledInput + '\n\nDevis demandé : ');
       sessionStorage.removeItem('ai_prefilled_input');
-      toast.success('Notes du CRM chargées !');
+      toast.success('Fiche client chargée', { description: 'Ajoute ce que tu veux dans le devis, puis Générer.' });
+    } else {
+      sessionStorage.removeItem('ai_crm_client_id');
     }
   }, []);
 
@@ -130,8 +132,10 @@ const AIAssistant = () => {
         total: s.total
       })) || [],
       notes: result.notes || '',
+      client_id: sessionStorage.getItem('ai_crm_client_id') || null,
       ai_generated: true
     };
+    sessionStorage.removeItem('ai_crm_client_id');
     
     // Sauvegarder dans sessionStorage
     sessionStorage.setItem('ai_generated_quote', JSON.stringify(quoteData));

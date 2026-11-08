@@ -80,6 +80,21 @@ export const ClientSheet = ({ client, open, onClose, onChange, onDelete }) => {
 
   // Un devis déjà commencé est mis en pause (rien n'est perdu) avant d'en ouvrir un pour ce client
   const newQuote = () => { if (parkQuoteDraft()) toast.info('Le devis en cours a été mis en pause'); sessionStorage.setItem('crm_prefill_client', client.id); navigate('/quotes/new'); };
+  // Devis via l'IA : on envoie la fiche du client à l'assistant IA
+  const newAiQuote = () => {
+    const f = form || {};
+    const lines = [
+      `Client : ${[f.civility, f.name].filter(Boolean).join(' ')}`,
+      f.phone && `Téléphone : ${f.phone}`,
+      f.email && `Email : ${f.email}`,
+      (f.address || f.city) && `Adresse du chantier : ${f.address || f.city}`,
+      f.chantier && `Travaux : ${f.chantier}`,
+      f.notes && `Notes :\n${f.notes}`,
+    ].filter(Boolean);
+    sessionStorage.setItem('ai_prefilled_input', lines.join('\n'));
+    sessionStorage.setItem('ai_crm_client_id', client.id);
+    navigate('/ai-assistant');
+  };
   const remove = async () => {
     if (!window.confirm(`Supprimer la fiche ${form.name} ?`)) return;
     await axios.delete(`${API}/clients/${client.id}`);
@@ -125,7 +140,10 @@ export const ClientSheet = ({ client, open, onClose, onChange, onDelete }) => {
           <div className="flex gap-2 mt-3">
             {form.phone && <a data-testid="sheet-call" href={`tel:${form.phone.replace(/\s/g, '')}`} className="flex-1 h-10 rounded-xl bg-blue-600 text-white text-sm font-medium flex items-center justify-center gap-2 hover:bg-blue-700"><Phone className="w-4 h-4" />Appeler</a>}
             {wa && <a data-testid="sheet-whatsapp" href={wa} target="_blank" rel="noreferrer" className="flex-1 h-10 rounded-xl bg-emerald-500 text-white text-sm font-medium flex items-center justify-center gap-2 hover:bg-emerald-600"><MessageCircle className="w-4 h-4" />WhatsApp</a>}
+          </div>
+          <div className="flex gap-2 mt-2">
             <Button data-testid="sheet-new-quote" onClick={newQuote} variant="outline" className="flex-1 h-10 rounded-xl"><FilePlus className="w-4 h-4 mr-1" />Devis</Button>
+            <Button data-testid="sheet-new-quote-ai" onClick={newAiQuote} className="flex-1 h-10 rounded-xl bg-purple-600 hover:bg-purple-700 text-white"><Sparkles className="w-4 h-4 mr-1" />Devis via l'IA</Button>
           </div>
         </SheetHeader>
 
