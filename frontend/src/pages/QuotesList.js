@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Search, FileText, Trash2, Eye, Receipt, ChevronRight, Send, CheckCircle, Clock, FileCheck, SortAsc, Mail, EyeIcon, Copy, BellOff, Bell, XCircle, RotateCcw, Pencil, Archive, ArchiveRestore } from 'lucide-react';
+import { Plus, Search, FileText, Trash2, Eye, Receipt, ChevronRight, Send, CheckCircle, Clock, FileCheck, SortAsc, Mail, EyeIcon, Copy, BellOff, Bell, XCircle, RotateCcw, Pencil, Archive, ArchiveRestore, PauseCircle, PlayCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import SendQuoteModal from '@/components/SendQuoteModal';
 import { useDataCache } from '@/context/DataCacheContext';
+import { useFormPersist } from '@/context/FormPersistContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -53,6 +54,20 @@ function getDaysSinceSent(sentAt) {
 const QuotesList = () => {
   const navigate = useNavigate();
   const { cache, fetchQuotes: cachedFetchQuotes, invalidate } = useDataCache();
+  const { quoteFormData, parkedQuotes, parkQuoteDraft, resumeParkedQuote, deleteParkedQuote } = useFormPersist();
+
+  // Devis commencés et pas encore enregistrés : celui en cours + ceux en pause
+  const draftLabel = (d) => d?.options?.label || d?.data?.quote_title || d?.data?.work_location || d?.options?.newClient?.name || 'Devis sans nom';
+  const draftCount = (d) => (d?.data?.services || []).length;
+  const draftDate = (d) => { try { return new Date(d.parkedAt || d.savedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); } catch { return ''; } };
+  const currentHasContent = !!quoteFormData?.data && (draftCount(quoteFormData) > 0 || quoteFormData.data.work_location || quoteFormData.data.quote_title || quoteFormData.data.client_id || quoteFormData.options?.newClient?.name);
+  // Nouveau devis : l'éventuel devis en cours est mis en pause, rien n'est perdu
+  const startNewQuote = () => {
+    if (parkQuoteDraft()) toast.info('Le devis en cours a été mis en pause');
+    navigate('/quotes/new');
+  };
+  const resumeDraft = (pid) => { resumeParkedQuote(pid); navigate('/quotes/new'); };
+  const removeParked = (pid) => { deleteParkedQuote(pid); toast.success('Devis en pause supprimé'); };
   const quotes = cache.quotes || [];
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(cache.quotes === null);
@@ -191,13 +206,43 @@ const QuotesList = () => {
             <h1 className="text-xl font-bold">Mes Devis</h1>
             <p className="text-xs text-white/50">{quotes.length} devis au total</p>
           </div>
-          <Link to="/quotes/new">
-            <Button size="sm" className="text-white h-9" style={{ background: '#3b82f6' }} data-testid="create-quote-btn">
-              <Plus className="h-4 w-4 mr-1" /> Nouveau
-            </Button>
-          </Link>
+          <Button size="sm" onClick={startNewQuote} className="text-white h-9" style={{ background: '#3b82f6' }} data-testid="create-quote-btn">
+            <Plus className="h-4 w-4 mr-1" /> Nouveau
+          </Button>
         </div>
       </div>
+
+      {/* Devis commencés, pas encore enregistrés */}
+      {(currentHasContent || parkedQuotes.length > 0) && (
+        <div className="max-w-6xl mx-auto px-4 pt-4" data-testid="paused-quotes">
+          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Devis commencés</div>
+          <div className="space-y-2">
+            {currentHasContent && (
+              <div className="flex items-center gap-3 bg-white rounded-xl border-2 border-blue-200 px-3 py-2.5">
+                <PlayCircle className="h-5 w-5 text-blue-600 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-gray-800 truncate">{draftLabel(quoteFormData)}</div>
+                  <div className="text-[11px] text-gray-500">En cours · {draftCount(quoteFormData)} prestation(s) · {draftDate(quoteFormData)}</div>
+                </div>
+                <Button size="sm" className="h-8 text-white shrink-0" style={{ background: '#3b82f6' }} onClick={() => navigate('/quotes/new')} data-testid="resume-current-quote">Continuer</Button>
+              </div>
+            )}
+            {parkedQuotes.map((d) => (
+              <div key={d.pid} className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-3 py-2.5" data-testid={`parked-quote-${d.pid}`}>
+                <PauseCircle className="h-5 w-5 text-amber-500 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-gray-800 truncate">{draftLabel(d)}</div>
+                  <div className="text-[11px] text-gray-500">En pause · {draftCount(d)} prestation(s) · {draftDate(d)}</div>
+                </div>
+                <Button size="sm" variant="outline" className="h-8 shrink-0" onClick={() => resumeDraft(d.pid)} data-testid={`resume-parked-${d.pid}`}>Reprendre</Button>
+                <button type="button" onClick={() => removeParked(d.pid)} className="h-8 w-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 shrink-0" title="Supprimer ce devis en pause" data-testid={`delete-parked-${d.pid}`}>
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
