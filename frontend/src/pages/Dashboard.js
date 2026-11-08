@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Plus, FileText, Receipt, Users, ArrowRight, Moon, Sun, Send, CheckCircle, Clock, FileCheck, UserCircle, Settings, Bell, Layers } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,12 +7,20 @@ import { toast } from 'sonner';
 import { initializeDefaultCatalog } from '@/utils/defaultCatalog';
 import { useTheme } from '@/context/ThemeContext';
 import { useDataCache } from '@/context/DataCacheContext';
+import { useFormPersist } from '@/context/FormPersistContext';
 import AnalyticsSection from '@/components/AnalyticsSection';
 import FollowUpWidget from '@/components/FollowUpWidget';
 
 const Dashboard = () => {
   const { darkMode, toggleDarkMode } = useTheme();
   const { cache, fetchStats, fetchQuotes, fetchInvoices } = useDataCache();
+  const navigate = useNavigate();
+  const { parkQuoteDraft } = useFormPersist();
+  const startNewQuote = (e) => {
+    e.preventDefault();
+    if (parkQuoteDraft()) toast.info('Le devis en cours a été mis en pause', { description: 'Tu le retrouves dans « Mes Devis ».' });
+    navigate('/quotes/new');
+  };
   const [loading, setLoading] = useState(cache.stats === null);
 
   useEffect(() => {
@@ -89,7 +97,7 @@ const Dashboard = () => {
 
         {/* Quick actions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Link to="/quotes/new" data-testid="quick-new-quote">
+          <Link to="/quotes/new" onClick={startNewQuote} data-testid="quick-new-quote">
             <div className="rounded-xl p-5 text-white flex items-center justify-between group transition-all hover:scale-[1.01] hover:shadow-lg"
               style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)' }}
             >

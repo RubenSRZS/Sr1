@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download, Copy, Moon, Sun, ChevronUp, ChevronDown, Building2, Search, Palette } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Eye, EyeOff, BookOpen, Download, Copy, Moon, Sun, ChevronUp, ChevronDown, Building2, Search, Palette, PauseCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -303,7 +303,7 @@ const QuoteForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { darkMode, toggleDarkMode } = useTheme();
-  const { quoteFormData, saveQuoteForm, clearQuoteForm } = useFormPersist();
+  const { quoteFormData, saveQuoteForm, clearQuoteForm, parkQuoteDraft } = useFormPersist();
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState([]);
   const [catalog, setCatalog] = useState([]);
@@ -388,9 +388,19 @@ const QuoteForm = () => {
     if (id) return; // Don't auto-save when editing existing quote
     const hasContent = formData.services.length > 0 || formData.work_location || formData.quote_title || formData.client_id;
     if (hasContent) {
-      saveQuoteForm(formData, { additionalOptions, newClient, showNewClient });
+      // Nom affiché dans la liste des devis en pause
+      const clientName = showNewClient ? newClient.name : (clients.find(c => c.id === formData.client_id)?.name || '');
+      const label = [clientName, formData.quote_title || formData.work_location].filter(Boolean).join(' — ');
+      saveQuoteForm(formData, { additionalOptions, newClient, showNewClient, label });
     }
-  }, [formData, additionalOptions, newClient, showNewClient, id, saveQuoteForm]);
+  }, [formData, additionalOptions, newClient, showNewClient, id, saveQuoteForm, clients]);
+
+  // Met ce devis en pause pour en commencer un autre
+  const pauseQuote = () => {
+    const parked = parkQuoteDraft();
+    toast.success(parked ? 'Devis mis en pause' : 'Rien à mettre en pause', parked ? { description: 'Tu le retrouves en haut de « Mes Devis ».' } : undefined);
+    navigate('/quotes');
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -887,6 +897,11 @@ const QuoteForm = () => {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <h1 className="text-base font-bold whitespace-nowrap truncate">{id ? 'Modifier le devis' : 'Nouveau devis'}</h1>
+            {!id && (
+              <button type="button" onClick={pauseQuote} className="ml-1 shrink-0 flex items-center gap-1 px-2 h-8 rounded-full bg-white/15 hover:bg-white/25 text-xs font-medium" data-testid="pause-quote-btn-mobile">
+                <PauseCircle className="h-4 w-4" /> Pause
+              </button>
+            )}
           </div>
           <div className="flex items-center gap-1 overflow-x-auto shrink-0" style={{scrollbarWidth:'none',maxWidth:'55vw'}}>
             {profiles.length > 0 && (
@@ -920,6 +935,11 @@ const QuoteForm = () => {
         <div className="hidden lg:flex lg:items-center lg:justify-between mb-4">
           <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{id ? 'Modifier le devis' : 'Nouveau devis'}</h1>
           <div className="flex items-center gap-2">
+            {!id && (
+              <Button type="button" variant="outline" size="sm" onClick={pauseQuote} className="h-9 gap-1.5" data-testid="pause-quote-btn-desktop">
+                <PauseCircle className="h-4 w-4" /> Mettre en pause
+              </Button>
+            )}
             {profiles.length > 0 && (
               <Select value={selectedProfileId} onValueChange={handleProfileChange}>
                 <SelectTrigger data-testid="profile-select-desktop" className={`h-9 w-auto gap-1.5 text-sm px-3 ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white'}`}>

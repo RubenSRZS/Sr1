@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { useFormPersist } from '@/context/FormPersistContext';
 import { API, STAGES, SOURCES, CIVILITIES, ZONES, fmtDate, fmtMoney, waLink, callbackLabel, contactLabel, exportVCard } from './crmUtils';
 
 const QUOTE_STATUS = { draft: 'Brouillon', sent: 'Envoyé', accepted: 'Signé', invoiced: 'Facturé', lost: 'Perdu' };
@@ -38,6 +39,7 @@ const Pick = ({ options, value, onPick, testPrefix }) => (
 
 export const ClientSheet = ({ client, open, onClose, onChange, onDelete }) => {
   const navigate = useNavigate();
+  const { parkQuoteDraft } = useFormPersist();
   const [form, setForm] = useState(client || {});
   const [events, setEvents] = useState(null);
   const [tidying, setTidying] = useState(false);
@@ -76,7 +78,8 @@ export const ClientSheet = ({ client, open, onClose, onChange, onDelete }) => {
     finally { setTidying(false); }
   };
 
-  const newQuote = () => { sessionStorage.setItem('crm_prefill_client', client.id); navigate('/quotes/new'); };
+  // Un devis déjà commencé est mis en pause (rien n'est perdu) avant d'en ouvrir un pour ce client
+  const newQuote = () => { if (parkQuoteDraft()) toast.info('Le devis en cours a été mis en pause'); sessionStorage.setItem('crm_prefill_client', client.id); navigate('/quotes/new'); };
   const remove = async () => {
     if (!window.confirm(`Supprimer la fiche ${form.name} ?`)) return;
     await axios.delete(`${API}/clients/${client.id}`);

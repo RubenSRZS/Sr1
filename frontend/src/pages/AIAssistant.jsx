@@ -8,11 +8,13 @@ import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useTheme } from '@/context/ThemeContext';
+import { useFormPersist } from '@/context/FormPersistContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const AIAssistant = () => {
   const navigate = useNavigate();
+  const { parkQuoteDraft } = useFormPersist();
   const { darkMode } = useTheme();
   const [userInput, setUserInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -134,7 +136,8 @@ const AIAssistant = () => {
     // Sauvegarder dans sessionStorage
     sessionStorage.setItem('ai_generated_quote', JSON.stringify(quoteData));
     
-    // Rediriger vers le formulaire de devis
+    // Un devis déjà commencé est mis en pause, puis on ouvre le devis IA
+    if (parkQuoteDraft()) toast.info('Le devis en cours a été mis en pause');
     navigate('/quotes/new');
     toast.success('Redirection vers le formulaire...');
   };
