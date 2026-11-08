@@ -8,11 +8,13 @@ import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useTheme } from '@/context/ThemeContext';
+import { useFormPersist } from '@/context/FormPersistContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const AIAssistant = () => {
   const navigate = useNavigate();
+  const { parkQuoteDraft } = useFormPersist();
   const { darkMode } = useTheme();
   const [userInput, setUserInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,9 +26,11 @@ const AIAssistant = () => {
   React.useEffect(() => {
     const prefilledInput = sessionStorage.getItem('ai_prefilled_input');
     if (prefilledInput) {
-      setUserInput(prefilledInput);
+      setUserInput(prefilledInput + '\n\nDevis demandé : ');
       sessionStorage.removeItem('ai_prefilled_input');
-      toast.success('Notes du CRM chargées !');
+      toast.success('Fiche client chargée', { description: 'Ajoute ce que tu veux dans le devis, puis Générer.' });
+    } else {
+      sessionStorage.removeItem('ai_crm_client_id');
     }
   }, []);
 
@@ -128,13 +132,16 @@ const AIAssistant = () => {
         total: s.total
       })) || [],
       notes: result.notes || '',
+      client_id: sessionStorage.getItem('ai_crm_client_id') || null,
       ai_generated: true
     };
+    sessionStorage.removeItem('ai_crm_client_id');
     
     // Sauvegarder dans sessionStorage
     sessionStorage.setItem('ai_generated_quote', JSON.stringify(quoteData));
     
-    // Rediriger vers le formulaire de devis
+    // Un devis déjà commencé est mis en pause, puis on ouvre le devis IA
+    if (parkQuoteDraft()) toast.info('Le devis en cours a été mis en pause');
     navigate('/quotes/new');
     toast.success('Redirection vers le formulaire...');
   };

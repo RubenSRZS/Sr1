@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Search, FileText, Trash2, Eye, Receipt, ChevronRight, Send, CheckCircle, Clock, FileCheck, SortAsc, Mail, EyeIcon, Copy, BellOff, Bell, XCircle, RotateCcw, Pencil } from 'lucide-react';
+import { Plus, Search, FileText, Trash2, Eye, Receipt, ChevronRight, Send, CheckCircle, Clock, FileCheck, SortAsc, Mail, EyeIcon, Copy, BellOff, Bell, XCircle, RotateCcw, Pencil, Archive, ArchiveRestore, PauseCircle, PlayCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import SendQuoteModal from '@/components/SendQuoteModal';
 import { useDataCache } from '@/context/DataCacheContext';
+import { useFormPersist } from '@/context/FormPersistContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -19,7 +20,11 @@ const statusConfig = {
   accepted: { label: 'Signé',     color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle },
   invoiced: { label: 'Facturé',   color: 'bg-purple-100 text-purple-700', icon: FileCheck },
   lost:     { label: 'Perdu',     color: 'bg-red-100 text-red-600',       icon: XCircle },
+  // Mis de côté (pas perdu, pas d'actualité). « on_hold_sent » = il avait déjà été envoyé
+  on_hold:      { label: 'De côté', color: 'bg-slate-200 text-slate-600', icon: Archive },
+  on_hold_sent: { label: 'De côté', color: 'bg-slate-200 text-slate-600', icon: Archive },
 };
+const isOnHold = (st) => st === 'on_hold' || st === 'on_hold_sent';
 
 const TABS = [
   { key: 'all',      label: 'Tous' },
@@ -27,6 +32,7 @@ const TABS = [
   { key: 'sent',     label: 'En attente' },
   { key: 'accepted', label: 'Signés' },
   { key: 'lost',     label: 'Perdus' },
+  { key: 'on_hold',  label: 'De côté' },
 ];
 
 // La 1re relance (modèle « 3 ») part maintenant à J+1
@@ -48,6 +54,20 @@ function getDaysSinceSent(sentAt) {
 const QuotesList = () => {
   const navigate = useNavigate();
   const { cache, fetchQuotes: cachedFetchQuotes, invalidate } = useDataCache();
+  const { quoteFormData, parkedQuotes, parkQuoteDraft, resumeParkedQuote, deleteParkedQuote } = useFormPersist();
+
+  // Devis commencés et pas encore enregistrés : celui en cours + ceux en pause
+  const draftLabel = (d) => d?.options?.label || d?.data?.quote_title || d?.data?.work_location || d?.options?.newClient?.name || 'Devis sans nom';
+  const draftCount = (d) => (d?.data?.services || []).length;
+  const draftDate = (d) => { try { return new Date(d.parkedAt || d.savedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); } catch { return ''; } };
+  const currentHasContent = !!quoteFormData?.data && (draftCount(quoteFormData) > 0 || quoteFormData.data.work_location || quoteFormData.data.quote_title || quoteFormData.data.client_id || quoteFormData.options?.newClient?.name);
+  // Nouveau devis : l'éventuel devis en cours est mis en pause, rien n'est perdu
+  const startNewQuote = () => {
+    if (parkQuoteDraft()) toast.info('Le devis en cours a été mis en pause');
+    navigate('/quotes/new');
+  };
+  const resumeDraft = (pid) => { resumeParkedQuote(pid); navigate('/quotes/new'); };
+  const removeParked = (pid) => { deleteParkedQuote(pid); toast.success('Devis en pause supprimé'); };
   const quotes = cache.quotes || [];
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(cache.quotes === null);
@@ -83,6 +103,25 @@ const QuotesList = () => {
       toast.success(`Statut mis à jour`);
       fetchQuotes();
     } catch { toast.error('Erreur mise à jour statut'); }
+  };
+
+  // Mettre de côté : le devis n'est pas perdu mais disparaît de « Tous »
+  const handleSetAside = async (quote) => {
+    const next = quote.status === 'sent' ? 'on_hold_sent' : 'on_hold';
+    try {
+      await axios.patch(`${API}/quotes/${quote.id}/status?status=${next}`);
+      toast.success('Devis mis de côté', { description: 'Tu le retrouves dans l\u2019onglet « De côté ».' });
+      fetchQuotes();
+    } catch { toast.error('Erreur, réessaie'); }
+  };
+  // Ressortir : il revient comme avant (brouillon, ou en attente s'il avait été envoyé)
+  const handleBringBack = async (quote) => {
+    const back = quote.status === 'on_hold_sent' ? 'sent' : 'draft';
+    try {
+      await axios.patch(`${API}/quotes/${quote.id}/status?status=${back}`);
+      toast.success(back === 'sent' ? 'Devis ressorti (en attente)' : 'Devis ressorti (brouillon)');
+      fetchQuotes();
+    } catch { toast.error('Erreur, réessaie'); }
   };
 
   const handleDuplicate = async (quote) => {
@@ -143,14 +182,18 @@ const QuotesList = () => {
     return new Date(b.created_at) - new Date(a.created_at);
   });
 
-  const byTab = activeTab === 'all' ? sorted : sorted.filter(q => q.status === activeTab);
+  const byTab = activeTab === 'all'
+    ? sorted.filter(q => !isOnHold(q.status))
+    : activeTab === 'on_hold'
+      ? sorted.filter(q => isOnHold(q.status))
+      : sorted.filter(q => q.status === activeTab);
   const filtered = search
     ? byTab.filter(q => q.client_name.toLowerCase().includes(search.toLowerCase()) || q.quote_number.toLowerCase().includes(search.toLowerCase()))
     : byTab;
 
   // Counts per tab
-  const counts = { all: quotes.length };
-  TABS.slice(1).forEach(t => { counts[t.key] = quotes.filter(q => q.status === t.key).length; });
+  const counts = { all: quotes.filter(q => !isOnHold(q.status)).length };
+  TABS.slice(1).forEach(t => { counts[t.key] = quotes.filter(q => t.key === 'on_hold' ? isOnHold(q.status) : q.status === t.key).length; });
 
   if (loading && quotes.length === 0) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 border-3 border-[#3b82f6] border-t-transparent rounded-full animate-spin" /></div>;
 
@@ -163,13 +206,43 @@ const QuotesList = () => {
             <h1 className="text-xl font-bold">Mes Devis</h1>
             <p className="text-xs text-white/50">{quotes.length} devis au total</p>
           </div>
-          <Link to="/quotes/new">
-            <Button size="sm" className="text-white h-9" style={{ background: '#3b82f6' }} data-testid="create-quote-btn">
-              <Plus className="h-4 w-4 mr-1" /> Nouveau
-            </Button>
-          </Link>
+          <Button size="sm" onClick={startNewQuote} className="text-white h-9" style={{ background: '#3b82f6' }} data-testid="create-quote-btn">
+            <Plus className="h-4 w-4 mr-1" /> Nouveau
+          </Button>
         </div>
       </div>
+
+      {/* Devis commencés, pas encore enregistrés */}
+      {(currentHasContent || parkedQuotes.length > 0) && (
+        <div className="max-w-6xl mx-auto px-4 pt-4" data-testid="paused-quotes">
+          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Devis commencés</div>
+          <div className="space-y-2">
+            {currentHasContent && (
+              <div className="flex items-center gap-3 bg-white rounded-xl border-2 border-blue-200 px-3 py-2.5">
+                <PlayCircle className="h-5 w-5 text-blue-600 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-gray-800 truncate">{draftLabel(quoteFormData)}</div>
+                  <div className="text-[11px] text-gray-500">En cours · {draftCount(quoteFormData)} prestation(s) · {draftDate(quoteFormData)}</div>
+                </div>
+                <Button size="sm" className="h-8 text-white shrink-0" style={{ background: '#3b82f6' }} onClick={() => navigate('/quotes/new')} data-testid="resume-current-quote">Continuer</Button>
+              </div>
+            )}
+            {parkedQuotes.map((d) => (
+              <div key={d.pid} className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-3 py-2.5" data-testid={`parked-quote-${d.pid}`}>
+                <PauseCircle className="h-5 w-5 text-amber-500 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-gray-800 truncate">{draftLabel(d)}</div>
+                  <div className="text-[11px] text-gray-500">En pause · {draftCount(d)} prestation(s) · {draftDate(d)}</div>
+                </div>
+                <Button size="sm" variant="outline" className="h-8 shrink-0" onClick={() => resumeDraft(d.pid)} data-testid={`resume-parked-${d.pid}`}>Reprendre</Button>
+                <button type="button" onClick={() => removeParked(d.pid)} className="h-8 w-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 shrink-0" title="Supprimer ce devis en pause" data-testid={`delete-parked-${d.pid}`}>
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
@@ -227,7 +300,7 @@ const QuotesList = () => {
           const isSent = q.status === 'sent';
 
           return (
-            <Card key={q.id} className={`bg-white border border-slate-200 shadow-md rounded-xl p-4 mb-4 hover:shadow-lg hover:border-slate-300 transition-all ${q.status === 'lost' ? 'opacity-70' : ''}`} data-testid={`quote-card-${q.id}`}>
+            <Card key={q.id} className={`bg-white border border-slate-200 shadow-md rounded-xl p-4 mb-4 hover:shadow-lg hover:border-slate-300 transition-all ${q.status === 'lost' || isOnHold(q.status) ? 'opacity-70' : ''}`} data-testid={`quote-card-${q.id}`}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <FileText className="h-4 w-4 text-[#3b82f6] flex-shrink-0" />
@@ -237,11 +310,11 @@ const QuotesList = () => {
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1 cursor-pointer ${status.color}`}>
                       <StatusIcon className="h-3 w-3" />
                       {status.label}
-                      {q.status !== 'lost' && q.status !== 'invoiced' && <ChevronRight className="h-3 w-3 opacity-50 group-hover:opacity-100 transition-opacity" />}
+                      {q.status !== 'lost' && q.status !== 'invoiced' && !isOnHold(q.status) && <ChevronRight className="h-3 w-3 opacity-50 group-hover:opacity-100 transition-opacity" />}
                     </span>
-                    {q.status !== 'lost' && q.status !== 'invoiced' && (
+                    {q.status !== 'lost' && q.status !== 'invoiced' && !isOnHold(q.status) && (
                       <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all min-w-[140px]">
-                        {Object.entries(statusConfig).filter(([key]) => key !== 'invoiced' && key !== 'lost').map(([key, cfg]) => {
+                        {Object.entries(statusConfig).filter(([key]) => key !== 'invoiced' && key !== 'lost' && !isOnHold(key)).map(([key, cfg]) => {
                           const Icon = cfg.icon;
                           return (
                             <button key={key} onClick={() => handleStatusChange(q, key)}
@@ -306,7 +379,12 @@ const QuotesList = () => {
                 <Button variant="outline" size="sm" onClick={() => setSendQuote(q)} className="h-8 text-xs text-blue-600 border-blue-200 hover:bg-blue-50" style={{ flex: '1 1 auto' }} data-testid={`send-quote-${q.id}`}>
                   <Send className="h-3.5 w-3.5 mr-1" /> Envoyer
                 </Button>
-                {q.status !== 'invoiced' && q.status !== 'lost' && (
+                {isOnHold(q.status) && (
+                  <Button variant="outline" size="sm" onClick={() => handleBringBack(q)} className="h-8 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50" style={{ flex: '1 1 auto' }} data-testid={`bring-back-quote-${q.id}`}>
+                    <ArchiveRestore className="h-3.5 w-3.5 mr-1" /> Ressortir
+                  </Button>
+                )}
+                {q.status !== 'invoiced' && q.status !== 'lost' && !isOnHold(q.status) && (
                   <Button variant="outline" size="sm" onClick={() => openConvertModal(q)} className="h-8 text-xs text-orange-600 border-orange-200 hover:bg-orange-50" style={{ flex: '1 1 auto' }} data-testid={`convert-quote-${q.id}`}>
                     <Receipt className="h-3.5 w-3.5 mr-1" /> Facturer
                   </Button>
@@ -320,6 +398,11 @@ const QuotesList = () => {
 
               {/* Actions — rangée secondaire (icônes) */}
               <div className="flex gap-1.5 mt-1.5">
+                {(q.status === 'draft' || q.status === 'sent' || !q.status) && (
+                  <Button variant="ghost" size="sm" onClick={() => handleSetAside(q)} className="h-7 px-2 text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100" title="Mettre de côté (pas perdu, pas d'actualité)" data-testid={`set-aside-quote-${q.id}`}>
+                    <Archive className="h-3.5 w-3.5 mr-1" /> De côté
+                  </Button>
+                )}
                 <Button variant="ghost" size="sm" onClick={() => handleDuplicate(q)} className="h-7 w-7 p-0 text-slate-400 hover:text-slate-600 hover:bg-slate-100" title="Dupliquer" data-testid={`duplicate-quote-${q.id}`}>
                   <Copy className="h-3.5 w-3.5" />
                 </Button>

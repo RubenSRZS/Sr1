@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Plus, FileText, Receipt, Users, ArrowRight, Moon, Sun, Send, CheckCircle, Clock, FileCheck, UserCircle, Settings, Bell, Layers } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { initializeDefaultCatalog } from '@/utils/defaultCatalog';
 import { useTheme } from '@/context/ThemeContext';
 import { useDataCache } from '@/context/DataCacheContext';
+import { useFormPersist } from '@/context/FormPersistContext';
 import AnalyticsSection from '@/components/AnalyticsSection';
 import { APP_VERSION, BUILD_LABEL } from '@/version';
 import FollowUpWidget from '@/components/FollowUpWidget';
@@ -14,6 +15,13 @@ import FollowUpWidget from '@/components/FollowUpWidget';
 const Dashboard = () => {
   const { darkMode, toggleDarkMode } = useTheme();
   const { cache, fetchStats, fetchQuotes, fetchInvoices } = useDataCache();
+  const navigate = useNavigate();
+  const { parkQuoteDraft } = useFormPersist();
+  const startNewQuote = (e) => {
+    e.preventDefault();
+    if (parkQuoteDraft()) toast.info('Le devis en cours a été mis en pause', { description: 'Tu le retrouves dans « Mes Devis ».' });
+    navigate('/quotes/new');
+  };
   const [loading, setLoading] = useState(cache.stats === null);
 
   useEffect(() => {
@@ -42,6 +50,8 @@ const Dashboard = () => {
     sent: { label: 'Envoyé', color: darkMode ? 'bg-sky-900/50 text-sky-300' : 'bg-sky-100 text-sky-700', icon: Send },
     accepted: { label: 'Accepté', color: darkMode ? 'bg-emerald-900/50 text-emerald-300' : 'bg-emerald-100 text-emerald-700', icon: CheckCircle },
     invoiced: { label: 'Facturé', color: darkMode ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-700', icon: FileCheck },
+    on_hold: { label: 'De côté', color: darkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-200 text-slate-600', icon: Clock },
+    on_hold_sent: { label: 'De côté', color: darkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-200 text-slate-600', icon: Clock },
   };
   
   const payConfig = {
@@ -92,7 +102,7 @@ const Dashboard = () => {
 
         {/* Quick actions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Link to="/quotes/new" data-testid="quick-new-quote">
+          <Link to="/quotes/new" onClick={startNewQuote} data-testid="quick-new-quote">
             <div className="rounded-xl p-5 text-white flex items-center justify-between group transition-all hover:scale-[1.01] hover:shadow-lg"
               style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)' }}
             >
