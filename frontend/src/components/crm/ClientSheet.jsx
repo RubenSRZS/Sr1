@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { API, STAGES, SOURCES, CIVILITIES, ZONES, fmtDate, fmtMoney, waLink, callbackLabel, contactLabel, exportVCard } from './crmUtils';
 
-const QUOTE_STATUS = { draft: 'Brouillon', sent: 'Envoyé', accepted: 'Signé', invoiced: 'Facturé', lost: 'Perdu' };
+const QUOTE_STATUS = { draft: 'Brouillon', sent: 'Envoyé', accepted: 'Signé', invoiced: 'Facturé', lost: 'Perdu', on_hold: 'De côté', on_hold_sent: 'De côté' };
 const INV_STATUS = { pending: 'À payer', partial: 'Acompte', paid: 'Payée' };
 
 const Row = ({ label, children }) => (
