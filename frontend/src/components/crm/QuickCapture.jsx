@@ -7,6 +7,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { API, ZONES, SOURCES, CIVILITIES, contactLabel } from './crmUtils';
 
+// L'IA renvoie parfois une liste (ex. notes) au lieu d'un texte :
+// le serveur refusait alors la fiche. On remet tout en texte.
+const asText = (v) => {
+  if (v === null || v === undefined) return '';
+  if (Array.isArray(v)) return v.map(asText).filter(Boolean).join('\n');
+  if (typeof v === 'object') return Object.values(v).map(asText).filter(Boolean).join('\n');
+  return String(v);
+};
+const normalize = (d) => Object.fromEntries(Object.keys(EMPTY).map((k) => [k, asText(d?.[k])]));
+
 const EMPTY = { zone: '', civility: '', name: '', phone: '', email: '', city: '', address: '', chantier: '', source: '', callback_at: '', callback_time: '', notes: '' };
 
 const Field = ({ label, testId, className = '', ...props }) => (
@@ -45,7 +55,7 @@ export const QuickCapture = ({ zone, onZoneChange, onCreated }) => {
     setParsing(true);
     try {
       const res = await axios.post(`${API}/ai/parse-contact`, { text: raw, zone });
-      const d = res.data.data || {};
+      const d = normalize(res.data.data || {});
       setDraft({ ...EMPTY, ...d, zone: d.zone || zone, callback_at: d.callback_at || '', callback_time: d.callback_time || '' });
     } catch (e) {
       toast.error(e.response?.data?.detail || "L'IA n'a pas pu analyser — remplis la fiche à la main");
@@ -59,13 +69,15 @@ export const QuickCapture = ({ zone, onZoneChange, onCreated }) => {
     if (!draft.name.trim()) { toast.error('Le nom est obligatoire'); return; }
     setSaving(true);
     try {
-      const payload = { ...draft, zone: draft.zone || zone, address: draft.address || draft.city, callback_at: draft.callback_at || null };
+      const clean = normalize(draft);
+      const payload = { ...clean, zone: draft.zone || zone, address: clean.address || clean.city, callback_at: clean.callback_at || null };
       const res = await axios.post(`${API}/clients`, payload);
       toast.success(`Fiche ${contactLabel(res.data)} créée`);
       setRaw(''); setDraft(null);
       onCreated?.(res.data);
     } catch (e) {
-      toast.error('Erreur lors de la création');
+      const d = e.response?.data?.detail;
+      toast.error(typeof d === 'string' ? d : (e.response ? 'Erreur lors de la création' : 'Pas de réseau, réessaie'));
     } finally {
       setSaving(false);
     }

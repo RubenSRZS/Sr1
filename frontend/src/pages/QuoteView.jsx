@@ -15,6 +15,8 @@ const STATUS = {
   accepted: { label: 'Signé', cls: 'bg-emerald-100 text-emerald-700' },
   invoiced: { label: 'Facturé', cls: 'bg-purple-100 text-purple-700' },
   lost: { label: 'Perdu', cls: 'bg-gray-100 text-gray-500' },
+  on_hold: { label: 'De côté', cls: 'bg-slate-200 text-slate-600' },
+  on_hold_sent: { label: 'De côté', cls: 'bg-slate-200 text-slate-600' },
 };
 
 export default function QuoteView() {

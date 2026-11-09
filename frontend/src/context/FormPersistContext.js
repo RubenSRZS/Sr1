@@ -21,6 +21,16 @@ export const FormPersistProvider = ({ children }) => {
     }
   });
 
+  // Devis mis en pause (plusieurs possibles)
+  const [parkedQuotes, setParkedQuotes] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sr-quote-parked');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const [invoiceFormData, setInvoiceFormData] = useState(() => {
     try {
       const saved = localStorage.getItem('sr-invoice-draft');
@@ -46,6 +56,53 @@ export const FormPersistProvider = ({ children }) => {
     localStorage.removeItem('sr-quote-draft');
     setQuoteFormData(null);
   }, []);
+
+  const writeParked = useCallback((list) => {
+    try { localStorage.setItem('sr-quote-parked', JSON.stringify(list)); } catch { /* stockage plein */ }
+    setParkedQuotes(list);
+  }, []);
+
+  const readCurrent = () => {
+    try { return JSON.parse(localStorage.getItem('sr-quote-draft') || 'null'); } catch { return null; }
+  };
+  const readParked = () => {
+    try { return JSON.parse(localStorage.getItem('sr-quote-parked') || '[]'); } catch { return []; }
+  };
+  const draftHasContent = (d) => {
+    const x = d?.data;
+    return !!x && ((x.services && x.services.length > 0) || x.work_location || x.quote_title || x.client_id || d?.options?.newClient?.name);
+  };
+
+  // Met le devis en cours de côté et libère la place pour un nouveau
+  const parkQuoteDraft = useCallback(() => {
+    const current = readCurrent();
+    if (!draftHasContent(current)) { clearQuoteForm(); return false; }
+    const item = { ...current, pid: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, parkedAt: new Date().toISOString() };
+    writeParked([item, ...readParked()]);
+    clearQuoteForm();
+    return true;
+  }, [clearQuoteForm, writeParked]);
+
+  // Reprend un devis en pause (le devis en cours, s'il y en a un, est mis en pause à sa place)
+  const resumeParkedQuote = useCallback((pid) => {
+    const list = readParked();
+    const item = list.find((x) => x.pid === pid);
+    if (!item) return false;
+    let rest = list.filter((x) => x.pid !== pid);
+    const current = readCurrent();
+    if (draftHasContent(current)) {
+      rest = [{ ...current, pid: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, parkedAt: new Date().toISOString() }, ...rest];
+    }
+    writeParked(rest);
+    const { pid: _p, parkedAt: _a, ...draft } = item;
+    localStorage.setItem('sr-quote-draft', JSON.stringify(draft));
+    setQuoteFormData(draft);
+    return true;
+  }, [writeParked]);
+
+  const deleteParkedQuote = useCallback((pid) => {
+    writeParked(readParked().filter((x) => x.pid !== pid));
+  }, [writeParked]);
 
   // Save invoice form data
   const saveInvoiceForm = useCallback((data, options = {}) => {
@@ -75,6 +132,10 @@ export const FormPersistProvider = ({ children }) => {
       saveQuoteForm,
       clearQuoteForm,
       hasQuoteDraft,
+      parkedQuotes,
+      parkQuoteDraft,
+      resumeParkedQuote,
+      deleteParkedQuote,
       // Invoice
       invoiceFormData,
       saveInvoiceForm,
