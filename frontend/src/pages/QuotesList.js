@@ -110,6 +110,11 @@ const QuotesList = () => {
     const next = quote.status === 'sent' ? 'on_hold_sent' : 'on_hold';
     try {
       await axios.patch(`${API}/quotes/${quote.id}/status?status=${next}`);
+      // Et on coupe les relances automatiques
+      if (quote.relances_active) {
+        const r = await axios.patch(`${API}/quotes/${quote.id}/toggle-relances`);
+        if (r.data?.relances_active) await axios.patch(`${API}/quotes/${quote.id}/toggle-relances`);
+      }
       toast.success('Devis mis de côté', { description: 'Tu le retrouves dans l\u2019onglet « De côté ».' });
       fetchQuotes();
     } catch { toast.error('Erreur, réessaie'); }
@@ -140,6 +145,22 @@ const QuotesList = () => {
       toast.success(r.data.relances_active ? 'Relances réactivées' : 'Relances désactivées');
       fetchQuotes();
     } catch { toast.error('Erreur'); }
+  };
+
+  // Couper d'un coup toutes les relances automatiques encore actives
+  const activeRelances = quotes.filter(q => q.relances_active && q.status === 'sent');
+  const stopAllRelances = async () => {
+    if (!window.confirm(`Couper les relances automatiques de ${activeRelances.length} devis ?`)) return;
+    let ok = 0;
+    for (const q of activeRelances) {
+      try {
+        const r = await axios.patch(`${API}/quotes/${q.id}/toggle-relances`);
+        if (r.data?.relances_active) await axios.patch(`${API}/quotes/${q.id}/toggle-relances`);
+        ok += 1;
+      } catch { /* on continue avec les autres */ }
+    }
+    toast.success(`Relances coupées sur ${ok} devis`);
+    fetchQuotes();
   };
 
   const handleRestore = async (e, quote) => {
@@ -290,6 +311,18 @@ const QuotesList = () => {
             {sortMode === 'alpha' ? 'A→Z' : 'Récents'}
           </Button>
         </div>
+
+        {activeRelances.length > 0 && (
+          <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2.5" data-testid="active-relances-banner">
+            <Bell className="h-4 w-4 text-blue-600 shrink-0" />
+            <div className="flex-1 text-xs text-blue-900">
+              <b>{activeRelances.length} devis</b> avec relances automatiques actives (la cloche bleue sur le devis).
+            </div>
+            <Button size="sm" variant="outline" className="h-8 text-xs shrink-0 border-blue-300 text-blue-700" onClick={stopAllRelances} data-testid="stop-all-relances">
+              <BellOff className="h-3.5 w-3.5 mr-1" /> Tout couper
+            </Button>
+          </div>
+        )}
 
         {/* Quote cards */}
         {filtered.length > 0 ? filtered.map(q => {

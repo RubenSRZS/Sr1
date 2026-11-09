@@ -26,6 +26,8 @@ const SendQuoteModal = ({ quote, onClose, onSent }) => {
   const [message, setMessage] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
   const [sending, setSending] = useState(false);
+  // Relances automatiques : DÉSACTIVÉES par défaut, il faut les cocher pour qu'elles partent
+  const [withRelances, setWithRelances] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [attachments, setAttachments] = useState([]); // [{name, size, content (base64 without prefix)}]
   const [emailCtx, setEmailCtx] = useState(null); // région + civilité du client
@@ -139,7 +141,15 @@ const SendQuoteModal = ({ quote, onClose, onSent }) => {
         body: JSON.stringify(payload),
       });
       if (res.ok) {
-        toast.success('Devis envoyé avec le PDF en pièce jointe !');
+        // Le serveur active les relances à l'envoi : on les coupe si la case n'est pas cochée
+        if (!withRelances) {
+          try {
+            const t = await fetch(`${API}/quotes/${quote.id}/toggle-relances`, { method: 'PATCH' });
+            const j = t.ok ? await t.json() : null;
+            if (j && j.relances_active) await fetch(`${API}/quotes/${quote.id}/toggle-relances`, { method: 'PATCH' });
+          } catch (_) { toast.error('Attention : relances peut-être actives, vérifie la cloche du devis'); }
+        }
+        toast.success(withRelances ? 'Devis envoyé — relances automatiques activées' : 'Devis envoyé — sans relance automatique');
         onSent?.();
         onClose();
       } else {
@@ -266,7 +276,11 @@ const SendQuoteModal = ({ quote, onClose, onSent }) => {
 
         {/* Sticky footer: Email + WhatsApp toujours visibles */}
         <div className="sticky bottom-0 bg-white border-t border-slate-100 z-10">
-        <div className="px-5 pt-4 pb-2 flex gap-3">
+        <label className="px-5 pt-3 flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none" data-testid="relances-checkbox-label">
+          <input type="checkbox" checked={withRelances} onChange={e => setWithRelances(e.target.checked)} className="h-4 w-4 rounded border-slate-300" data-testid="relances-checkbox" />
+          Relancer automatiquement ce client par email
+        </label>
+        <div className="px-5 pt-3 pb-2 flex gap-3">
           <Button onClick={onClose} variant="outline" className="flex-1" data-testid="cancel-send-btn">
             Annuler
           </Button>
