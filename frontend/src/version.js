@@ -1,7 +1,7 @@
 // Version affichée sur le tableau de bord.
 // APP_VERSION : à augmenter à chaque amélioration (4.0 → 4.1 → 4.2…).
 // La date de mise à jour se remplit toute seule à chaque mise en ligne (voir netlify.toml).
-export const APP_VERSION = '4.0';
+export const APP_VERSION = '4.1';
 
 const built = Number(process.env.REACT_APP_BUILD_TIME || 0);
 
