@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { saveSession } from '@/lib/auth';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -39,10 +40,11 @@ const PinScreen = ({ onSuccess }) => {
         body: JSON.stringify({ pin: code }),
       });
       if (res.ok) {
-        localStorage.setItem('sr_auth', 'true');
+        const data = await res.json().catch(() => ({}));
+        saveSession(data.token);
         onSuccess();
       } else {
-        toast.error('Code incorrect');
+        toast.error(res.status === 429 ? "Trop d'essais. Réessayez dans 15 minutes." : 'Code incorrect');
         setPin(['', '', '', '', '', '']);
         inputRefs[0].current?.focus();
       }

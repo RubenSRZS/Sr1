@@ -1,4 +1,8 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Body
+from fastapi import FastAPI, APIRouter, HTTPException, Body, Request
+from fastapi.responses import JSONResponse
+import hmac
+import hashlib
+import time
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
@@ -1673,20 +1677,83 @@ async def get_settings():
         settings["pin"] = "033003"
     return settings
 
-@api_router.post("/auth/verify-pin")
-async def verify_pin(body: PinVerify):
+# ==================== SÉCURITÉ : JETON DE SESSION ====================
+# Après le bon code, le serveur donne un jeton signé (valable 90 jours).
+# Toutes les adresses /api/... (sauf connexion et devis publics) exigent ce jeton.
+# Changer le code déconnecte automatiquement tous les appareils.
+
+SESSION_DAYS = 90
+_auth_cache = {"secret": None, "pin": None, "ts": 0.0}
+_pin_failures = {}  # ip -> [horodatages des essais ratés]
+PIN_MAX_FAILS = 8
+PIN_LOCK_SECONDS = 15 * 60
+
+async def _auth_material(force: bool = False):
+    now = time.time()
+    if not force and _auth_cache["secret"] and now - _auth_cache["ts"] < 60:
+        return _auth_cache["secret"], _auth_cache["pin"]
     settings = await get_settings()
-    if body.pin == settings["pin"]:
-        return {"status": "success", "authenticated": True}
+    secret = os.environ.get("AUTH_SECRET") or settings.get("auth_secret")
+    if not secret:
+        secret = secrets.token_urlsafe(48)
+        await db.settings.update_one({"id": "app_settings"}, {"$set": {"auth_secret": secret}})
+    _auth_cache.update(secret=secret, pin=settings["pin"], ts=now)
+    return secret, settings["pin"]
+
+def _sign(secret: str, pin: str, exp: int) -> str:
+    return hmac.new(secret.encode(), f"{exp}.{pin}".encode(), hashlib.sha256).hexdigest()
+
+async def make_session_token() -> str:
+    secret, pin = await _auth_material(force=True)
+    exp = int(time.time()) + SESSION_DAYS * 86400
+    return f"{exp}.{_sign(secret, pin, exp)}"
+
+async def check_session_token(token: str) -> bool:
+    try:
+        exp_s, sig = token.split(".", 1)
+        exp = int(exp_s)
+    except (ValueError, AttributeError):
+        return False
+    if exp < time.time():
+        return False
+    secret, pin = await _auth_material()
+    return hmac.compare_digest(sig, _sign(secret, pin, exp))
+
+def _client_ip(request: Request) -> str:
+    fwd = request.headers.get("x-forwarded-for", "")
+    return fwd.split(",")[0].strip() if fwd else (request.client.host if request.client else "?")
+
+def _is_locked(ip: str) -> bool:
+    now = time.time()
+    fails = [t for t in _pin_failures.get(ip, []) if now - t < PIN_LOCK_SECONDS]
+    _pin_failures[ip] = fails
+    return len(fails) >= PIN_MAX_FAILS
+
+@api_router.post("/auth/verify-pin")
+async def verify_pin(body: PinVerify, request: Request):
+    ip = _client_ip(request)
+    if _is_locked(ip):
+        raise HTTPException(status_code=429, detail="Trop d'essais. Réessayez dans 15 minutes.")
+    settings = await get_settings()
+    if hmac.compare_digest(str(body.pin), str(settings["pin"])):
+        _pin_failures.pop(ip, None)
+        return {"status": "success", "authenticated": True, "token": await make_session_token()}
+    _pin_failures.setdefault(ip, []).append(time.time())
     raise HTTPException(status_code=401, detail="Code incorrect")
 
 @api_router.post("/auth/change-pin")
-async def change_pin(body: PinChange):
+async def change_pin(body: PinChange, request: Request):
+    ip = _client_ip(request)
+    if _is_locked(ip):
+        raise HTTPException(status_code=429, detail="Trop d'essais. Réessayez dans 15 minutes.")
     settings = await get_settings()
-    if body.current_pin != settings["pin"]:
+    if not hmac.compare_digest(str(body.current_pin), str(settings["pin"])):
+        _pin_failures.setdefault(ip, []).append(time.time())
         raise HTTPException(status_code=401, detail="Code actuel incorrect")
+    _pin_failures.pop(ip, None)
     await db.settings.update_one({"id": "app_settings"}, {"$set": {"pin": body.new_pin}})
-    return {"status": "success", "message": "Code modifié"}
+    # Nouveau jeton pour l'appareil actuel ; les autres appareils devront retaper le code
+    return {"status": "success", "message": "Code modifié", "token": await make_session_token()}
 
 @api_router.post("/auth/recover-pin")
 async def recover_pin():
@@ -2721,6 +2788,25 @@ async def generate_ai_relance_manual(quote_id: str):
     return {"status": "success", "relance": doc}
 
 app.include_router(api_router)
+
+# Adresses accessibles sans connexion : la connexion elle-même et les devis envoyés aux clients
+AUTH_OPEN_PREFIXES = ("/api/auth/verify-pin", "/api/auth/change-pin", "/api/auth/recover-pin", "/api/public/")
+
+@app.middleware("http")
+async def require_session(request: Request, call_next):
+    path = request.url.path
+    if (
+        request.method == "OPTIONS"
+        or not path.startswith("/api")
+        or path in ("/api", "/api/")
+        or path.startswith(AUTH_OPEN_PREFIXES)
+    ):
+        return await call_next(request)
+    auth = request.headers.get("authorization", "")
+    token = auth[7:].strip() if auth.lower().startswith("bearer ") else ""
+    if not token or not await check_session_token(token):
+        return JSONResponse(status_code=401, content={"detail": "Non connecté"})
+    return await call_next(request)
 
 # Compresse les réponses (devis, clients...) : 5 à 10 fois moins de données à transférer
 app.add_middleware(GZipMiddleware, minimum_size=1000)
